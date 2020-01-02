@@ -36,7 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy, "unidecode"
-requirements = "libffi","python3","openssl","flask==0.12.4","Jinja2==2.8.1","tornado==4.5.3","regex==2019.12.20","Flask-Login==0.4.1","Flask-Babel==0.12.2","Flask-Assets==0.12","blinker==1.4","werkzeug==0.16","cachelib==0.1","PyYAML==5.1","markdown==3.1","pyserial==3.4","netaddr==0.7.19","watchdog","sarge==0.1.5post0","netifaces==0.10.9","pylru==1.2","rsa==4.0","pkginfo==1.5.0.1","requests==2.22.0","semantic_version==2.8","psutil==5.6.5","Click==7.0","awesome-slugify==1.6.5","feedparser==5.2.1","future==0.18.2","websocket-client","wrapt==1.11.2","emoji==0.5.4","frozendict==1.2","sentry-sdk==0.13.2","filetype==1.0.5","https://github.com/feelfreelinux/octoprint-android-server/archive/devel.zip","urllib3","chardet","certifi","idna","babel","typing","scandir","chainmap","Flask-Principal","six","argh","webassets","monotonic","pathtools"
+requirements = "android","kivy","libffi","python3","openssl","flask==0.12.4","jinja2","tornado==4.5.3","regex==2019.12.20","Flask-Login==0.4.1","Flask-Babel==0.12.2","Flask-Assets==0.12","blinker==1.4","werkzeug==0.16","cachelib==0.1","PyYAML==5.1","markdown==3.1","pyserial==3.4","netaddr==0.7.19","watchdog","sarge==0.1.5post0","netifaces==0.10.9","pylru==1.2","rsa==4.0","pkginfo==1.5.0.1","requests==2.22.0","semantic_version==2.8","psutil==5.6.5","Click==7.0","awesome-slugify==1.6.5","feedparser==5.2.1","future==0.18.2","websocket-client","wrapt==1.11.2","emoji==0.5.4","frozendict==1.2","sentry-sdk==0.13.2","filetype==1.0.5","https://github.com/feelfreelinux/octoprint-android-server/archive/devel.zip","urllib3","chardet","certifi","idna","babel","typing","scandir","chainmap","Flask-Principal","six","argh","webassets","monotonic","pathtools", "unidecode"
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -220,7 +220,6 @@ android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.arch = armeabi-v7a
-
 #
 # Python for android (p4a) specific
 #
@@ -241,7 +240,7 @@ p4a.local_recipes = ./recipes/
 #p4a.hook =
 
 # (str) Bootstrap to use for android builds
-p4a.bootstrap = service_only
+p4a.bootstrap = sdl2
 
 # (int) port number to specify an explicit --port= p4a argument (eg for bootstrap flask)
 #p4a.port =
