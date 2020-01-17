@@ -93,6 +93,21 @@ SHA256: a8d2a45be72c3b1fa90306578011ac0d79595a347587d80e20c21d085751e8f7
 Homepage: https://www.gnu.org/software/binutils/
 Description: gold linker
 
+Package: build-essential
+Version: 3.1-4
+Architecture: all
+Maintainer: Leonid Plyushch <leonid.plyushch@gmail.com>
+Installed-Size: 4
+Depends: autoconf, automake, bison, clang, cmake, flex, gperf, libtool, m4, make, ninja, pkg-config, bc, bzip2, coreutils, diffutils, ed, findutils, gawk, grep, gzip, lzip, lzop, patch, procps, psmisc, sed, tar, util-linux, xz-utils
+Suggests: git, golang, nodejs, patchelf, proot, python, python2, ruby, rust, subversion
+Filename: ./build-essential_3.1-4_all.deb
+Size: 872
+MD5sum: 5f1a20854c31604931fde010f2972576
+SHA1: bd3bb459f633de4514654791a2f8b8e125318f6e
+SHA256: e689808d861f4975313c326d784621c752ec89621168d7d94d57f6f6bc7578d7
+Homepage: https://github.com/termux/termux-packages
+Description: A metapackage that installs essential development tools
+
 Package: busybox
 Version: 1.31.1-2
 Architecture: aarch64
@@ -148,6 +163,20 @@ SHA1: 76208782005d03003f9b69c451fe90d59805fccd
 SHA256: 6d1c52f08be1ada6514a8d43795f8bd3ba10e8b1c2ccbba214e75e7d5fe1505f
 Homepage: https://curl.haxx.se/docs/caextract.html
 Description: Common CA certificates (java keystore format)
+
+Package: clang
+Version: 9.0.1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 9024
+Depends: libllvm (= 9.0.1)
+Filename: ./clang_9.0.1_aarch64.deb
+Size: 679018
+MD5sum: 60925ac0f7eea16ebcc6c23d1fecab17
+SHA1: 2e037836dd3a901a272fdb1eac8e2abb9075766c
+SHA256: 1804f4e3c4c3bfc90d0d28df08120b137f4897b4ba448269b46a5592c3404edf
+Homepage: https://clang.llvm.org/
+Description: C language frontend for LLVM
 
 Package: command-not-found
 Version: 1.44
@@ -1006,6 +1035,37 @@ SHA256: 8900b2264471ad06f086e5f2b68731a6b3400ca2cbf6849bdb68928b7f77cfcf
 Homepage: https://gnupg.org/related_software/libksba/
 Description: Static libraries for libksba
 
+Package: libllvm
+Version: 9.0.1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 130020
+Depends: binutils, libc++, ncurses, ndk-sysroot, libffi, zlib
+Conflicts: gcc, clang (<< 3.9.1-3)
+Breaks: libclang, libclang-dev, libllvm-dev
+Replaces: gcc, libclang, libclang-dev, libllvm-dev
+Filename: ./libllvm_9.0.1_aarch64.deb
+Size: 23706544
+MD5sum: 2f0f249c3ac03f88517f75fe69d28a36
+SHA1: 59054c6fb2933684a72257153d0bb719cd5d2c8f
+SHA256: 6d83913b144768221c918e4d132d94a04a3ba3d63bf7180554e341a4a9d6f440
+Homepage: https://clang.llvm.org/
+Description: Modular compiler and toolchain technologies library
+
+Package: libllvm-static
+Version: 9.0.1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 233488
+Depends: libllvm (= 9.0.1)
+Filename: ./libllvm-static_9.0.1_aarch64.deb
+Size: 27342916
+MD5sum: b39f68428e230d926330b9552ba1fda8
+SHA1: 8ef05f121eda234dd23e8a9bd3f65e28ea3ecaf0
+SHA256: 0df3fa4806474102808cf4198dcc5e814bbceec52c919284d7ca199e29cbd3c5
+Homepage: https://clang.llvm.org/
+Description: Static libraries for libllvm
+
 Package: liblzma
 Version: 5.2.4-7
 Architecture: aarch64
@@ -1331,6 +1391,34 @@ SHA256: d6900520ab9a9b9619c3d0b37803fcb6e355c37a53a002d80013b156a9ac3517
 Homepage: http://www.xmlsoft.org
 Description: XML utilities
 
+Package: lld
+Version: 9.0.1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 12564
+Depends: libllvm (= 9.0.1)
+Filename: ./lld_9.0.1_aarch64.deb
+Size: 1390030
+MD5sum: 83a00360e8db23dd542d2addc0863d5a
+SHA1: d38913e1968632e2bf5c322c98b416fec08bb38a
+SHA256: f806ed9dff9746fb234a443ee48aa4d25d773d0c49d2995660b6e263de978c23
+Homepage: https://clang.llvm.org/
+Description: LLVM-based linker
+
+Package: llvm
+Version: 9.0.1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 8752
+Depends: libllvm (= 9.0.1)
+Filename: ./llvm_9.0.1_aarch64.deb
+Size: 1911208
+MD5sum: aea0064fac07428eebd1050d734eaf13
+SHA1: f550b1e755ec6a917cfbcc609ba3e1a4236f989d
+SHA256: b3cf981785eff4978552dcd218d9bf85e719730e9bcb2f78595878b2936ee86b
+Homepage: https://clang.llvm.org/
+Description: Modular compiler and toolchain technologies executables
+
 Package: ncurses
 Version: 6.1.20190928
 Architecture: aarch64
@@ -1401,6 +1489,21 @@ SHA1: 70caf51566477e39e99edb5e1bc50827a6d183f9
 SHA256: c79ebd8d29881c4dd6339181ee5137bba3c89a03da39dbbf822b361063722956
 Homepage: https://invisible-island.net/ncurses/
 Description: Tools for working with terminals
+
+Package: ndk-sysroot
+Version: 20-6
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 16644
+Conflicts: libutil-dev, libgcc, libandroid-support-dev
+Replaces: libutil-dev, libgcc, libandroid-support-dev, ndk-stl
+Filename: ./ndk-sysroot_20-6_aarch64.deb
+Size: 1440840
+MD5sum: 586f8b5e4ca6f4103fc710e11fd7b9d9
+SHA1: c30aec3b51d4a139c36a47f45f623cc81fe6c002
+SHA256: 0aaff99be7c44856d945e3b9604a0cba93af5bdb510b884c0380bec0844e6b68
+Homepage: https://developer.android.com/tools/sdk/ndk/index.html
+Description: System header and library files from the Android NDK needed for compiling C programs
 
 Package: net-tools
 Version: 1.60.2017.02.21-3
@@ -1677,6 +1780,20 @@ SHA1: 91cf070fbec694da93374a0c35ead4350d6ff28a
 SHA256: 2f9ee30ad5afdcd3ec0185ddbf778e9a967541b7b718e817e2cdf8b90f646bac
 Homepage: https://www.gnu.org/software/sed/
 Description: GNU stream editor for filtering/transforming text
+
+Package: socat
+Version: 1.7.3.3-1
+Architecture: aarch64
+Maintainer: Fredrik Fornwall @fornwall
+Installed-Size: 524
+Depends: openssl, readline
+Filename: ./socat_1.7.3.3-1_aarch64.deb
+Size: 138988
+MD5sum: d0934d3a3f2d558163ec6f797e483398
+SHA1: cf6e94c4619ed53efedf49d71501f664ec971754
+SHA256: ecdbe1b9a4b7b10f6121cd8434e14e100b22f139ff6aa4aaee1f1e655372e65c
+Homepage: http://www.dest-unreach.org/socat/
+Description: Relay for bidirectional data transfer between two independent data channels
 
 Package: sqlite
 Version: 3.30.1
