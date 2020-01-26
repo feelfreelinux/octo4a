@@ -1,0 +1,8 @@
+# Referenced at /Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/merged_manifests/release/AndroidManifest.xml:23
+-keep class androidx.core.app.CoreComponentFactory { <init>(); }
+# Referenced at /Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/merged_manifests/release/AndroidManifest.xml:28
+-keep class io.feelfreelinux.octo4a.octo4a.MainActivity { <init>(); }
+# Referenced at /Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/merged_manifests/release/AndroidManifest.xml:53
+-keep class io.feelfreelinux.octo4a.octo4a.OctoPrintService { <init>(); }
+# Referenced at /Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/merged_manifests/release/AndroidManifest.xml:23
+-keep class io.flutter.app.FlutterApplication { <init>(); }

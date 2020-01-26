@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.bmoliveira:snake-yaml:v1.18-android@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.bmoliveira/snake-yaml/v1.18-android/b32e2afc73ed8ea4eb83000a3addf14c5399474b/snake-yaml-v1.18-android.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.bmoliveira/snake-yaml/v1.18-android/a59c63fdefcb7bbb2e7a06cb6bd6df6c4c5228b9/snake-yaml-v1.18-android-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.bmoliveira/snake-yaml/v1.18-android/d4951f29851621db64f0441c850ab9ff375e9767/snake-yaml-v1.18-android-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

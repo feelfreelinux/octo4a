@@ -1,0 +1,185 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/f046f38cf99e9cbe4891b184ce64db19/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0f0610cdcf96e6cfa9529b6a3246e3f6/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/e1bbce6b0d79e8479b70e7bd729bb743/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/28d99d5113324aa067757f8ca41a426f/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ae13efc3dbae5c9ee58d4933337fcd21/coordinatorlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5bfbe01745d2a29d4e7cd137b17143f4/drawerlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b046e47c43be2b85609c7f97cccc722e/slidingpanelayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ef0bef029ab70f5fb29de019060cf5fd/customview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5fdf5da548a469ca3cc39dc72a350a99/swiperefreshlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/1403af03ba6e6e95b13bf5808de0f892/asynclayoutinflater-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6e38f4e9d5bd10f4c7f28aa7b63ad3a1/lifecycle-runtime-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/23edc849475fdda61367cb003f9b9f93/lifecycle-livedata-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/79f9d65ef8b1c716310f666473a689a7/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/077300052aa327ee6fc9bbb0ce309b24/core-runtime-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/cf738d4606a2d10adda01983ea645814/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:17:1-25:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/2ca8bc49d3a28fb6fa3bddf429b143ba/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/fefdd83516e8eeb5097956f9d9af4b04/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/35bca835e72502cae5588ee7a59cf4b0/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/bce9999f881bb3993a5b24e08740cbbf/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6b1132090a8a1ffc60b82d3452ca52ad/print-1.0.0/AndroidManifest.xml:17:1-22:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+	package
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:2:5-45
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:11-69
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:8:5-76
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:8:22-74
+uses-permission#android.permission.INTERNET
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:9:5-66
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:9:22-64
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:5-75
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:22-73
+uses-feature#android.hardware.usb.host
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:5-62
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:19-59
+application
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:5-44:19
+MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:5-89
+MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:22:5-23:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:22:5-23:19
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
+	android:label
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:15:9-31
+	android:icon
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:16:9-43
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:14:9-57
+activity#io.feelfreelinux.octo4a.octo4a.MainActivity
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-35:20
+	android:launchMode
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:13-43
+	android:hardwareAccelerated
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:22:13-47
+	android:windowSoftInputMode
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:23:13-55
+	android:configChanges
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:21:13-163
+	android:theme
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:20:13-47
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:24:13-27:29
+action#android.intent.action.MAIN
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:17-68
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:17-76
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:27-74
+intent-filter#action:name:android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:13-30:29
+action#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:17-90
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:25-87
+meta-data#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:32:13-34:57
+	android:resource
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:34:17-54
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:33:17-79
+meta-data#flutterEmbedding
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:37:9-39:33
+	android:value
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:39:13-30
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:38:13-44
+service#io.feelfreelinux.octo4a.octo4a.OctoPrintService
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:9-83
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:18-80
+uses-sdk
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/f046f38cf99e9cbe4891b184ce64db19/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/f046f38cf99e9cbe4891b184ce64db19/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0f0610cdcf96e6cfa9529b6a3246e3f6/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0f0610cdcf96e6cfa9529b6a3246e3f6/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/e1bbce6b0d79e8479b70e7bd729bb743/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/e1bbce6b0d79e8479b70e7bd729bb743/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/28d99d5113324aa067757f8ca41a426f/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/28d99d5113324aa067757f8ca41a426f/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ae13efc3dbae5c9ee58d4933337fcd21/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ae13efc3dbae5c9ee58d4933337fcd21/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5bfbe01745d2a29d4e7cd137b17143f4/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5bfbe01745d2a29d4e7cd137b17143f4/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b046e47c43be2b85609c7f97cccc722e/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b046e47c43be2b85609c7f97cccc722e/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ef0bef029ab70f5fb29de019060cf5fd/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/ef0bef029ab70f5fb29de019060cf5fd/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5fdf5da548a469ca3cc39dc72a350a99/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/5fdf5da548a469ca3cc39dc72a350a99/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/1403af03ba6e6e95b13bf5808de0f892/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/1403af03ba6e6e95b13bf5808de0f892/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6e38f4e9d5bd10f4c7f28aa7b63ad3a1/lifecycle-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6e38f4e9d5bd10f4c7f28aa7b63ad3a1/lifecycle-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/23edc849475fdda61367cb003f9b9f93/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/23edc849475fdda61367cb003f9b9f93/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/79f9d65ef8b1c716310f666473a689a7/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/79f9d65ef8b1c716310f666473a689a7/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/077300052aa327ee6fc9bbb0ce309b24/core-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/077300052aa327ee6fc9bbb0ce309b24/core-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/cf738d4606a2d10adda01983ea645814/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/cf738d4606a2d10adda01983ea645814/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/2ca8bc49d3a28fb6fa3bddf429b143ba/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/2ca8bc49d3a28fb6fa3bddf429b143ba/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/fefdd83516e8eeb5097956f9d9af4b04/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/fefdd83516e8eeb5097956f9d9af4b04/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/35bca835e72502cae5588ee7a59cf4b0/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/35bca835e72502cae5588ee7a59cf4b0/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/bce9999f881bb3993a5b24e08740cbbf/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/bce9999f881bb3993a5b24e08740cbbf/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6b1132090a8a1ffc60b82d3452ca52ad/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6b1132090a8a1ffc60b82d3452ca52ad/print-1.0.0/AndroidManifest.xml:20:5-44
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml

@@ -1,0 +1,7 @@
+#Sun Jan 26 14:34:59 CET 2020
+base.0=/Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/dex/debug/mergeExtDexDebug/out/classes.dex
+path.1=classes.dex
+renamed.1=classes2.dex
+path.0=classes.dex
+renamed.0=classes.dex
+base.1=/Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/dex/debug/mergeProjectDexDebug/out/classes.dex
