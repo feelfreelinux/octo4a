@@ -14,9 +14,9 @@ class Octo4aSerial(octoprint.util.comm.MachineCom):
     def __init__(self, logger, baud):
         self.logger = logger
         self.timeout = 0
-        self.baudrate = 115200
+        self.baudrate = baud
         self.input = open('/data/data/io.feelfreelinux.octo4a/files/home/input', 'rb')
-        self.output = open('/data/data/io.feelfreelinux.octo4a/files/home//output', 'wb')
+        self.output = open('/data/data/io.feelfreelinux.octo4a/files/home/output', 'wb')
         self.output.write(("!octo4a: BAUDRATE" + str(baud) + '\n').encode("utf-8"))
 
     def readline(self, size=None, eol='n'):

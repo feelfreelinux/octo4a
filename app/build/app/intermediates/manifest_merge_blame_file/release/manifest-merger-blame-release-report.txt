@@ -25,70 +25,76 @@
 19    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 19-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:5-75
 19-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:22-73
-20
-21    <uses-feature android:name="android.hardware.usb.host" />
-21-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:5-62
-21-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:19-59
+20    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+20-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:5-80
+20-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:22-78
+21    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+21-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:12:5-79
+21-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:12:22-77
 22
-23    <application
-23-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:5-44:19
-24        android:name="io.flutter.app.FlutterApplication"
-24-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:14:9-57
-25        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-25-->[androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
-26        android:icon="@mipmap/ic_launcher"
-26-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:16:9-43
-27        android:label="octo4a" >
-27-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:15:9-31
-28        <activity
-28-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-35:20
-29            android:name="io.feelfreelinux.octo4a.octo4a.MainActivity"
-29-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:13-41
-30            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-30-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:21:13-163
-31            android:hardwareAccelerated="true"
-31-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:22:13-47
-32            android:launchMode="singleTop"
-32-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:13-43
-33            android:theme="@style/LaunchTheme"
-33-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:20:13-47
-34            android:windowSoftInputMode="adjustResize" >
-34-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:23:13-55
-35            <intent-filter>
-35-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:24:13-27:29
-36                <action android:name="android.intent.action.MAIN" />
-36-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:17-68
-36-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:25-66
-37
-38                <category android:name="android.intent.category.LAUNCHER" />
-38-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:17-76
-38-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:27-74
-39            </intent-filter>
-40            <intent-filter>
-40-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:13-30:29
-41                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-41-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:17-90
-41-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:25-87
-42            </intent-filter>
-43
-44            <meta-data
-44-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:32:13-34:57
-45                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-45-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:33:17-79
-46                android:resource="@xml/device_filter" />
-46-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:34:17-54
-47        </activity>
-48
-49        <meta-data
-49-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:37:9-39:33
-50            android:name="flutterEmbedding"
-50-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:38:13-44
-51            android:value="2" />
-51-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:39:13-30
-52
-53        <service android:name="io.feelfreelinux.octo4a.octo4a.OctoPrintService" />
-53-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:9-83
-53-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:18-80
-54    </application>
-55
-56</manifest>
+23    <uses-feature android:name="android.hardware.usb.host" />
+23-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:5-62
+23-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:19-59
+24
+25    <application
+25-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:15:5-46:19
+26        android:name="io.flutter.app.FlutterApplication"
+26-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:16:9-57
+27        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+27-->[androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
+28        android:icon="@mipmap/ic_launcher"
+28-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:9-43
+29        android:label="octo4a" >
+29-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-31
+30        <activity
+30-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:9-37:20
+31            android:name="io.feelfreelinux.octo4a.octo4a.MainActivity"
+31-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:20:13-41
+32            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+32-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:23:13-163
+33            android:hardwareAccelerated="true"
+33-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:24:13-47
+34            android:launchMode="singleTop"
+34-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:21:13-43
+35            android:theme="@style/LaunchTheme"
+35-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:22:13-47
+36            android:windowSoftInputMode="adjustResize" >
+36-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:13-55
+37            <intent-filter>
+37-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:13-29:29
+38                <action android:name="android.intent.action.MAIN" />
+38-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:27:17-68
+38-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:27:25-66
+39
+40                <category android:name="android.intent.category.LAUNCHER" />
+40-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:17-76
+40-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:27-74
+41            </intent-filter>
+42            <intent-filter>
+42-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:30:13-32:29
+43                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+43-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:31:17-90
+43-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:31:25-87
+44            </intent-filter>
+45
+46            <meta-data
+46-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:34:13-36:57
+47                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+47-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:35:17-79
+48                android:resource="@xml/device_filter" />
+48-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:36:17-54
+49        </activity>
+50
+51        <meta-data
+51-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:39:9-41:33
+52            android:name="flutterEmbedding"
+52-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:13-44
+53            android:value="2" />
+53-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:41:13-30
+54
+55        <service android:name="io.feelfreelinux.octo4a.octo4a.OctoPrintService" />
+55-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:42:9-83
+55-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:42:18-80
+56    </application>
+57
+58</manifest>

@@ -125,7 +125,6 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                         }
                         EVENT_TYPE_SELECT_USB_DEVICE -> {
                             selectedDevice = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
-                            selectedBaud = event.getInt("baud")
 
                             val mPendingIntent =
                                     PendingIntent.getBroadcast(this@OctoPrintService, 0, Intent(BROADCAST_SERVICE_USB_GOT_ACCESS), 0)
@@ -240,24 +239,6 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.setContentText(notificationSubtitle).build())
     }
 
-    private fun insertSerialIntoConfiguration() {
-        val configFile = File("${BootstrapUtils.HOME_PATH}/.octoprint/config.yaml")
-        val yaml = Yaml()
-        val output = yaml.load(configFile.inputStream()) as Map<String, Any>
-        val map = output.toMutableMap()
-        map["serial"] = mapOf("additionalPorts" to listOf("${BootstrapUtils.HOME_PATH}/serout"), "exclusive" to false) as Any
-
-        val writer = FileWriter(configFile, false)
-
-        yaml.dump(map, writer)
-        writer.flush()
-        writer.close()
-
-        val backupFile = File("${BootstrapUtils.HOME_PATH}/.octoprint/config.backup")
-        backupFile.delete()
-        BootstrapUtils.runBashCommand("cp .octoprint/config.yaml .octoprint/config.backup")
-    }
-
     fun beginInstallation() {
         Thread {
             updateStatus(OctoPrintStatus.INSTALLING)
@@ -276,6 +257,10 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                 BootstrapUtils.runBashCommand("curl -L https://github.com/foosel/OctoPrint/archive/devel.zip -o OctoPrint.zip").waitAndPrintOutput()
                 BootstrapUtils.runBashCommand("unzip OctoPrint.zip").waitAndPrintOutput()
                 sendInstallationStatus(InstallationStatuses.INSTALLING_OCTOPRINT)
+                BootstrapUtils.runBashCommand("mkfifo input")
+                BootstrapUtils.runBashCommand("mkfifo output")
+                BootstrapUtils.runBashCommand("mkdir -p .octoprint/plugins")
+                BootstrapUtils.runBashCommand("curl -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/octoprint-plugin/android_support.py -o .octoprint/plugins/android_support.py").waitAndPrintOutput()
                 BootstrapUtils.runBashCommand("cd OctoPrint-devel && python3 setup.py install").waitAndPrintOutput()
                 sendInstallationStatus(InstallationStatuses.BOOTING_OCTOPRINT)
 
@@ -283,8 +268,6 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             }
         }.start()
     }
-
-    var serialOpened = false
 
     private fun startupOctoPrint(firstTime: Boolean = false) {
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
@@ -300,47 +283,16 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             openVirtualSerialPort()
 
             try {
-                var usbConnection: UsbDeviceConnection? = null
                 octoPrintProcess!!.inputStream.reader().forEachLine {
                     Log.v(LOGGER_TAG, "octoprint: $it")
 
-                    // TODO: Perhaps find a better way to handle it
+                    // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
                     if (it.contains("Listening on")) {
                         updateStatus(OctoPrintStatus.RUNNING)
 
                         if (firstTime) {
                             // :)
                             sendInstallationStatus(InstallationStatuses.INSTALLATION_COMPLETE)
-
-                            // Inject serial settings into configuration file
-                            insertSerialIntoConfiguration()
-                        }
-                    }
-
-                    if (it.contains("to \"Opening serial port") && selectedDevice != null) {
-                            ioManager?.stop()
-
-                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
-
-                            usbPort = selectedDevice!!.ports.first()
-                            usbPort?.open(usbConnection)
-                            usbPort?.setParameters(selectedBaud!!, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-                            usbPort!!.dtr = true
-                            usbPort!!.rts = true
-                            ioManager = SerialInputOutputManager(usbPort, this)
-                            serialExecutor.submit(ioManager)
-                    }
-
-                    else if (it.contains("to \"Offline")) {
-                        try {
-                            usbPort?.close()
-                        } catch (e:Throwable) {
-
-                        }
-                        try {
-                            connection?.close()
-                        } catch (e:Throwable) {
-
                         }
                     }
                 }
@@ -352,36 +304,45 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun openVirtualSerialPort() {
-        if(socatProcess != null) return
-
-            // Socat process creates an virtual serial port
-            socatProcess = BootstrapUtils.runBashCommand("socat -d -d pty,raw,echo=0,b115200,link=/data/data/io.feelfreelinux.octo4a/files/home/serin pty,raw,echo=0,b115200,link=/data/data/io.feelfreelinux.octo4a/files/home/serout")
-
-        Handler(Looper.getMainLooper()).postDelayed({
             // Open virtual serial port
-            stdinHandler = BootstrapUtils.runBashCommand("(stty raw; cat -u) < /data/data/io.feelfreelinux.octo4a/files/home/serin")
-            stdoutHandler = BootstrapUtils.runBashCommand("(stty raw; cat -u) > /data/data/io.feelfreelinux.octo4a/files/home/serin")
+            stdinHandler = BootstrapUtils.runBashCommand("cat -u < /data/data/io.feelfreelinux.octo4a/files/home/output")
+            stdoutHandler = BootstrapUtils.runBashCommand("cat -u > /data/data/io.feelfreelinux.octo4a/files/home/input")
             stdinStream = stdoutHandler!!.outputStream
             stdoutStream = stdinHandler!!.inputStream
 
             Thread {
+                var usbConnection: UsbDeviceConnection? = null
 
-                while (true) {
-                    val data = ByteArray(4096)
+                stdoutStream?.reader()?.forEachLine {
+                    if (it.contains("!octo4a:")) {
+                        if (it.contains("!octo4a: BAUDRATE")) {
+                            val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
+                            ioManager?.stop()
 
+                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
 
-                    val read = stdoutStream?.read(data, 0, data.size)
-                    if (read != -1) {
-                        try {
-                            usbPort?.write(data.copyOfRange(0, read!!), 0)
-                        } catch (e: Throwable) {
+                            usbPort = selectedDevice!!.ports.first()
+                            usbPort?.open(usbConnection)
+                            usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+                            usbPort!!.dtr = true
+                            usbPort!!.rts = true
+                            ioManager = SerialInputOutputManager(usbPort, this)
+                            serialExecutor.submit(ioManager)
+                        } else if (it.contains("!octo4a: CLOSE")) {
+                            try {
+                                usbConnection?.close()
+                            } catch (e: Throwable) { }
 
+                            try {
+                                usbPort?.close()
+                            } catch (e: Throwable) { }
                         }
+
+                    } else {
+                        usbPort?.write("$it\n".toByteArray(), 0)
                     }
                 }
             }.start()
-        }, 1000)
-
     }
 
     private fun stopServer() {

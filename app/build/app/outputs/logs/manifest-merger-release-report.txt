@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/f046f38cf99e9cbe4891b184ce64db19/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
@@ -28,20 +28,20 @@ MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/apultyna/.gradle
 MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/35bca835e72502cae5588ee7a59cf4b0/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/bce9999f881bb3993a5b24e08740cbbf/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/6b1132090a8a1ffc60b82d3452ca52ad/print-1.0.0/AndroidManifest.xml:17:1-22:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
-INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 	package
 		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:2:5-45
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 	android:versionName
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 	android:versionCode
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-46:12
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 	xmlns:android
 		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:11-69
@@ -57,12 +57,20 @@ uses-permission#android.permission.ACCESS_WIFI_STATE
 ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:5-75
 	android:name
 		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:10:22-73
-uses-feature#android.hardware.usb.host
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:5-62
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:5-80
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:19-59
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:11:22-78
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:12:5-79
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:12:22-77
+uses-feature#android.hardware.usb.host
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:5-62
+	android:name
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:19-59
 application
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:13:5-44:19
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:15:5-46:19
 MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:5-89
 MERGED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:5-89
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/52d4fecae8c1eb4103beef9198e64f51/versionedparcelable-1.0.0/AndroidManifest.xml:22:5-23:19
@@ -70,57 +78,57 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apul
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
 	android:label
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:15:9-31
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-31
 	android:icon
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:16:9-43
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:9-43
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:14:9-57
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:16:9-57
 activity#io.feelfreelinux.octo4a.octo4a.MainActivity
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-35:20
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:9-37:20
 	android:launchMode
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:13-43
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:21:13-43
 	android:hardwareAccelerated
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:22:13-47
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:24:13-47
 	android:windowSoftInputMode
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:23:13-55
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:13-55
 	android:configChanges
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:21:13-163
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:23:13-163
 	android:theme
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:20:13-47
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:22:13-47
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:13-41
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:20:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:24:13-27:29
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:13-29:29
 action#android.intent.action.MAIN
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:17-68
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:27:17-68
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:25:25-66
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:27:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:17-76
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:17-76
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:26:27-74
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:27-74
 intent-filter#action:name:android.hardware.usb.action.USB_DEVICE_ATTACHED
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:28:13-30:29
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:30:13-32:29
 action#android.hardware.usb.action.USB_DEVICE_ATTACHED
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:17-90
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:31:17-90
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:29:25-87
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:31:25-87
 meta-data#android.hardware.usb.action.USB_DEVICE_ATTACHED
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:32:13-34:57
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:34:13-36:57
 	android:resource
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:34:17-54
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:36:17-54
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:33:17-79
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:35:17-79
 meta-data#flutterEmbedding
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:37:9-39:33
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:39:9-41:33
 	android:value
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:39:13-30
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:41:13-30
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:38:13-44
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:13-44
 service#io.feelfreelinux.octo4a.octo4a.OctoPrintService
-ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:9-83
+ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:42:9-83
 	android:name
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:40:18-80
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:42:18-80
 uses-sdk
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml

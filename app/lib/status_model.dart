@@ -79,15 +79,9 @@ class StatusModel extends ChangeNotifier {
     fetchUsbDevices();
   }
 
-  void selectBaudrate(int baud) {
-    _selectedBaudrate = baud;
-    notifyListeners();
-  }
-
   void connectusb() {
-    if (_selectedBaudrate != null) {
-      selectSerialDevice(_selectedBaudrate);
-    }
+    selectSerialDevice(0);
+    
   }
 
   void updateServerStatus(String status) {

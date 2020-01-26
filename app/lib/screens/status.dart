@@ -125,27 +125,7 @@ class StatusScreen extends StatelessWidget {
                                 child: Text(model.serialPorts.isEmpty
                                     ? "No device connected"
                                     : model.serialPorts.first)),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                "Appropriate baudrate needs to be also set separately in OctoPrint interface",
-                                style: TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                            DropdownButton<int>(
-                              value: model.selectedBaudrate,
-                              onChanged: (v) => model.selectBaudrate(v),
-                              hint: Text("Select baudrate"),
-                              items: BAUDRATES
-                                  .map(
-                                    (e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e.toString()),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
+                            
                             FlatButton(
                               padding: EdgeInsets.zero,
                               child: Text(model.isDeviceConnected
