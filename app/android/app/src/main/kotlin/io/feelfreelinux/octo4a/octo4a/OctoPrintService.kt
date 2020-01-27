@@ -80,6 +80,8 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         const val LOGGER_TAG = "OCTO4A"
         const val NOTIFICATION_ID = 1
         const val BROADCAST_SERVICE_RECEIVE_ACTION = "io.feelfreelinux.octo4a.service_receive_event"
+        const val EVENT_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED"
+        const val EVENT_USB_DETACHED  = "android.hardware.usb.action.USB_DEVICE_DETACHED"
         const val EXTRA_EVENTDATA = "EXTRA_EVENTDATA"
         const val BROADCAST_SERVICE_USB_GOT_ACCESS = "io.feelfreelinux.octo4a.usb_access_received"
 
@@ -103,10 +105,11 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         val filter = IntentFilter()
         filter.addAction(BROADCAST_SERVICE_RECEIVE_ACTION)
         filter.addAction(BROADCAST_SERVICE_USB_GOT_ACCESS)
+        filter.addAction(EVENT_USB_ATTACHED)
+        filter.addAction(EVENT_USB_DETACHED)
+
         filter
     }
-
-    var selectedBaud: Int? = null
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
@@ -148,12 +151,13 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                 if (granted) {
                     connectToUsbDevice()
                 }
+            } else if (intent?.action == EVENT_USB_DETACHED || intent?.action == EVENT_USB_ATTACHED) {
+                updateDevicesList()
             }
         }
     }
 
     var usbPort: UsbSerialPort? = null
-    var connection: UsbDeviceConnection? = null
 
     private fun connectToUsbDevice() {
         val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
