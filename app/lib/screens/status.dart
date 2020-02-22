@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:octo4a/backend/backend.dart';
 import 'package:octo4a/widgets/widgets.dart';
 import 'package:octo4a/status_model.dart';
@@ -7,7 +8,9 @@ import 'package:provider/provider.dart';
 class StatusData {
   final Color textColor;
   final String subtitle;
-  StatusData({this.textColor, this.subtitle});
+  final String description;
+  final Widget icon;
+  StatusData({this.textColor, this.subtitle, this.description, this.icon});
 }
 
 class StatusScreen extends StatelessWidget {
@@ -31,112 +34,52 @@ class StatusScreen extends StatelessWidget {
                   Padding(
                     padding:
                         const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                    child: PanelCard(
-                      title: getStatusData(model.status).subtitle,
-                      textColor: getStatusData(model.status).textColor,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          model.status == OctoPrintStatus.RUNNING
-                              ? RichText(
-                                  text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                            text:
-                                                "OctoPrint server is running in the background. Happy printing!\nIP Address: "),
-                                        TextSpan(
-                                            text: model.ipAddress,
-                                            style:
-                                                TextStyle(color: Colors.blue)),
-                                      ],
-                                      style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w300,
-                                          color: Colors.black)),
-                                )
-                              : Container(),
-                          Text(
-                            "\n!!! Closing the server will stop all active prints !!!",
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w500),
-                          ),
-                          model.status == OctoPrintStatus.RUNNING ||
-                                  model.status == OctoPrintStatus.STOPPED
-                              ? FlatButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    if (model.status ==
-                                        OctoPrintStatus.RUNNING) {
-                                      stopServer();
-                                      return;
-                                    }
-                                    startServer();
-                                  },
-                                  child: Text(
-                                    model.status == OctoPrintStatus.RUNNING
-                                        ? "Stop the server"
-                                        : "Start the server",
-                                    style: TextStyle(
-                                        color: model.status ==
-                                                OctoPrintStatus.RUNNING
-                                            ? Colors.red
-                                            : Colors.green),
-                                  ),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(),
-                                )
-                        ],
-                      ),
-                    ),
+                    child: _drawServerStatus(context, model),
                   ),
-                  AnimatedOpacity(
-                    duration: Duration(milliseconds: 500),
-                    opacity: model.status == OctoPrintStatus.RUNNING ? 1 : 0.6,
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                      child: PanelCard(
-                        title: model.isDeviceConnected
-                            ? "Printer is connected"
-                            : "Printer not connected",
-                        trailling: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: Icon(Icons.refresh),
-                          onPressed: () {
-                            model.queryUsbDevices();
-                          },
-                        ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                    child: PanelCard(
+                      title: model.isDeviceConnected
+                          ? "Printer is connected"
+                          : "Printer not connected",
+                      trailling: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.refresh),
+                        onPressed: () {
+                          model.queryUsbDevices();
+                        },
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                "Please connect your printer to the phone with OTG cable, and hit refresh button to detect your printer.",
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w300),
-                              ),
+                            Text(
+                              "Please connect your printer to the phone with OTG cable, and hit refresh button to detect your printer.",
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w300),
                             ),
-                            Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 8.0, bottom: 8),
-                                child: Text(model.serialPorts.isEmpty
-                                    ? "No device connected"
-                                    : model.serialPorts.first)),
-                            
-                            FlatButton(
-                              padding: EdgeInsets.zero,
-                              child: Text(model.isDeviceConnected
-                                  ? "Reconnect the printer"
-                                  : "Connect to your printer"),
-                              onPressed: () {
-                                model.connectusb();
-                              },
-                            )
+                            model.isDeviceConnected
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Text("Device connected on: " +
+                                        model.serialPorts.first))
+                                : Container(),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                    child: PanelCard(
+                      title: "Happy printing!",
+  
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0, top: 8),
+                        child: Text("In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")
                       ),
                     ),
                   ),
@@ -149,30 +92,99 @@ class StatusScreen extends StatelessWidget {
     );
   }
 
-  StatusData getStatusData(OctoPrintStatus status) {
+  Widget _drawServerStatus(BuildContext context, StatusModel model) {
+    return PanelCard(
+      title: getStatusData(model).subtitle,
+      trailling: getStatusData(model).icon,
+      textColor: getStatusData(model).textColor,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: model.status == OctoPrintStatus.RUNNING ? 8.0 : 16),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(getStatusData(model).description),
+              model.status == OctoPrintStatus.RUNNING
+                  ? InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: model.ipAddress));
+
+                        final snackBar =
+                            SnackBar(content: Text('Address copied'));
+
+                        Scaffold.of(context).showSnackBar(snackBar);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8.0, bottom: 8),
+                        child: Center(
+                            child: Text(
+                          model.ipAddress,
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 17,
+                          ),
+                        )),
+                      ),
+                    )
+                  : Container()
+            ]),
+      ),
+    );
+  }
+
+  StatusData getStatusData(StatusModel model) {
     Color textColor;
     String subtitle;
-    switch (status) {
+    String description;
+    Widget icon = IconButton(
+      padding: EdgeInsets.zero,
+      icon: Icon(Icons.font_download, color: Colors.black.withOpacity(0)),
+      onPressed: () {},
+    );
+    switch (model.status) {
       case OctoPrintStatus.INSTALLING:
         textColor = Colors.orange;
+        description = "Installation might take a while";
         subtitle = "OctoPrint server installing";
         break;
       case OctoPrintStatus.RUNNING:
         textColor = Colors.green;
+        description = "Use this address to access this printer from anywhere in this network";
+        icon = IconButton(
+          padding: EdgeInsets.zero,
+          icon: Icon(Icons.stop, color: Colors.red),
+          onPressed: () => stopServer(),
+        );
         subtitle = "OctoPrint server running";
         break;
       case OctoPrintStatus.STOPPED:
         textColor = Colors.red;
         subtitle = "OctoPrint server stopped";
+        description = "Printing server is currently stopped.";
+        icon = IconButton(
+          padding: EdgeInsets.zero,
+          icon: Icon(Icons.play_arrow, color: Colors.green),
+          onPressed: () => startServer(),
+        );
         break;
       case OctoPrintStatus.STARTING_UP:
         textColor = Colors.blue;
+        icon = Container(
+          margin: EdgeInsets.all(16.0),
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 3,),
+        );
         subtitle = "OctoPrint server starting";
+        description =
+            "The IP address will be provided once the printing server starts.";
         break;
     }
 
     return StatusData(
       textColor: textColor ?? Colors.pink,
+      description: description ?? "",
+      icon: icon ?? Container(),
       subtitle: subtitle ?? "empty",
     );
   }

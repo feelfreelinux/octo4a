@@ -67,7 +67,6 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     var currentStatus = OctoPrintStatus.STOPPED
 
     var octoPrintProcess: Process? = null
-    var socatProcess: Process? = null
     var stdinHandler: Process? = null
     var stdoutHandler: Process? = null
     var stdinStream: OutputStream? = null
@@ -126,13 +125,6 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                         EVENT_TYPE_STOP_SERVER -> {
                             stopServer()
                         }
-                        EVENT_TYPE_SELECT_USB_DEVICE -> {
-                            selectedDevice = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
-
-                            val mPendingIntent =
-                                    PendingIntent.getBroadcast(this@OctoPrintService, 0, Intent(BROADCAST_SERVICE_USB_GOT_ACCESS), 0)
-                            usbManager.requestPermission(selectedDevice!!.device, mPendingIntent)
-                        }
 
                         EVENT_TYPE_UERY_SERIAL_DEVICES -> {
                             updateDevicesList()
@@ -160,14 +152,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     var usbPort: UsbSerialPort? = null
 
     private fun connectToUsbDevice() {
-        val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
-        val jsonData = JSONObject()
-        jsonData.put("eventType", "deviceStatus")
-        jsonData.put("status", "connected")
-
-        intent.putExtra(EXTRA_EVENTDATA, jsonData.toString())
-        sendBroadcast(intent)
-
+        selectedDevice = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
     }
 
     private val notificationSubtitle: String
@@ -230,6 +215,21 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
     private fun updateDevicesList() {
         val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
+
+        if (serialDevices.isNotEmpty()) {
+            val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
+
+            if (!usbManager.hasPermission(device!!.device)) {
+                val mPendingIntent =
+                        PendingIntent.getBroadcast(this@OctoPrintService, 0, Intent(BROADCAST_SERVICE_USB_GOT_ACCESS), 0)
+                usbManager.requestPermission(device.device, mPendingIntent)
+            } else {
+                selectedDevice = device
+            }
+
+
+        }
+
         val jsonData = JSONObject()
         jsonData.put("eventType", "devicesList")
         jsonData.put("body", JSONObject().put("devices", JSONArray(serialDevices)))
@@ -306,47 +306,48 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         }.start()
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    var vspHandlerThread: Thread? = null
+
     private fun openVirtualSerialPort() {
-            // Open virtual serial port
-            stdinHandler = BootstrapUtils.runBashCommand("cat -u < /data/data/io.feelfreelinux.octo4a/files/home/output")
-            stdoutHandler = BootstrapUtils.runBashCommand("cat -u > /data/data/io.feelfreelinux.octo4a/files/home/input")
-            stdinStream = stdoutHandler!!.outputStream
-            stdoutStream = stdinHandler!!.inputStream
+        // Open virtual serial port
+        stdinHandler = BootstrapUtils.runBashCommand("cat -u < /data/data/io.feelfreelinux.octo4a/files/home/output")
+        stdoutHandler = BootstrapUtils.runBashCommand("cat -u > /data/data/io.feelfreelinux.octo4a/files/home/input")
+        stdinStream = stdoutHandler!!.outputStream
+        stdoutStream = stdinHandler!!.inputStream
 
-            Thread {
-                var usbConnection: UsbDeviceConnection? = null
+        vspHandlerThread = Thread {
+            var usbConnection: UsbDeviceConnection? = null
+            stdoutStream?.reader()?.forEachLine {
+                if (it.contains("!octo4a:")) {
+                    if (it.contains("!octo4a: BAUDRATE")) {
+                        val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
+                        ioManager?.stop()
 
-                stdoutStream?.reader()?.forEachLine {
-                    if (it.contains("!octo4a:")) {
-                        if (it.contains("!octo4a: BAUDRATE")) {
-                            val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
-                            ioManager?.stop()
+                        usbConnection = usbManager.openDevice(selectedDevice!!.device)
 
-                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
+                        usbPort = selectedDevice!!.ports.first()
+                        usbPort?.open(usbConnection)
+                        usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+                        usbPort!!.dtr = true
+                        usbPort!!.rts = true
+                        ioManager = SerialInputOutputManager(usbPort, this)
+                        serialExecutor.submit(ioManager)
+                    } else if (it.contains("!octo4a: CLOSE")) {
+                        try {
+                            usbConnection?.close()
+                        } catch (e: Throwable) { }
 
-                            usbPort = selectedDevice!!.ports.first()
-                            usbPort?.open(usbConnection)
-                            usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-                            usbPort!!.dtr = true
-                            usbPort!!.rts = true
-                            ioManager = SerialInputOutputManager(usbPort, this)
-                            serialExecutor.submit(ioManager)
-                        } else if (it.contains("!octo4a: CLOSE")) {
-                            try {
-                                usbConnection?.close()
-                            } catch (e: Throwable) { }
-
-                            try {
-                                usbPort?.close()
-                            } catch (e: Throwable) { }
-                        }
-
-                    } else {
-                        usbPort?.write("$it\n".toByteArray(), 0)
+                        try {
+                            usbPort?.close()
+                        } catch (e: Throwable) { }
                     }
+
+                } else {
+                        usbPort?.write("$it\n".toByteArray(), 0)
                 }
-            }.start()
+            }
+        }
+        vspHandlerThread?.start()
     }
 
     private fun stopServer() {
@@ -354,11 +355,8 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         if (octoPrintProcess == null && !octoPrintProcess!!.isRunning()) {
             return
         }
-
+        vspHandlerThread?.interrupt()
         octoPrintProcess?.destroy()
-        stdinHandler?.destroy()
-        stdoutHandler?.destroy()
-        socatProcess?.destroy()
         updateStatus(OctoPrintStatus.STOPPED)
     }
 

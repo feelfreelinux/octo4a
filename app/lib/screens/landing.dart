@@ -36,7 +36,7 @@ class LandingPage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
                       child: Text(
-                        "This application will install OctoPrint server on your android device. Please make sure that you have at least 1gb of storage available. You will also need an OTG cable in order to connect your phone to your 3d printer.\n\nThis project is an unofficial product, not affiliated with OctoPrint project.",
+                        "This application will install OctoPrint server on your android device. Please make sure that you have at least 700mb of storage available. You will also need an OTG cable in order to connect your phone to your 3d printer.\n\nThis project is an unofficial product, not affiliated with OctoPrint project.",
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w300),
                       ),

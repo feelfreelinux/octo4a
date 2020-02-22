@@ -44,8 +44,8 @@
 27-->[androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
 28        android:icon="@mipmap/ic_launcher"
 28-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:9-43
-29        android:label="octo4a" >
-29-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-31
+29        android:label="OctoPrint For Android" >
+29-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-46
 30        <activity
 30-->/Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:19:9-37:20
 31            android:name="io.feelfreelinux.octo4a.octo4a.MainActivity"

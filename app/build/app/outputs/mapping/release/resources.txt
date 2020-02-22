@@ -1,26 +1,29 @@
 Resource Reference Graph:
 color:notification_action_color_filter:2130837504 => [color:secondary_text_default_material_light:2130837507]
 dimen:notification_media_narrow_margin:2130903054 => [dimen:notification_content_margin_start:2130903050]
-drawable:notification_action_background:2130968578 => [color:ripple_material_light:2130837506, dimen:compat_button_inset_vertical_material:2130903041, dimen:compat_button_inset_horizontal_material:2130903040, dimen:compat_control_corner_material:2130903044, dimen:compat_button_padding_vertical_material:2130903043, dimen:compat_button_padding_horizontal_material:2130903042]
-drawable:notification_bg:2130968579 => [drawable:notification_bg_normal_pressed:2130968584, drawable:notification_bg_normal:2130968583]
-drawable:notification_bg_low:2130968580 => [drawable:notification_bg_low_pressed:2130968582, drawable:notification_bg_low_normal:2130968581]
-drawable:notification_icon_background:2130968585 => [color:notification_icon_bg_color:2130837505]
-drawable:notification_tile_bg:2130968588 => [drawable:notify_panel_notification_icon_bg:2130968589]
+drawable:ic_launcher_background:2130968577 => [drawable:ic_launcher_background_1:-1]
+drawable:notification_action_background:2130968581 => [color:ripple_material_light:2130837506, dimen:compat_button_inset_vertical_material:2130903041, dimen:compat_button_inset_horizontal_material:2130903040, dimen:compat_control_corner_material:2130903044, dimen:compat_button_padding_vertical_material:2130903043, dimen:compat_button_padding_horizontal_material:2130903042]
+drawable:notification_bg:2130968582 => [drawable:notification_bg_normal_pressed:2130968587, drawable:notification_bg_normal:2130968586]
+drawable:notification_bg_low:2130968583 => [drawable:notification_bg_low_pressed:2130968585, drawable:notification_bg_low_normal:2130968584]
+drawable:notification_icon_background:2130968588 => [color:notification_icon_bg_color:2130837505]
+drawable:notification_tile_bg:2130968591 => [drawable:notify_panel_notification_icon_bg:2130968592]
 layout:notification_action:2131165184 => [style:Widget_Compat_NotificationActionContainer:2131361798, dimen:notification_action_icon_size:2130903047, style:Widget_Compat_NotificationActionText:2131361799]
 layout:notification_action_tombstone:2131165185 => [style:Widget_Compat_NotificationActionContainer:2131361798, dimen:notification_action_icon_size:2130903047, style:Widget_Compat_NotificationActionText:2131361799]
 layout:notification_template_custom_big:2131165186 => [dimen:notification_large_icon_height:2130903051, dimen:notification_large_icon_width:2130903052, layout:notification_template_icon_group:2131165187, dimen:notification_right_side_padding_top:2130903056, layout:notification_template_part_time:2131165189, layout:notification_template_part_chronometer:2131165188, style:TextAppearance_Compat_Notification_Info:2131361794]
 layout:notification_template_icon_group:2131165187 => [dimen:notification_large_icon_height:2130903051, dimen:notification_large_icon_width:2130903052, dimen:notification_big_circle_margin:2130903049, dimen:notification_right_icon_size:2130903055]
 layout:notification_template_part_chronometer:2131165188 => [style:TextAppearance_Compat_Notification_Time:2131361796]
 layout:notification_template_part_time:2131165189 => [style:TextAppearance_Compat_Notification_Time:2131361796]
-style:LaunchTheme:2131361792 => [drawable:launch_background:2130968577]
+mipmap:ic_launcher:2131230720 => [drawable:ic_launcher_background:2130968577, drawable:ic_launcher_foreground:2130968578]
+mipmap:ic_launcher_round:2131230721 => [drawable:ic_launcher_background:2130968577, drawable:ic_launcher_foreground:2130968578]
+style:LaunchTheme:2131361792 => [drawable:launch_background:2130968580]
 style:TextAppearance_Compat_Notification_Info:2131361794 => [style:TextAppearance_Compat_Notification:2131361793, style:TextAppearance_Compat:-1, style:TextAppearance:-1]
 style:TextAppearance_Compat_Notification_Line2:2131361795 => [style:TextAppearance_Compat_Notification_Info:2131361794]
 style:TextAppearance_Compat_Notification_Time:2131361796 => [style:TextAppearance_Compat_Notification:2131361793, style:TextAppearance_Compat:-1, style:TextAppearance:-1]
-style:Widget_Compat_NotificationActionContainer:2131361798 => [drawable:notification_action_background:2130968578]
+style:Widget_Compat_NotificationActionContainer:2131361798 => [drawable:notification_action_background:2130968581]
 style:Widget_Compat_NotificationActionText:2131361799 => [color:secondary_text_default_material_light:2130837507, dimen:notification_action_text_size:2130903048]
 
 The root reachable resources are:
-drawable:ic_print_black_24dp:2130968576,
+drawable:ic_print_black_24dp:2130968579,
    mipmap:ic_launcher:2131230720,
    style:LaunchTheme:2131361792,
    xml:device_filter:2131492864
@@ -50,3 +53,9 @@ Skipped unused resource res/layout-v21/notification_template_custom_big.xml: -1 
 Skipped unused resource res/layout-v21/notification_template_icon_group.xml: -1 bytes (replaced with small dummy file of size 104 bytes)
 Skipped unused resource res/layout/notification_template_part_chronometer.xml: -1 bytes (replaced with small dummy file of size 104 bytes)
 Skipped unused resource res/layout/notification_template_part_time.xml: -1 bytes (replaced with small dummy file of size 104 bytes)
+Skipped unused resource res/mipmap-mdpi-v4/ic_launcher_round.png: 2935 bytes (replaced with small dummy file of size 67 bytes)
+Skipped unused resource res/mipmap-hdpi-v4/ic_launcher_round.png: 4451 bytes (replaced with small dummy file of size 67 bytes)
+Skipped unused resource res/mipmap-xhdpi-v4/ic_launcher_round.png: 6000 bytes (replaced with small dummy file of size 67 bytes)
+Skipped unused resource res/mipmap-xxhdpi-v4/ic_launcher_round.png: 9732 bytes (replaced with small dummy file of size 67 bytes)
+Skipped unused resource res/mipmap-xxxhdpi-v4/ic_launcher_round.png: 13335 bytes (replaced with small dummy file of size 67 bytes)
+Skipped unused resource res/mipmap-anydpi-v26/ic_launcher_round.xml: -1 bytes (replaced with small dummy file of size 104 bytes)

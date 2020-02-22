@@ -32,7 +32,7 @@ class StatusModel extends ChangeNotifier {
   List<String> get serialPorts => _serialPorts;
   OctoPrintStatus get status => _octoPrintStatus;
   int get installationStatus => _installationStatus;
-  bool get isDeviceConnected => _deviceConnected;
+  bool get isDeviceConnected => _serialPorts.isNotEmpty;
   int get selectedBaudrate => _selectedBaudrate;
   String get ipAddress => _ipAddress;
 

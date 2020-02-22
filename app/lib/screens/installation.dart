@@ -75,7 +75,7 @@ class _InstallationScreenState extends State<InstallationScreen> {
                               padding:
                                   const EdgeInsets.only(top: 8.0, bottom: 8),
                               child: Text(
-                                "This might take a while depending on your network connection.",
+                                "This might take a while depending on your network connection. (up to 30 minutes!)",
                                 style: TextStyle(
                                     fontSize: 17, fontWeight: FontWeight.w300),
                               ),

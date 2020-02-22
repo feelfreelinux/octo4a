@@ -14,7 +14,7 @@
 
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="octo4a"
+        android:label="OctoPrint For Android"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

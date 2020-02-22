@@ -1,4 +1,4 @@
-#Sun Jan 26 21:34:38 CET 2020
+#Wed Feb 05 19:19:55 CET 2020
 base.0=/Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/transforms/r8/release/0/classes.dex
 path.0=classes.dex
 renamed.0=classes.dex

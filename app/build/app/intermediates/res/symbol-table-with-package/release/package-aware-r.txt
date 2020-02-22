@@ -46,6 +46,8 @@ dimen notification_small_icon_size_as_large
 dimen notification_subtext_size
 dimen notification_top_pad
 dimen notification_top_pad_large_text
+drawable ic_launcher_background
+drawable ic_launcher_foreground
 drawable ic_print_black_24dp
 drawable launch_background
 drawable notification_action_background
@@ -112,6 +114,7 @@ layout notification_template_icon_group
 layout notification_template_part_chronometer
 layout notification_template_part_time
 mipmap ic_launcher
+mipmap ic_launcher_round
 string status_bar_notification_info_overflow
 style LaunchTheme
 style TextAppearance_Compat_Notification

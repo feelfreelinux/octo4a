@@ -39,7 +39,7 @@ class PanelCard extends StatelessWidget {
               ],
             )),
             Padding(
-              padding: const EdgeInsets.only(top: 16.0, right: 16, left: 16),
+              padding: const EdgeInsets.only(top: 0, right: 16, left: 16),
               child: child,
             ),
           ]),

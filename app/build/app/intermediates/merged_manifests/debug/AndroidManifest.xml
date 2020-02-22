@@ -31,8 +31,7 @@
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="octo4a"
-        android:testOnly="true" >
+        android:label="octo4a" >
         <activity
             android:name="io.feelfreelinux.octo4a.octo4a.MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

@@ -62,6 +62,12 @@
       "languageVersion": "2.2"
     },
     {
+      "name": "flutter_launcher_icons",
+      "rootUri": "file:///Users/apultyna/Documents/sdks/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_launcher_icons-0.7.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
       "name": "flutter_test",
       "rootUri": "file:///Users/apultyna/Documents/sdks/flutter/packages/flutter_test",
       "packageUri": "lib/",
@@ -182,13 +188,19 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "yaml",
+      "rootUri": "file:///Users/apultyna/Documents/sdks/flutter/.pub-cache/hosted/pub.dartlang.org/yaml-2.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
       "name": "octo4a",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.2"
     }
   ],
-  "generated": "2020-01-24T13:04:58.071476Z",
+  "generated": "2020-02-05T17:59:05.654037Z",
   "generator": "pub",
   "generatorVersion": "2.7.0"
 }

@@ -1,7 +1,7 @@
 # compiler: R8
 # compiler_version: 1.5.64
 # min_api: 21
-# pg_map_id: a70544f
+# pg_map_id: 7bd1be5
 androidx.arch.core.internal.FastSafeIterableMap -> a.a.a.a.a:
     java.util.HashMap mHashMap -> e
 androidx.arch.core.internal.SafeIterableMap -> a.a.a.a.b:
@@ -371,19 +371,19 @@ io.feelfreelinux.octo4a.octo4a.MainActivity$intentFilter$2 -> io.feelfreelinux.o
     java.lang.Object invoke() -> b
 io.feelfreelinux.octo4a.octo4a.OctoPrintService -> io.feelfreelinux.octo4a.octo4a.OctoPrintService:
     kotlin.reflect.KProperty[] $$delegatedProperties -> p
-    io.feelfreelinux.octo4a.octo4a.OctoPrintService$broadcastReceiver$1 broadcastReceiver -> m
+    java.lang.Thread vspHandlerThread -> o
+    java.io.OutputStream stdinStream -> h
     java.lang.Process octoPrintProcess -> e
-    java.io.OutputStream stdinStream -> i
-    java.lang.Process socatProcess -> f
-    kotlin.Lazy intentFilter$delegate -> l
-    com.hoho.android.usbserial.driver.UsbSerialPort usbPort -> n
-    java.lang.Process stdinHandler -> g
-    java.lang.Process stdoutHandler -> h
+    kotlin.Lazy intentFilter$delegate -> k
+    com.hoho.android.usbserial.driver.UsbSerialPort usbPort -> m
+    java.lang.Process stdinHandler -> f
+    io.feelfreelinux.octo4a.octo4a.OctoPrintService$broadcastReceiver$1 broadcastReceiver -> l
+    java.lang.Process stdoutHandler -> g
+    kotlin.Lazy notificationBuilder$delegate -> n
     com.hoho.android.usbserial.util.SerialInputOutputManager ioManager -> b
-    kotlin.Lazy notificationBuilder$delegate -> o
     io.feelfreelinux.octo4a.octo4a.OctoPrintService$OctoPrintStatus currentStatus -> d
-    java.io.InputStream stdoutStream -> j
-    com.hoho.android.usbserial.driver.UsbSerialDriver selectedDevice -> k
+    java.io.InputStream stdoutStream -> i
+    com.hoho.android.usbserial.driver.UsbSerialDriver selectedDevice -> j
     java.util.concurrent.ExecutorService serialExecutor -> c
     kotlin.Lazy usbManager$delegate -> a
     void access$connectToUsbDevice(io.feelfreelinux.octo4a.octo4a.OctoPrintService) -> a
@@ -395,7 +395,6 @@ io.feelfreelinux.octo4a.octo4a.OctoPrintService -> io.feelfreelinux.octo4a.octo4
     void onRunError(java.lang.Exception) -> a
     void sendInstallationStatus(io.feelfreelinux.octo4a.octo4a.OctoPrintService$InstallationStatuses) -> a
     void setIoManager(com.hoho.android.usbserial.util.SerialInputOutputManager) -> a
-    void setSelectedDevice(com.hoho.android.usbserial.driver.UsbSerialDriver) -> a
     void setUsbPort(com.hoho.android.usbserial.driver.UsbSerialPort) -> a
     void startupOctoPrint(boolean) -> a
     void startupOctoPrint$default(io.feelfreelinux.octo4a.octo4a.OctoPrintService,boolean,int,java.lang.Object) -> a
