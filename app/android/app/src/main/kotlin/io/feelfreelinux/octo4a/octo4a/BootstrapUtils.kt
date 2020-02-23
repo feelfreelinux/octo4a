@@ -31,8 +31,14 @@ class BootstrapUtils {
 
                 val buffer = ByteArray(8096)
                 val symlinks = ArrayList<Pair<String, String>>(50)
+                var urlPrefix = "https://raw.githubusercontent.com/feelfreelinux/octo4a/master/termux-based-approach/bootstrap-"
+                urlPrefix += if (System.getProperty("os.arch") == "aarch64") {
+                    "aarch64.zip"
+                } else {
+                    "arm.zip"
+                }
 
-                ZipInputStream(URL("https://raw.githubusercontent.com/feelfreelinux/octo4a/master/termux-based-approach/bootstrap-aarch64.zip").openStream()).use { zipInput ->
+                ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
                         if (zipEntry.name == "SYMLINKS.txt") {
