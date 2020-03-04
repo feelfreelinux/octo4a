@@ -92,6 +92,7 @@ class BootstrapUtils {
 
                 whenDone()
             } catch (e: Exception) {
+                throw(e)
 
             } finally {
             }
@@ -136,7 +137,7 @@ class BootstrapUtils {
             pb.environment()["LANG"] = "'en_US.UTF-8'"
             pb.redirectErrorStream(true)
 
-            pb.command("/data/data/io.feelfreelinux.octo4a/files/usr/bin/bash", "-c", "cd $FILES/home && $command")
+            pb.command("/data/data/io.feelfreelinux.octo4a/files/usr/bin/bash", "-c", "'cd $FILES/home && $command'`")
             return pb.start()
         }
 

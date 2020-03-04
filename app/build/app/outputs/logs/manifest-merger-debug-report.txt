@@ -81,7 +81,7 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /Users/apul
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/AndroidManifest.xml:22:18-86
 	android:label
-		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-31
+		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:17:9-46
 	android:icon
 		ADDED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:18:9-43
 	android:name

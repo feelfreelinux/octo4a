@@ -289,20 +289,22 @@ public final class R {
     public static final int notification_top_pad_large_text=0x7f030015;
   }
   public static final class drawable {
-    public static final int ic_print_black_24dp=0x7f040000;
-    public static final int launch_background=0x7f040001;
-    public static final int notification_action_background=0x7f040002;
-    public static final int notification_bg=0x7f040003;
-    public static final int notification_bg_low=0x7f040004;
-    public static final int notification_bg_low_normal=0x7f040005;
-    public static final int notification_bg_low_pressed=0x7f040006;
-    public static final int notification_bg_normal=0x7f040007;
-    public static final int notification_bg_normal_pressed=0x7f040008;
-    public static final int notification_icon_background=0x7f040009;
-    public static final int notification_template_icon_bg=0x7f04000a;
-    public static final int notification_template_icon_low_bg=0x7f04000b;
-    public static final int notification_tile_bg=0x7f04000c;
-    public static final int notify_panel_notification_icon_bg=0x7f04000d;
+    public static final int ic_launcher_background=0x7f040001;
+    public static final int ic_launcher_foreground=0x7f040002;
+    public static final int ic_print_black_24dp=0x7f040003;
+    public static final int launch_background=0x7f040004;
+    public static final int notification_action_background=0x7f040005;
+    public static final int notification_bg=0x7f040006;
+    public static final int notification_bg_low=0x7f040007;
+    public static final int notification_bg_low_normal=0x7f040008;
+    public static final int notification_bg_low_pressed=0x7f040009;
+    public static final int notification_bg_normal=0x7f04000a;
+    public static final int notification_bg_normal_pressed=0x7f04000b;
+    public static final int notification_icon_background=0x7f04000c;
+    public static final int notification_template_icon_bg=0x7f04000d;
+    public static final int notification_template_icon_low_bg=0x7f04000e;
+    public static final int notification_tile_bg=0x7f04000f;
+    public static final int notify_panel_notification_icon_bg=0x7f040010;
   }
   public static final class id {
     public static final int action_container=0x7f050000;
@@ -363,6 +365,7 @@ public final class R {
   }
   public static final class mipmap {
     public static final int ic_launcher=0x7f080000;
+    public static final int ic_launcher_round=0x7f080001;
   }
   public static final class string {
     public static final int status_bar_notification_info_overflow=0x7f090000;
