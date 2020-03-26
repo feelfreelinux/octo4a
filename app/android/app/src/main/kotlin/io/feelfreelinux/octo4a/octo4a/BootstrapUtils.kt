@@ -49,7 +49,8 @@ class BootstrapUtils {
                                 if (parts.size != 2)
                                     throw RuntimeException("Malformed symlink line: $line")
                                 val oldPath = parts[0]
-                                val newPath = STAGING_PREFIX_PATH + "/" + parts[1]
+                                var newPath = STAGING_PREFIX_PATH + "/" + parts[1]
+                                newPath = newPath.replace("./", "")
                                 symlinks.add(Pair.create(oldPath, newPath))
 
                                 ensureDirectoryExists(File(newPath).parentFile)
@@ -137,7 +138,7 @@ class BootstrapUtils {
             pb.environment()["LANG"] = "'en_US.UTF-8'"
             pb.redirectErrorStream(true)
 
-            pb.command("/data/data/io.feelfreelinux.octo4a/files/usr/bin/bash", "-c", "'cd $FILES/home && $command'`")
+            pb.command("/data/data/io.feelfreelinux.octo4a/files/usr/bin/bash", "-c", "cd $FILES/home && $command")
             return pb.start()
         }
 

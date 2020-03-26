@@ -1,7 +1,6 @@
 
 package io.feelfreelinux.octo4a.octo4a
 
-import android.annotation.TargetApi
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,20 +15,16 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import org.json.JSONObject
-import org.yaml.snakeyaml.Yaml
 import java.io.*
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import android.hardware.usb.UsbManager
 import android.net.wifi.WifiManager
-import android.os.Handler
-import android.os.Looper
 import android.text.format.Formatter
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import org.json.JSONArray
 import java.lang.Exception
-import java.sql.Connection
 import java.util.concurrent.Executors
 
 
@@ -255,20 +250,27 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             }
 
             // Download and unpack bootstrap
-            BootstrapUtils.setupBootstrap {
-                BootstrapUtils.runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
-                sendInstallationStatus(InstallationStatuses.DOWNLOADING_OCTOPRINT)
-                BootstrapUtils.runBashCommand("curl -L https://github.com/foosel/OctoPrint/archive/devel.zip -o OctoPrint.zip").waitAndPrintOutput()
-                BootstrapUtils.runBashCommand("unzip OctoPrint.zip").waitAndPrintOutput()
-                sendInstallationStatus(InstallationStatuses.INSTALLING_OCTOPRINT)
-                BootstrapUtils.runBashCommand("mkfifo input")
-                BootstrapUtils.runBashCommand("mkfifo output")
-                BootstrapUtils.runBashCommand("mkdir -p .octoprint/plugins")
-                BootstrapUtils.runBashCommand("curl -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/octoprint-plugin/android_support.py -o .octoprint/plugins/android_support.py").waitAndPrintOutput()
-                BootstrapUtils.runBashCommand("cd OctoPrint-devel && python3 setup.py install").waitAndPrintOutput()
-                sendInstallationStatus(InstallationStatuses.BOOTING_OCTOPRINT)
+            Log.v("ASD", "UH BRUH")
+            try {
+                BootstrapUtils.setupBootstrap {
+                    BootstrapUtils.runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
+                    sendInstallationStatus(InstallationStatuses.DOWNLOADING_OCTOPRINT)
+                    BootstrapUtils.runBashCommand("curl -L https://github.com/foosel/OctoPrint/archive/devel.zip -o OctoPrint.zip").waitAndPrintOutput()
+                    BootstrapUtils.runBashCommand("unzip OctoPrint.zip").waitAndPrintOutput()
+                    sendInstallationStatus(InstallationStatuses.INSTALLING_OCTOPRINT)
+                    BootstrapUtils.runBashCommand("mkfifo input")
+                    BootstrapUtils.runBashCommand("mkfifo output")
+                    BootstrapUtils.runBashCommand("mkdir -p .octoprint/plugins")
+                    BootstrapUtils.runBashCommand("curl -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/octoprint-plugin/android_support.py -o .octoprint/plugins/android_support.py").waitAndPrintOutput()
+                    BootstrapUtils.runBashCommand("cd OctoPrint-devel && python3 setup.py install").waitAndPrintOutput()
+                    sendInstallationStatus(InstallationStatuses.BOOTING_OCTOPRINT)
 
-                startupOctoPrint(firstTime = true)
+                    startupOctoPrint(firstTime = true)
+                }
+            } catch (e: Exception) {
+                throw(e)
+                Log.v("ASD", e.message)
+                e.printStackTrace()
             }
         }.start()
     }

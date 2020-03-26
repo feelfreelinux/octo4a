@@ -13,7 +13,9 @@ class StatusData {
   StatusData({this.textColor, this.subtitle, this.description, this.icon});
 }
 
+
 class StatusScreen extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -5,6 +5,7 @@ INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/A
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
 MERGED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml:1:1-48:12
+MERGED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:2:1-10:12
 MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/f046f38cf99e9cbe4891b184ce64db19/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
@@ -136,6 +137,8 @@ uses-sdk
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
+MERGED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:5:5-7:41
 MERGED from [com.github.mik3y:usb-serial-for-android:master] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/a244be28b7055dd0147fc476dd683c74/usb-serial-for-android-master/AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.fragment:fragment:1.0.0] /Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8b68c04ee72209a3beca37e17f7088d/fragment-1.0.0/AndroidManifest.xml:20:5-44
@@ -192,3 +195,11 @@ INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/debug/
 	android:minSdkVersion
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/main/AndroidManifest.xml
 		INJECTED from /Users/apultyna/Documents/clones/octo4a/app/android/app/src/debug/AndroidManifest.xml
+uses-permission#android.permission.CAMERA
+ADDED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:7:5-65
+	android:name
+		ADDED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:7:22-62
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:8:5-71
+	android:name
+		ADDED from [:camera] /Users/apultyna/Documents/clones/octo4a/app/build/camera/intermediates/library_manifest/debug/AndroidManifest.xml:8:22-68

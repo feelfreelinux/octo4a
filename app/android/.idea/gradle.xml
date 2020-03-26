@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/../../../../sdks/flutter/.pub-cache/hosted/pub.dartlang.org/camera-0.5.7+4/android" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

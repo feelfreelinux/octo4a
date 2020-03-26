@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:octo4a/backend/backend.dart';
 import 'package:octo4a/screens/installation.dart';
@@ -6,7 +7,14 @@ import 'package:octo4a/screens/status.dart';
 import 'package:octo4a/status_model.dart';
 import 'package:provider/provider.dart';
 
-void main() => runApp(MyApp());
+List<CameraDescription> cameras;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await availableCameras();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -24,7 +32,8 @@ class MyApp extends StatelessWidget {
             future: validateInstallationStatus(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return Scaffold(body: Center(child: CircularProgressIndicator()));
+                return Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
               }
               if (snapshot.data) {
                 return StatusScreen();
@@ -33,7 +42,6 @@ class MyApp extends StatelessWidget {
             },
           ),
         ),
-        
       ),
     );
   }
