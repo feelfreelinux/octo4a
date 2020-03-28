@@ -56,13 +56,17 @@ class MainActivity: FlutterActivity() {
         super.onCreate(savedInstanceState)
         registerReceiver(broadcastReceiver, intentFilter)
 
-        val i = Intent(context, OctoPrintService::class.java)
-        startService(i)
+        startOctoService()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
+    }
+
+    private fun startOctoService() {
+        val i = Intent(context, OctoPrintService::class.java)
+        startService(i)
     }
 
 
@@ -88,7 +92,11 @@ class MainActivity: FlutterActivity() {
                     result.success(BootstrapUtils.isBootstrapInstalled)
                 }
 
-                "beginInstallation", "queryServerStatus", "queryUsbDevices", "startServer", "stopServer" -> {
+                 "startServer" -> {
+                     startOctoService()
+                 }
+
+                "beginInstallation", "queryServerStatus", "queryUsbDevices", "stopServer" -> {
                     result.success(null)
                     notifyService(call.method)
                 }

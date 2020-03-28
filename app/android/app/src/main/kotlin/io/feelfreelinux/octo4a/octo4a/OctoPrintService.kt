@@ -174,6 +174,11 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
+
+        if (BootstrapUtils.isBootstrapInstalled) {
+            startupOctoPrint(false)
+        }
+
         super.onCreate()
     }
 
@@ -250,12 +255,11 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             }
 
             // Download and unpack bootstrap
-            Log.v("ASD", "UH BRUH")
             try {
                 BootstrapUtils.setupBootstrap {
                     BootstrapUtils.runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
                     sendInstallationStatus(InstallationStatuses.DOWNLOADING_OCTOPRINT)
-                    BootstrapUtils.runBashCommand("curl -L https://github.com/foosel/OctoPrint/archive/devel.zip -o OctoPrint.zip").waitAndPrintOutput()
+                    BootstrapUtils.runBashCommand("curl -L https://github.com/foosel/OctoPrint/archive/master.zip -o OctoPrint.zip").waitAndPrintOutput()
                     BootstrapUtils.runBashCommand("unzip OctoPrint.zip").waitAndPrintOutput()
                     sendInstallationStatus(InstallationStatuses.INSTALLING_OCTOPRINT)
                     BootstrapUtils.runBashCommand("mkfifo input")
@@ -269,11 +273,12 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                 }
             } catch (e: Exception) {
                 throw(e)
-                Log.v("ASD", e.message)
+                Log.v("OCTO4A", e.message)
                 e.printStackTrace()
             }
         }.start()
     }
+
 
     private fun startupOctoPrint(firstTime: Boolean = false) {
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
@@ -289,7 +294,9 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             openVirtualSerialPort()
 
             try {
-                octoPrintProcess!!.inputStream.reader().forEachLine {
+                val reader = octoPrintProcess!!.inputStream.reader()
+
+                reader.forEachLine {
                     Log.v(LOGGER_TAG, "octoprint: $it")
 
                     // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
@@ -302,8 +309,9 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                         }
                     }
                 }
+
             } catch (e: Throwable) {
-                updateStatus(OctoPrintStatus.STOPPED)
+
             }
         }.start()
     }
@@ -359,7 +367,10 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         }
         vspHandlerThread?.interrupt()
         octoPrintProcess?.destroy()
-        updateStatus(OctoPrintStatus.STOPPED)
+        updateStatus(OctoPrintStatus.STOPPED, false)
+
+        // Literally kill the service
+        stopSelf()
     }
 
     private fun sendInstallationStatus(status: InstallationStatuses) {
@@ -378,12 +389,13 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
             return Formatter.formatIpAddress(wm.connectionInfo.ipAddress)
         }
 
-    private fun updateStatus(status: OctoPrintStatus) {
+    private fun updateStatus(status: OctoPrintStatus, sendNotification: Boolean = true) {
         currentStatus = status
         val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
         val jsonData = JSONObject()
 
-        updateNotification()
+
+        if (sendNotification) updateNotification()
 
         jsonData.put("eventType", "serverStatus")
         val bodyObj = JSONObject().put("status", status.name)
