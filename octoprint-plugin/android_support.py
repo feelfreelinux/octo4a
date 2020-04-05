@@ -13,7 +13,7 @@ __plugin_description__ = "Android support for OctoPrint"
 class Octo4aSerial(octoprint.util.comm.MachineCom):
     def __init__(self, logger, baud):
         self.logger = logger
-        self.timeout = 0
+        self.timeout = 15
         self.baudrate = baud
         self.input = open('/data/data/io.feelfreelinux.octo4a/files/home/input', 'rb')
         self.output = open('/data/data/io.feelfreelinux.octo4a/files/home/output', 'wb')
