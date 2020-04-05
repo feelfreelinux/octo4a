@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:octo4a/backend/backend.dart';
 import 'package:octo4a/screens/installation.dart';
@@ -6,13 +5,15 @@ import 'package:octo4a/screens/landing.dart';
 import 'package:octo4a/screens/status.dart';
 import 'package:octo4a/status_model.dart';
 import 'package:provider/provider.dart';
+// import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
-List<CameraDescription> cameras;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Crashlytics.instance.enableInDevMode = true;
 
-  await availableCameras();
+  // Pass all uncaught errors from the framework to Crashlytics.
+  // FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }
 

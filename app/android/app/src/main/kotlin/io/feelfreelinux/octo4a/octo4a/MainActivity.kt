@@ -56,6 +56,11 @@ class MainActivity: FlutterActivity() {
         super.onCreate(savedInstanceState)
         registerReceiver(broadcastReceiver, intentFilter)
 
+
+        // startService(i)
+        // Bugsnag.notify(RuntimeException("Test error"))
+
+
         startOctoService()
     }
 
@@ -92,11 +97,11 @@ class MainActivity: FlutterActivity() {
                     result.success(BootstrapUtils.isBootstrapInstalled)
                 }
 
-                 "startServer" -> {
-                     startOctoService()
-                 }
+                "startServer" -> {
+                    startOctoService()
+                }
 
-                "beginInstallation", "queryServerStatus", "queryUsbDevices", "stopServer" -> {
+                "beginInstallation", "queryServerStatus", "queryUsbDevices", "stopServer", "startCameraServer", "stopCameraServer" -> {
                     result.success(null)
                     notifyService(call.method)
                 }

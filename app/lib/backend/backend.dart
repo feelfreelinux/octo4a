@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 const statusSink = const EventChannel('io.feelfreelinux.octo4a/status');
 const methodChannel = const MethodChannel('io.feelfreelinux.octo4a/methods');
@@ -35,12 +36,22 @@ Future<void> startServer() {
   methodChannel.invokeMethod("startServer");
 }
 
+Future<void> startCameraServer() async {
+  if (await Permission.camera.request().isGranted) {
+    methodChannel.invokeMethod("startCameraServer");
+  }
+}
+
+Future<void> stopCameraServer() async {
+  methodChannel.invokeMethod("stopCameraServer");
+}
+
 Future<void> queryServerStatus() {
-    methodChannel.invokeMethod("queryServerStatus");
+  methodChannel.invokeMethod("queryServerStatus");
 }
 
 Future<void> fetchUsbDevices() {
-    methodChannel.invokeMethod("queryUsbDevices");
+  methodChannel.invokeMethod("queryUsbDevices");
 }
 
 Future<void> selectSerialDevice(int baud) {

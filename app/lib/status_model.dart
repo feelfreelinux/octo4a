@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:octo4a/backend/backend.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 const BAUDRATES = [
   250000,
@@ -24,8 +25,9 @@ class StatusModel extends ChangeNotifier {
   String _selectedPort;
   int _selectedBaudrate;
   bool _deviceConnected = false;
+  bool _isCameraServerStarted = false;
   String _ipAddress;
-  
+
   bool get validatingBootstrap => _bootstrapInstalled == null;
   bool get isBootstrapInstalled => _bootstrapInstalled;
   String get selectedPort => _selectedPort;
@@ -33,6 +35,7 @@ class StatusModel extends ChangeNotifier {
   OctoPrintStatus get status => _octoPrintStatus;
   int get installationStatus => _installationStatus;
   bool get isDeviceConnected => _serialPorts.isNotEmpty;
+  bool get isCameraServerStarted => _isCameraServerStarted;
   int get selectedBaudrate => _selectedBaudrate;
   String get ipAddress => _ipAddress;
 
@@ -65,7 +68,9 @@ class StatusModel extends ChangeNotifier {
           case "devicesList":
             print(data);
             print(parsedEvent["body"]["devices"]);
-            _serialPorts = List<String>.from(parsedEvent["body"]["devices"]).map((e) => e == null ? "Unnamed port" : e).toList();
+            _serialPorts = List<String>.from(parsedEvent["body"]["devices"])
+                .map((e) => e == null ? "Unnamed port" : e)
+                .toList();
             notifyListeners();
             break;
         }
@@ -81,7 +86,20 @@ class StatusModel extends ChangeNotifier {
 
   void connectusb() {
     selectSerialDevice(0);
-    
+  }
+
+  void startCamera() async {
+    if (await Permission.camera.request().isGranted) {
+      startCameraServer();
+      _isCameraServerStarted = true;
+      notifyListeners();
+    }
+  }
+
+  void stopCamera() {
+    stopCameraServer();
+    _isCameraServerStarted = false;
+    notifyListeners();
   }
 
   void updateServerStatus(String status) {

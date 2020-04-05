@@ -13,12 +13,15 @@ class StatusData {
   StatusData({this.textColor, this.subtitle, this.description, this.icon});
 }
 
-
 class StatusScreen extends StatelessWidget {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text("OctoPrint on Android", style: TextStyle(color: Colors.black),),
+        centerTitle: true,
+      ),
       body: Consumer<StatusModel>(
         builder: (context, model, _) => Container(
           decoration: BoxDecoration(
@@ -77,12 +80,35 @@ class StatusScreen extends StatelessWidget {
                     padding:
                         const EdgeInsets.only(top: 22.0, left: 22, right: 22),
                     child: PanelCard(
-                      title: "Happy printing!",
-  
+                      trailling: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(model.isCameraServerStarted ? Icons.stop : Icons.play_arrow, color: Colors.green),
+                        onPressed: () => {
+                          if (model.isCameraServerStarted) {
+                            model.stopCamera()
+                          } else {
+                            model.startCamera()
+                          }
+                        },
+                      ),
+                      textColor: model.isCameraServerStarted ? Colors.green : Colors.red,
+                      title: model.isCameraServerStarted ? "Camera server running" : "Camera server stopped",
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 16.0, top: 8),
-                        child: Text("In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")
+                        child: Text(
+                            "Your device's camera will provide the octoprint instance with live video preview."),
                       ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                    child: PanelCard(
+                      title: "Happy printing!",
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0, top: 8),
+                          child: Text(
+                              "In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")),
                     ),
                   ),
                 ],
@@ -100,7 +126,8 @@ class StatusScreen extends StatelessWidget {
       trailling: getStatusData(model).icon,
       textColor: getStatusData(model).textColor,
       child: Padding(
-        padding: EdgeInsets.only(bottom: model.status == OctoPrintStatus.RUNNING ? 8.0 : 16),
+        padding: EdgeInsets.only(
+            bottom: model.status == OctoPrintStatus.RUNNING ? 8.0 : 16),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -151,7 +178,8 @@ class StatusScreen extends StatelessWidget {
         break;
       case OctoPrintStatus.RUNNING:
         textColor = Colors.green;
-        description = "Use this address to access this printer from anywhere in this network";
+        description =
+            "Use this address to access this printer from anywhere in this network";
         icon = IconButton(
           padding: EdgeInsets.zero,
           icon: Icon(Icons.stop, color: Colors.red),
@@ -175,7 +203,9 @@ class StatusScreen extends StatelessWidget {
           margin: EdgeInsets.all(16.0),
           width: 20,
           height: 20,
-          child: CircularProgressIndicator(strokeWidth: 3,),
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+          ),
         );
         subtitle = "OctoPrint server starting";
         description =

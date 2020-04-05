@@ -4,13 +4,54 @@
             "outputFile": "/Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-hy/values-hy.xml",
             "map": [
                 {
-                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/res/values-hy/values-hy.xml",
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/5ff6eee0c582d3ba46477d9d7e45e73c/play-services-base-17.0.0/res/values-hy/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+                        "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+                        "startOffsets": "245,349,546,678,784,997,1131,1284,1422,1648,1754,1953,2087,2308,2500,2591,2684",
+                        "endColumns": "103,196,131,105,212,133,152,137,225,105,198,133,220,191,90,92,106",
+                        "endOffsets": "348,545,677,783,996,1130,1283,1421,1647,1753,1952,2086,2307,2499,2590,2683,2790"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "105,213,410,546,656,869,1007,1164,1516,1742,1852,2051,2189,2410,2606,2701,2798",
+                        "endColumns": "107,196,135,109,212,137,156,141,225,109,198,137,220,195,94,96,110",
+                        "endOffsets": "208,405,541,651,864,1002,1159,1301,1737,1847,2046,2184,2405,2601,2696,2793,2904"
+                    }
+                },
+                {
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8f339b2c7fc6619fed6621d2556d072/jetified-play-services-basement-17.0.0/res/values-hy/values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "247",
+                        "endColumns": "209",
+                        "endOffsets": "456"
+                    },
+                    "to": {
+                        "startLines": "10",
+                        "startColumns": "4",
+                        "startOffsets": "1306",
+                        "endColumns": "209",
+                        "endOffsets": "1511"
+                    }
+                },
+                {
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/0dc735f5f6bc1bde61c7f1cbad7a1f11/core-1.1.0/res/values-hy/values-hy.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
                         "startOffsets": "55",
                         "endColumns": "100",
                         "endOffsets": "151"
+                    },
+                    "to": {
+                        "startLines": "20",
+                        "startColumns": "4",
+                        "startOffsets": "2909",
+                        "endColumns": "100",
+                        "endOffsets": "3005"
                     }
                 }
             ]

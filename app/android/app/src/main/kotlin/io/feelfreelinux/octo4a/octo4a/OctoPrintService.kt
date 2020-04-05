@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.camera2.CameraManager
 import android.hardware.usb.UsbDeviceConnection
 import android.os.Build
 import android.os.IBinder
@@ -20,6 +21,8 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import android.hardware.usb.UsbManager
 import android.net.wifi.WifiManager
+import android.os.Handler
+import android.os.Looper
 import android.text.format.Formatter
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.util.SerialInputOutputManager
@@ -49,7 +52,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     }
 
     val usbManager by lazy {
-       getSystemService(Context.USB_SERVICE) as UsbManager
+        getSystemService(Context.USB_SERVICE) as UsbManager
     }
 
     var ioManager: SerialInputOutputManager? = null
@@ -67,6 +70,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     var stdinStream: OutputStream? = null
     var stdoutStream: InputStream? = null
     var selectedDevice: UsbSerialDriver? = null
+    val cameraServerManager by lazy { CameraServerManager(getSystemService(Context.CAMERA_SERVICE) as CameraManager) }
 
     companion object {
 
@@ -75,12 +79,14 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         const val NOTIFICATION_ID = 1
         const val BROADCAST_SERVICE_RECEIVE_ACTION = "io.feelfreelinux.octo4a.service_receive_event"
         const val EVENT_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED"
-        const val EVENT_USB_DETACHED  = "android.hardware.usb.action.USB_DEVICE_DETACHED"
+        const val EVENT_USB_DETACHED = "android.hardware.usb.action.USB_DEVICE_DETACHED"
         const val EXTRA_EVENTDATA = "EXTRA_EVENTDATA"
         const val BROADCAST_SERVICE_USB_GOT_ACCESS = "io.feelfreelinux.octo4a.usb_access_received"
 
         const val EVENT_TYPE_BEGIN_INSTALLATION = "beginInstallation"
         const val EVENT_TYPE_START_SERVER = "startServer"
+        const val EVENT_TYPE_START_CAMERA_SERVER = "startCameraServer"
+        const val EVENT_TYPE_STOP_CAMERA_SERVER = "stopCameraServer"
         const val EVENT_TYPE_STOP_SERVER = "stopServer"
         const val EVENT_TYPE_QUERY_SERVER_STATUS = "queryServerStatus"
         const val EVENT_TYPE_UERY_SERIAL_DEVICES = "queryUsbDevices"
@@ -119,6 +125,14 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                         }
                         EVENT_TYPE_STOP_SERVER -> {
                             stopServer()
+                        }
+
+                        EVENT_TYPE_START_CAMERA_SERVER -> {
+                            cameraServerManager.start()
+                        }
+
+                        EVENT_TYPE_STOP_CAMERA_SERVER -> {
+                            cameraServerManager.stopCamera()
                         }
 
                         EVENT_TYPE_UERY_SERIAL_DEVICES -> {
@@ -217,17 +231,18 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
 
         if (serialDevices.isNotEmpty()) {
-            val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
+            val devices = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+            if (devices.isNotEmpty()) {
+                val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
 
-            if (!usbManager.hasPermission(device!!.device)) {
-                val mPendingIntent =
-                        PendingIntent.getBroadcast(this@OctoPrintService, 0, Intent(BROADCAST_SERVICE_USB_GOT_ACCESS), 0)
-                usbManager.requestPermission(device.device, mPendingIntent)
-            } else {
-                selectedDevice = device
+                if (!usbManager.hasPermission(device!!.device)) {
+                    val mPendingIntent =
+                            PendingIntent.getBroadcast(this@OctoPrintService, 0, Intent(BROADCAST_SERVICE_USB_GOT_ACCESS), 0)
+                    usbManager.requestPermission(device.device, mPendingIntent)
+                } else {
+                    selectedDevice = device
+                }
             }
-
-
         }
 
         val jsonData = JSONObject()
@@ -266,7 +281,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                     BootstrapUtils.runBashCommand("mkfifo output")
                     BootstrapUtils.runBashCommand("mkdir -p .octoprint/plugins")
                     BootstrapUtils.runBashCommand("curl -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/octoprint-plugin/android_support.py -o .octoprint/plugins/android_support.py").waitAndPrintOutput()
-                    BootstrapUtils.runBashCommand("cd OctoPrint-devel && python3 setup.py install").waitAndPrintOutput()
+                    BootstrapUtils.runBashCommand("cd OctoPrint-master && python3 setup.py install").waitAndPrintOutput()
                     sendInstallationStatus(InstallationStatuses.BOOTING_OCTOPRINT)
 
                     startupOctoPrint(firstTime = true)
@@ -281,6 +296,8 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
 
     private fun startupOctoPrint(firstTime: Boolean = false) {
+        updateDevicesList()
+
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             return
         }
@@ -319,6 +336,12 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     var vspHandlerThread: Thread? = null
 
     private fun openVirtualSerialPort() {
+        if (vspHandlerThread != null && vspHandlerThread!!.isAlive) {
+            vspHandlerThread!!.interrupt()
+            stdoutHandler?.destroy()
+            stdinHandler?.destroy()
+        }
+
         // Open virtual serial port
         stdinHandler = BootstrapUtils.runBashCommand("cat -u < /data/data/io.feelfreelinux.octo4a/files/home/output")
         stdoutHandler = BootstrapUtils.runBashCommand("cat -u > /data/data/io.feelfreelinux.octo4a/files/home/input")
@@ -326,35 +349,52 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         stdoutStream = stdinHandler!!.inputStream
 
         vspHandlerThread = Thread {
-            var usbConnection: UsbDeviceConnection? = null
-            stdoutStream?.reader()?.forEachLine {
-                if (it.contains("!octo4a:")) {
-                    if (it.contains("!octo4a: BAUDRATE")) {
-                        val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
-                        ioManager?.stop()
+            try {
+                var usbConnection: UsbDeviceConnection? = null
+                stdoutStream?.reader()?.forEachLine {
+                    if (it.contains("!octo4a:")) {
+                        if (it.contains("!octo4a: BAUDRATE")) {
+                            val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
+                            ioManager?.stop()
 
-                        usbConnection = usbManager.openDevice(selectedDevice!!.device)
 
-                        usbPort = selectedDevice!!.ports.first()
-                        usbPort?.open(usbConnection)
-                        usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-                        usbPort!!.dtr = true
-                        usbPort!!.rts = true
-                        ioManager = SerialInputOutputManager(usbPort, this)
-                        serialExecutor.submit(ioManager)
-                    } else if (it.contains("!octo4a: CLOSE")) {
-                        try {
-                            usbConnection?.close()
-                        } catch (e: Throwable) { }
+                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
 
-                        try {
-                            usbPort?.close()
-                        } catch (e: Throwable) { }
-                    }
+                            usbPort = selectedDevice!!.ports.first()
 
-                } else {
+                            try {
+                                usbPort?.close()
+                            } catch (e: Throwable) {
+                            }
+
+                            usbPort?.open(usbConnection)
+                            usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+                            usbPort!!.dtr = true
+                            usbPort!!.rts = true
+                            ioManager = SerialInputOutputManager(usbPort, this)
+                            serialExecutor.submit(ioManager)
+                        } else if (it.contains("!octo4a: CLOSE")) {
+                            try {
+                                usbPort?.close()
+                            } catch (e: Throwable) {
+                            }
+
+                            try {
+                                usbConnection?.close()
+                            } catch (e: Throwable) {
+                            }
+
+                            // stdinStream!!.write("connection closed\n".toByteArray())
+                            Handler(Looper.getMainLooper()).run {
+                                openVirtualSerialPort()
+                            }
+                        }
+
+                    } else {
                         usbPort?.write("$it\n".toByteArray(), 0)
+                    }
                 }
+            } catch (e: Exception) {
             }
         }
         vspHandlerThread?.start()
@@ -385,7 +425,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
     private val ipAddress: String
         get() {
-            val wm = applicationContext.getSystemService(WIFI_SERVICE)as WifiManager
+            val wm = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
             return Formatter.formatIpAddress(wm.connectionInfo.ipAddress)
         }
 

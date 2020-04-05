@@ -1,21 +1,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.feelfreelinux.octo4a.octo4a">
-    <!-- io.flutter.app.FlutterApplication is an android.app.Application that
-         calls FlutterMain.startInitialization(this); in its onCreate method.
-         In most cases you can leave this as-is, but you if you want to provide
-         additional functionality it is fine to subclass or reimplement
-         FlutterApplication and put your custom class here. -->
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
+
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name="io.feelfreelinux.octo4a.octo4a.MainApplication"
         android:label="OctoPrint For Android"
         android:icon="@mipmap/ic_launcher">
+
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -40,7 +46,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <service android:name="io.feelfreelinux.octo4a.octo4a.OctoPrintService" />
-
+        <service android:name=".CamService" />
 
 
     </application>

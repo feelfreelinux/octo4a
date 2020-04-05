@@ -4,13 +4,54 @@
             "outputFile": "/Users/apultyna/Documents/clones/octo4a/app/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-ne/values-ne.xml",
             "map": [
                 {
-                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/0a271e99b6771ad4a84318244d532fb7/core-1.0.0/res/values-ne/values-ne.xml",
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/0dc735f5f6bc1bde61c7f1cbad7a1f11/core-1.1.0/res/values-ne/values-ne.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
                         "startOffsets": "55",
                         "endColumns": "100",
                         "endOffsets": "151"
+                    },
+                    "to": {
+                        "startLines": "20",
+                        "startColumns": "4",
+                        "startOffsets": "2933",
+                        "endColumns": "100",
+                        "endOffsets": "3029"
+                    }
+                },
+                {
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/5ff6eee0c582d3ba46477d9d7e45e73c/play-services-base-17.0.0/res/values-ne/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+                        "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+                        "startOffsets": "245,358,548,680,795,1025,1159,1295,1425,1664,1780,1975,2110,2317,2495,2587,2685",
+                        "endColumns": "112,189,131,114,229,133,135,129,238,115,194,134,206,177,91,97,116",
+                        "endOffsets": "357,547,679,794,1024,1158,1294,1424,1663,1779,1974,2109,2316,2494,2586,2684,2801"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "105,222,412,548,667,897,1035,1175,1532,1771,1891,2086,2225,2432,2614,2710,2812",
+                        "endColumns": "116,189,135,118,229,137,139,133,238,119,194,138,206,181,95,101,120",
+                        "endOffsets": "217,407,543,662,892,1030,1170,1304,1766,1886,2081,2220,2427,2609,2705,2807,2928"
+                    }
+                },
+                {
+                    "source": "/Users/apultyna/.gradle/caches/transforms-2/files-2.1/b8f339b2c7fc6619fed6621d2556d072/jetified-play-services-basement-17.0.0/res/values-ne/values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "247",
+                        "endColumns": "222",
+                        "endOffsets": "469"
+                    },
+                    "to": {
+                        "startLines": "10",
+                        "startColumns": "4",
+                        "startOffsets": "1309",
+                        "endColumns": "222",
+                        "endOffsets": "1527"
                     }
                 }
             ]
