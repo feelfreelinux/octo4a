@@ -19,10 +19,12 @@ class StatusModel extends ChangeNotifier {
   StreamSubscription statusSubscription;
 
   List<String> _serialPorts = List();
+  List<String> _cameraResolutions = List();
   OctoPrintStatus _octoPrintStatus;
   int _installationStatus = -1;
   bool _bootstrapInstalled;
   String _selectedPort;
+  String _selectedResolution;
   int _selectedBaudrate;
   bool _deviceConnected = false;
   bool _isCameraServerStarted = false;
@@ -33,6 +35,8 @@ class StatusModel extends ChangeNotifier {
   String get selectedPort => _selectedPort;
   List<String> get serialPorts => _serialPorts;
   OctoPrintStatus get status => _octoPrintStatus;
+  String get selectedResolution => _selectedResolution;
+  List<String> get cameraResolutions => _cameraResolutions;
   int get installationStatus => _installationStatus;
   bool get isDeviceConnected => _serialPorts.isNotEmpty;
   bool get isCameraServerStarted => _isCameraServerStarted;
@@ -48,6 +52,7 @@ class StatusModel extends ChangeNotifier {
     statusSubscription = statusSink.receiveBroadcastStream().listen(
       (data) {
         var parsedEvent = json.decode(data);
+        print(parsedEvent);
 
         switch (parsedEvent["eventType"]) {
           case "installationStatus":
@@ -59,6 +64,11 @@ class StatusModel extends ChangeNotifier {
             if (_octoPrintStatus == OctoPrintStatus.RUNNING) {
               _ipAddress = parsedEvent["body"]["ipAddress"];
             }
+            notifyListeners();
+            break;
+          case "cameraResolutions":
+            _cameraResolutions = List<String>.from(parsedEvent["body"]["resolutions"]);
+            _selectedResolution = parsedEvent["body"]["selected"];
             notifyListeners();
             break;
           case "deviceStatus":
@@ -78,10 +88,26 @@ class StatusModel extends ChangeNotifier {
     );
     queryServerStatus();
     queryUsbDevices();
+    queryCameraResolutions();
+  }
+
+  void fetchCameraResolutions() {
+    queryCameraResolutions();
   }
 
   void queryUsbDevices() {
     fetchUsbDevices();
+  }
+
+  void changeResolution(String resolution) {
+    _selectedResolution = resolution;
+    setResolution(resolution);
+    stopCamera();
+    Future.delayed(Duration(milliseconds: 500), () {
+      startCamera();
+      // queryCameraResolutions();
+    });
+
   }
 
   void connectusb() {

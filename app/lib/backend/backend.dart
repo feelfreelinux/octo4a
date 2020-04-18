@@ -54,6 +54,15 @@ Future<void> fetchUsbDevices() {
   methodChannel.invokeMethod("queryUsbDevices");
 }
 
+Future<void> queryCameraResolutions() {
+  methodChannel.invokeMethod("queryCameraResolutions");
+}
+
+Future<void> setResolution(String resolution) {
+  methodChannel.invokeMethod("setResolution", Map.from({"resolution": resolution}));
+}
+
+
 Future<void> selectSerialDevice(int baud) {
   methodChannel.invokeMethod("selectUsbDevice", Map.from({"baud": baud}));
 }

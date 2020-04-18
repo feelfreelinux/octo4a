@@ -44,6 +44,8 @@ class MainActivity: FlutterActivity() {
         filter
     }
 
+    val sharedPreferences by lazy { getSharedPreferences(packageName, Context.MODE_PRIVATE) }
+
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
             intent?.getStringExtra(OctoPrintService.EXTRA_EVENTDATA)?.let {
@@ -101,7 +103,11 @@ class MainActivity: FlutterActivity() {
                     startOctoService()
                 }
 
-                "beginInstallation", "queryServerStatus", "queryUsbDevices", "stopServer", "startCameraServer", "stopCameraServer" -> {
+                "setResolution" -> {
+                    sharedPreferences.edit().putString(OctoPrintService.PREF_NAME_CAMERA_RESOLUTION, call.argument("resolution")).apply()
+                }
+
+                "beginInstallation", "queryServerStatus", "queryUsbDevices", "stopServer", "startCameraServer", "stopCameraServer", "queryCameraResolutions" -> {
                     result.success(null)
                     notifyService(call.method)
                 }

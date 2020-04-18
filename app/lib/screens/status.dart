@@ -19,7 +19,10 @@ class StatusScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text("OctoPrint on Android", style: TextStyle(color: Colors.black),),
+        title: Text(
+          "OctoPrint on Android",
+          style: TextStyle(color: Colors.black),
+        ),
         centerTitle: true,
       ),
       body: Consumer<StatusModel>(
@@ -32,86 +35,120 @@ class StatusScreen extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                    child: _drawServerStatus(context, model),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                    child: PanelCard(
-                      title: model.isDeviceConnected
-                          ? "Printer is connected"
-                          : "Printer not connected",
-                      trailling: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(Icons.refresh),
-                        onPressed: () {
-                          model.queryUsbDevices();
-                        },
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              "Please connect your printer to the phone with OTG cable, and hit refresh button to detect your printer.",
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w300),
-                            ),
-                            model.isDeviceConnected
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Text("Device connected on: " +
-                                        model.serialPorts.first))
-                                : Container(),
-                          ],
+            child: SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                      child: _drawServerStatus(context, model),
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                      child: PanelCard(
+                        title: model.isDeviceConnected
+                            ? "Printer is connected"
+                            : "Printer not connected",
+                        trailling: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            model.queryUsbDevices();
+                          },
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                "Please connect your printer to the phone with OTG cable, and hit refresh button to detect your printer.",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.w300),
+                              ),
+                              model.isDeviceConnected
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text("Device connected on: " +
+                                          model.serialPorts.first))
+                                  : Container(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                    child: PanelCard(
-                      trailling: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(model.isCameraServerStarted ? Icons.stop : Icons.play_arrow, color: Colors.green),
-                        onPressed: () => {
-                          if (model.isCameraServerStarted) {
-                            model.stopCamera()
-                          } else {
-                            model.startCamera()
-                          }
-                        },
-                      ),
-                      textColor: model.isCameraServerStarted ? Colors.green : Colors.red,
-                      title: model.isCameraServerStarted ? "Camera server running" : "Camera server stopped",
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0, top: 8),
-                        child: Text(
-                            "Your device's camera will provide the octoprint instance with live video preview."),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 22.0, left: 22, right: 22),
-                    child: PanelCard(
-                      title: "Happy printing!",
-                      child: Padding(
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                      child: PanelCard(
+                        trailling: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                              model.isCameraServerStarted
+                                  ? Icons.stop
+                                  : Icons.play_arrow,
+                              color: Colors.green),
+                          onPressed: () => {
+                            if (model.isCameraServerStarted)
+                              {model.stopCamera()}
+                            else
+                              {model.startCamera()}
+                          },
+                        ),
+                        textColor: model.isCameraServerStarted
+                            ? Colors.green
+                            : Colors.red,
+                        title: model.isCameraServerStarted
+                            ? "Camera server running"
+                            : "Camera server stopped",
+                        child: Padding(
                           padding: const EdgeInsets.only(bottom: 16.0, top: 8),
-                          child: Text(
-                              "In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                            Text(
+                              "Your device's camera will provide the octoprint instance with live video preview.",
+                            ),
+                                                          Padding(
+                                                            padding: const EdgeInsets.only(top: 14.0),
+                                                            child: Text("Camera resolution"),
+                                                          ),
+                            Row(
+                                                          children: [new DropdownButton<String>(
+                                value: model.selectedResolution,
+                                items: model.cameraResolutions.map((value) {
+                                  return new DropdownMenuItem<String>(
+                                    value: value,
+                                    child: new Text(value),
+                                  );
+                                }).toList(),
+                                
+                                onChanged: (v) {
+                                  model.changeResolution(v);
+                                },
+                              ),
+                              ],
+                            ),
+                          ]),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 22.0, left: 22, right: 22),
+                      child: PanelCard(
+                        title: "Happy printing!",
+                        child: Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0, top: 8),
+                            child: Text(
+                                "In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

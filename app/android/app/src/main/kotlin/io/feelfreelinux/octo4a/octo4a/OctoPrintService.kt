@@ -27,6 +27,7 @@ import android.text.format.Formatter
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import org.json.JSONArray
+import org.yaml.snakeyaml.Yaml
 import java.lang.Exception
 import java.util.concurrent.Executors
 
@@ -82,6 +83,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         const val EVENT_USB_DETACHED = "android.hardware.usb.action.USB_DEVICE_DETACHED"
         const val EXTRA_EVENTDATA = "EXTRA_EVENTDATA"
         const val BROADCAST_SERVICE_USB_GOT_ACCESS = "io.feelfreelinux.octo4a.usb_access_received"
+        const val PREF_NAME_CAMERA_RESOLUTION = "cameraResolution"
 
         const val EVENT_TYPE_BEGIN_INSTALLATION = "beginInstallation"
         const val EVENT_TYPE_START_SERVER = "startServer"
@@ -91,6 +93,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         const val EVENT_TYPE_QUERY_SERVER_STATUS = "queryServerStatus"
         const val EVENT_TYPE_UERY_SERIAL_DEVICES = "queryUsbDevices"
         const val EVENT_TYPE_SELECT_USB_DEVICE = "selectUsbDevice"
+        const val EVENT_TYPE_QUERY_CAMERA_RESOLUTIONS = "queryCameraResolutions"
     }
 
     enum class InstallationStatuses {
@@ -128,11 +131,15 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                         }
 
                         EVENT_TYPE_START_CAMERA_SERVER -> {
-                            cameraServerManager.start()
+                            cameraServerManager.start(cameraWidth, cameraHeight)
                         }
 
                         EVENT_TYPE_STOP_CAMERA_SERVER -> {
                             cameraServerManager.stopCamera()
+                        }
+
+                        EVENT_TYPE_QUERY_CAMERA_RESOLUTIONS -> {
+                            sendCameraResolutionSizes()
                         }
 
                         EVENT_TYPE_UERY_SERIAL_DEVICES -> {
@@ -301,6 +308,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             return
         }
+        insertCamConfig()
 
         octoPrintProcess = BootstrapUtils.runBashCommand("octoprint")
 
@@ -418,6 +426,65 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         val jsonData = JSONObject()
         jsonData.put("eventType", "installationStatus")
         jsonData.put("body", JSONObject().put("status", status.name))
+
+        intent.putExtra(EXTRA_EVENTDATA, jsonData.toString())
+        sendBroadcast(intent)
+    }
+
+    private fun insertCamConfig() {
+        val configFile = File("${BootstrapUtils.HOME_PATH}/.octoprint/config.yaml")
+        val yaml = Yaml()
+
+        var output = emptyMap<String, Any>()
+        if (configFile.exists()) {
+            output = yaml.load(configFile.inputStream()) as Map<String, Any>
+        } else {
+            configFile.createNewFile()
+        }
+
+        val map = output.toMutableMap()
+        map["webcam"] = mapOf("stream" to "http://$ipAddress:5001/") as Any
+
+        val writer = FileWriter(configFile, false)
+
+        yaml.dump(map, writer)
+        writer.flush()
+        writer.close()
+
+        val backupFile = File("${BootstrapUtils.HOME_PATH}/.octoprint/config.backup")
+        backupFile.delete()
+        BootstrapUtils.runBashCommand("cp .octoprint/config.yaml .octoprint/config.backup")
+    }
+
+    val sharedPreferences by lazy { getSharedPreferences(packageName, Context.MODE_PRIVATE) }
+
+    private fun getSelectedCameraRes(): String {
+        val res = cameraServerManager.getAllSupportedSizes().last { it.width >= 1000 }
+        return sharedPreferences.getString(PREF_NAME_CAMERA_RESOLUTION, "${res.width}x${res.height}")!!
+    }
+
+    val cameraWidth: Int
+        get() = getSelectedCameraRes().split("x").first().toInt()
+
+    val cameraHeight: Int
+        get() = getSelectedCameraRes().split("x").last().toInt()
+
+    private fun saveCameraResolution(resolution: String) {
+        sharedPreferences.edit().putString(PREF_NAME_CAMERA_RESOLUTION, resolution).apply()
+    }
+
+    private fun sendCameraResolutionSizes() {
+        val intent = Intent(MainActivity.BROADCAST_RECEIVE_ACTION)
+        val jsonData = JSONObject()
+        val sizes = JSONArray()
+
+        cameraServerManager.getAllSupportedSizes().forEach {
+            sizes.put("${it.width}x${it.height}")
+        }
+
+        val body = JSONObject().put("selected", getSelectedCameraRes()).put("resolutions", sizes)
+        jsonData.put("eventType", "cameraResolutions")
+        jsonData.put("body", body)
 
         intent.putExtra(EXTRA_EVENTDATA, jsonData.toString())
         sendBroadcast(intent)

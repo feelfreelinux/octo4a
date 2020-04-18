@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.graphics.ImageFormat
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.util.Log
@@ -81,8 +82,6 @@ class CameraServerManager(val cameraManager: CameraManager) {
         image?.close()
     }
 
-
-
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(currentCameraDevice: CameraDevice) {
@@ -105,8 +104,8 @@ class CameraServerManager(val cameraManager: CameraManager) {
     var serverThread: Thread? = null
     var serverRunner: MJpegServer? = null
 
-    fun start() {
-        initCam(320, 200)
+    fun start(width: Int, height: Int) {
+        initCam(width, height)
 
         serverRunner = MJpegServer {
             getJpegFrame() ?: ByteArray(0)
@@ -134,9 +133,22 @@ class CameraServerManager(val cameraManager: CameraManager) {
             }
         }
 
-        previewSize = chooseSupportedSize(camId!!, width, height)
+        previewSize = Size(width, height)
 
         cameraManager.openCamera(camId, stateCallback, null)
+    }
+
+    fun getAllSupportedSizes(): List<Size> {
+        for (id in cameraManager.cameraIdList) {
+            val characteristics = cameraManager.getCameraCharacteristics(id)
+            val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
+            if (facing == CameraCharacteristics.LENS_FACING_BACK) {
+                val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                return map?.getOutputSizes(SurfaceTexture::class.java)?.toList() ?: emptyList()
+            }
+        }
+
+        return listOf()
     }
 
     private fun chooseSupportedSize(camId: String, textureViewWidth: Int, textureViewHeight: Int): Size {
