@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:octo4a/screens/installation.dart';
 import 'package:octo4a/utils.dart';
 import 'package:octo4a/widgets/widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LandingPage extends StatelessWidget {
   @override
@@ -46,7 +47,8 @@ class LandingPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 22.0),
                   child: FlatButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      await Permission.storage.request().isGranted;
                       Navigator.of(context).pushReplacement(createRoute(InstallationScreen()));
                     },
                     child: Text(

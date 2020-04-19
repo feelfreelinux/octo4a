@@ -107,32 +107,33 @@ class StatusScreen extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 16.0, top: 8),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                            Text(
-                              "Your device's camera will provide the octoprint instance with live video preview.",
-                            ),
-                                                          Padding(
-                                                            padding: const EdgeInsets.only(top: 14.0),
-                                                            child: Text("Camera resolution"),
-                                                          ),
-                            Row(
-                                                          children: [new DropdownButton<String>(
-                                value: model.selectedResolution,
-                                items: model.cameraResolutions.map((value) {
-                                  return new DropdownMenuItem<String>(
-                                    value: value,
-                                    child: new Text(value),
-                                  );
-                                }).toList(),
-                                
-                                onChanged: (v) {
-                                  model.changeResolution(v);
-                                },
-                              ),
-                              ],
-                            ),
-                          ]),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Your device's camera will provide the octoprint instance with live video preview.",
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 14.0),
+                                  child: Text("Camera resolution"),
+                                ),
+                                Row(
+                                  children: [
+                                    new DropdownButton<String>(
+                                      value: model.selectedResolution,
+                                      items:
+                                          model.cameraResolutions.map((value) {
+                                        return new DropdownMenuItem<String>(
+                                          value: value,
+                                          child: new Text(value),
+                                        );
+                                      }).toList(),
+                                      onChanged: (v) {
+                                        model.changeResolution(v);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ]),
                         ),
                       ),
                     ),
@@ -142,7 +143,8 @@ class StatusScreen extends StatelessWidget {
                       child: PanelCard(
                         title: "Happy printing!",
                         child: Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0, top: 8),
+                            padding:
+                                const EdgeInsets.only(bottom: 16.0, top: 8),
                             child: Text(
                                 "In order to connect to your printer in OctoPrint, select \"AUTO\" as a serial port, and appropriate baudrate. Remember that this is an early version of this app, so stuff like automatic baudrate detection might not work.")),
                       ),
