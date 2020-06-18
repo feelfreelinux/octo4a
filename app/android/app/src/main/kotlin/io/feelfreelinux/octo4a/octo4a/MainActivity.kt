@@ -58,11 +58,6 @@ class MainActivity: FlutterActivity() {
         super.onCreate(savedInstanceState)
         registerReceiver(broadcastReceiver, intentFilter)
 
-
-        // startService(i)
-        // Bugsnag.notify(RuntimeException("Test error"))
-
-
         startOctoService()
     }
 
