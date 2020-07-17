@@ -46,7 +46,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <service android:name="io.feelfreelinux.octo4a.octo4a.OctoPrintService" />
-        <service android:name=".CamService" />
 
 
     </application>

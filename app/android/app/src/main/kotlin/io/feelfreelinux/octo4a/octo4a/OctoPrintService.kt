@@ -34,11 +34,28 @@ import java.util.concurrent.Executors
 
 class OctoPrintService : Service(), SerialInputOutputManager.Listener {
     override fun onRunError(e: Exception?) {
+        Log.v("SerialError", e.toString())
+        if (connected && e.toString().contains("Queueing USB request failed")) {
+            dropConnection()
+        }
     }
 
+    var sentEmptyLine = false
+
     override fun onNewData(data: ByteArray?) {
+        Log.v("Octo4a", "Serial data received")
+
         try {
-            stdinStream?.write(data)
+            // Work around for automatic baudrate detectiion
+            if (!String(data!!).contains("\n")) {
+                if (!sentEmptyLine) {
+                    stdinStream?.write("\n".toByteArray())
+                    sentEmptyLine = true
+                }
+            } else {
+                sentEmptyLine = false
+                stdinStream?.write(data)
+            }
             stdinStream?.flush()
         } catch (e: Throwable) {
 
@@ -150,9 +167,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                             // re-setting the status forces status update
                             updateStatus(currentStatus)
                         }
-
                     }
-
                 }
             } else if (intent?.action == BROADCAST_SERVICE_USB_GOT_ACCESS) {
                 val granted = intent.extras!!.getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED)
@@ -301,6 +316,20 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
         }.start()
     }
 
+    private fun dropConnection() {
+        Log.v("OCTO4A", "Dropping connection")
+        connected = false
+        stdinStream?.write("!octo4aDrop\n".toByteArray())
+        stdinStream?.flush()
+        try {
+            usbPort?.close()
+        } catch (e: Throwable) {
+        }
+
+        openVirtualSerialPort()
+    }
+
+    var cachedMessages = mutableListOf<String>()
 
     private fun startupOctoPrint(firstTime: Boolean = false) {
         updateDevicesList()
@@ -320,6 +349,7 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
 
             try {
                 val reader = octoPrintProcess!!.inputStream.reader()
+                var usbConnection: UsbDeviceConnection? = null
 
                 reader.forEachLine {
                     Log.v(LOGGER_TAG, "octoprint: $it")
@@ -333,22 +363,76 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                             sendInstallationStatus(InstallationStatuses.INSTALLATION_COMPLETE)
                         }
                     }
+
+                    // Kill me
+                    if (it.contains("!octo4a - baud ")) {
+                        val baud = it.substringAfter("!octo4a - baud ").replace("\n" ,"").toInt()
+                        if (baud != 0) {
+
+                            if (selectedDevice == null || selectedDevice?.ports?.isEmpty() ?: false) {
+                                dropConnection()
+
+                            } else {
+
+                                ioManager?.stop()
+
+                                usbConnection = usbManager.openDevice(selectedDevice!!.device)
+
+                                usbPort = selectedDevice!!.ports.first()
+
+                                try {
+                                    usbPort?.close()
+                                } catch (e: Throwable) {
+                                }
+
+                                usbPort?.open(usbConnection)
+                                usbPort?.setParameters(baud, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+                                usbPort!!.dtr = true
+                                usbPort!!.rts = true
+                                ioManager = SerialInputOutputManager(usbPort, this)
+                                serialExecutor.submit(ioManager)
+                                connected = true
+
+                            }
+                        }
+                    } else if (it.contains("to \"Offline\"")) {
+                        Log.v("Octo4a", "Closing usb...")
+                        connected = false
+                        usbPort?.write("ok\n".toByteArray(), 0)
+                        try {
+                            usbPort?.close()
+                        } catch (e: Throwable) {
+                        }
+
+                        try {
+                            usbConnection?.close()
+                        } catch (e: Throwable) {
+                        }
+                        openVirtualSerialPort()
+                    }
                 }
-
             } catch (e: Throwable) {
-
+                Log.v("ASD", "Random error " + e.toString())
             }
         }.start()
     }
 
+    var connected = false
+
     var vspHandlerThread: Thread? = null
 
-    private fun openVirtualSerialPort() {
+    private fun stopVsp() {
         if (vspHandlerThread != null && vspHandlerThread!!.isAlive) {
+            Log.v("OCTO4A", "Closing VSP...")
+
             vspHandlerThread!!.interrupt()
             stdoutHandler?.destroy()
             stdinHandler?.destroy()
         }
+    }
+
+    private fun openVirtualSerialPort() {
+        stopVsp()
 
         // Open virtual serial port
         stdinHandler = BootstrapUtils.runBashCommand("cat -u < /data/data/io.feelfreelinux.octo4a/files/home/output")
@@ -361,45 +445,51 @@ class OctoPrintService : Service(), SerialInputOutputManager.Listener {
                 var usbConnection: UsbDeviceConnection? = null
                 stdoutStream?.reader()?.forEachLine {
                     if (it.contains("!octo4a:")) {
-                        if (it.contains("!octo4a: BAUDRATE")) {
-                            val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
-                            ioManager?.stop()
-
-
-                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
-
-                            usbPort = selectedDevice!!.ports.first()
-
-                            try {
-                                usbPort?.close()
-                            } catch (e: Throwable) {
-                            }
-
-                            usbPort?.open(usbConnection)
-                            usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-                            usbPort!!.dtr = true
-                            usbPort!!.rts = true
-                            ioManager = SerialInputOutputManager(usbPort, this)
-                            serialExecutor.submit(ioManager)
-                        } else if (it.contains("!octo4a: CLOSE")) {
-                            try {
-                                usbPort?.close()
-                            } catch (e: Throwable) {
-                            }
-
-                            try {
-                                usbConnection?.close()
-                            } catch (e: Throwable) {
-                            }
-
-                            // stdinStream!!.write("connection closed\n".toByteArray())
-                            Handler(Looper.getMainLooper()).run {
-                                openVirtualSerialPort()
-                            }
-                        }
+//                        if (it.contains("!octo4a: BAUDRATE")) {
+//                            val baudrate = it.substringAfter("BAUDRATE").replace("\n", "").toInt()
+//                            ioManager?.stop()
+//
+//
+//                            usbConnection = usbManager.openDevice(selectedDevice!!.device)
+//
+//                            usbPort = selectedDevice!!.ports.first()
+//
+//                            try {
+//                                usbPort?.close()
+//                            } catch (e: Throwable) {
+//                            }
+//
+//                            usbPort?.open(usbConnection)
+//                            usbPort?.setParameters(baudrate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+//                            usbPort!!.dtr = true
+//                            usbPort!!.rts = true
+//                            ioManager = SerialInputOutputManager(usbPort, this)
+//                            serialExecutor.submit(ioManager)
+//                        } else if (it.contains("!octo4a: CLOSE")) {
+//                            try {
+//                                usbPort?.close()
+//                            } catch (e: Throwable) {
+//                            }
+//
+//                            try {
+//                                usbConnection?.close()
+//                            } catch (e: Throwable) {
+//                            }
+//
+//                            // stdinStream!!.write("connection closed\n".toByteArray())
+//                            Handler(Looper.getMainLooper()).run {
+//                                openVirtualSerialPort()
+//                            }
+//                        }
 
                     } else {
-                        usbPort?.write("$it\n".toByteArray(), 0)
+                        sentEmptyLine = false
+
+                        if (!connected) {
+                            cachedMessages.add(it)
+                        } else {
+                            usbPort?.write("$it\n".toByteArray(), 0)
+                        }
                     }
                 }
             } catch (e: Exception) {

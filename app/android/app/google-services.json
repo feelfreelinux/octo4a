@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "412366939564",
+    "firebase_url": "https://octo4a.firebaseio.com",
+    "project_id": "octo4a",
+    "storage_bucket": "octo4a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412366939564:android:147e5a624ad37df81e8609",
+        "android_client_info": {
+          "package_name": "io.feelfreelinux.octo4a"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "412366939564-4kdmmk3521hj2u6p9bpkie1f9fkm4ngs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.feelfreelinux.octo4a",
+            "certificate_hash": "abfe03405a18c27e5d16bd06c4f25c1fd9b3773c"
+          }
+        },
+        {
+          "client_id": "412366939564-fk00m19qmlevvsemtg2jbf3i4cososjc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCf61k3cbI-VXQUeLfahx7Q6eWW3ZBvikY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "412366939564-fk00m19qmlevvsemtg2jbf3i4cososjc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
