@@ -9,13 +9,13 @@
 .buildlog/
 .history
 .svn/
-
+.idea/*
 # IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
-
+build/
 # Visual Studio Code related
 .classpath
 .project

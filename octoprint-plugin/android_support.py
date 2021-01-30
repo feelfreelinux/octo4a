@@ -6,7 +6,7 @@ import octoprint.util
 import octoprint.logging
 from serial import SerialTimeoutException
 
-__plugin_pythoncompat__ = ">3,<4"
+__plugin_pythoncompat__ = ">=2.7,<4"
 __plugin_name__ = "Octo4a Android support"
 __plugin_version__ = "1.0.0"
 __plugin_description__ = "Android support for OctoPrint"
@@ -42,7 +42,11 @@ class Octo4aSerial(octoprint.util.comm.MachineCom):
 
 class Octo4aSerialHandlerPlugin(octoprint.plugin.StartupPlugin):
     def serial_callback(self, comm_instance, port, baudrate, read_timeout, *args, **kwargs):
+        self._logger.info("OKE OKE")
         return Octo4aSerial(self._logger, baudrate)
+    def get_additional_port_names(self, *args, **kwargs):
+            return ["USB PRINTER"]
+
 
 def __plugin_load__():
     plugin = Octo4aSerialHandlerPlugin()
@@ -51,4 +55,8 @@ def __plugin_load__():
     __plugin_implementation__ = plugin
 
     global __plugin_hooks__
-    __plugin_hooks__ = {"octoprint.comm.transport.serial.factory": plugin.serial_callback}
+    __plugin_hooks__ = {"octoprint.comm.transport.serial.factory": plugin.serial_callback,
+        "octoprint.comm.transport.serial.additional_port_names": plugin.get_additional_port_names,
+
+    
+    }
