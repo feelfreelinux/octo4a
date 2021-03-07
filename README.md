@@ -2,7 +2,7 @@
 
 ![A banner visually expaining how the app works](.github/readme-banner.png)
 
-You don't have a Raspberry Pi, but you want to control your 3D printer remotely? Use your phone as `an octoprint host! With the Octo4a app you can install Octoprint on your android phone in minutes, without any special Linux knowledge.
+You don't have a Raspberry Pi, but you want to control your 3D printer remotely? Use your phone as an octoprint host! With the Octo4a app you can install Octoprint on your android phone in minutes, without any special Linux knowledge.
 
 ## Download
 
