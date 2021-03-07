@@ -15,6 +15,9 @@ jobs:
       - name: Get the version
         id: get_version
         run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16'
       - name: Build bootstraps
         run: |
           cd bootstrap-builder && ./build_bootstrap.sh
