@@ -2,7 +2,7 @@
 bin/*
 app/build/*
 app/build
-
+.DS_STORE
 *.class
 *.lock
 *.log
