@@ -50,7 +50,7 @@ class BootstrapRepositoryImpl : BootstrapRepository {
                     "arm.zip"
                 }
 
-                urlPrefix = "https://transfer.sh/13LGOy/bootstrap-aarch64.zip"
+                urlPrefix = "https://github.com/feelfreelinux/octo4a/releases/download/0.0.1-bootstrap-test3/bootstrap-aarch64.zip"
 
                 ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
                     var zipEntry = zipInput.nextEntry

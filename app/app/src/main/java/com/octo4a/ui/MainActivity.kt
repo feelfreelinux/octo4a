@@ -94,6 +94,5 @@ class MainActivity : AppCompatActivity() {
             val i = Intent(this, CameraService::class.java)
             startService(i)
         }
-
     }
 }

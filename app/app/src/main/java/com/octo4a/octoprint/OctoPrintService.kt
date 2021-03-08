@@ -10,13 +10,27 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
 import com.octo4a.ui.MainActivity
 import com.octo4a.R
+import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.utils.log
+import com.octo4a.utils.withIO
+import com.octo4a.viewmodel.InstallationViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
-class OctoPrintService : Service() {
+class OctoPrintService() : LifecycleService() {
+    val handlerRepository: OctoPrintHandlerRepository by inject()
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     companion object {
         // Constants
         const val LOG_TAG = "Octo4a_Service"
@@ -29,7 +43,6 @@ class OctoPrintService : Service() {
         const val EVENT_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED"
         const val EVENT_USB_DETACHED = "android.hardware.usb.action.USB_DEVICE_DETACHED"
         const val EXTRA_EVENTDATA = "EXTRA_EVENTDATA"
-
     }
 
     val virtualSerialDriver: VirtualSerialDriver by lazy {
@@ -93,8 +106,10 @@ class OctoPrintService : Service() {
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
 
-        octoPrintManager.startup()
-
+        log { "CORN" }
+        scope.launch {
+            handlerRepository.beginInstallation()
+        }
         super.onCreate()
     }
 
@@ -103,9 +118,10 @@ class OctoPrintService : Service() {
         super.onDestroy()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         startForegroundNotification()
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun startForegroundNotification() {
@@ -113,7 +129,8 @@ class OctoPrintService : Service() {
         startForeground(NOTIFICATION_ID, notificationBuilder.build())
     }
 
-    override fun onBind(data: Intent?): IBinder? {
+    override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
         return null
     }
 

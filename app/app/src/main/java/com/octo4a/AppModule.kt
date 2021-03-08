@@ -5,13 +5,18 @@ import com.octo4a.repository.BootstrapRepository
 import com.octo4a.repository.BootstrapRepositoryImpl
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.OctoPrintHandlerRepositoryImpl
+import com.octo4a.viewmodel.InstallationViewModel
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
     factory<BootstrapRepository> { BootstrapRepositoryImpl() }
 
-    scope<OctoPrintService> {
-        scoped<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get()) }
-    }
+//    scope<OctoPrintService> {
+//        scoped<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get()) }
+//    }
+    single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get()) }
+
+    viewModel { InstallationViewModel(get()) }
 }

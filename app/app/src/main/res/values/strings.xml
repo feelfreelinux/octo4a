@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">OctoPrint For Android (DEV)</string>
-    <string name="landing_install">Install Octoprint</string>
+    <string name="landing_install">Install OctoPrint</string>
     <string name="landing_no_installation">No existing installation detected</string>
     <string name="landing_description">This application will install OctoPrint server on your android device. Please
         make sure that you have at least 700mb of storage available. You will also need an OTG cable in order to connect
         your phone to your 3d printer.\n\nThis project is an unofficial product, not affiliated with OctoPrint project.
     </string>
+    <string name="installation_step_bootstrap">Installing bootstrap (%1$s)…</string>
+    <string name="installation_step_downloading_octoprint">Downloading OctoPrint (%1$s)…</string>
+    <string name="installation_step_dependencies">Installing dependencies…</string>
+    <string name="installation_step_bootup">Booting OctoPrint for the first time…</string>
+    <string name="installation_step_done">Installation complete</string>
+
 </resources>

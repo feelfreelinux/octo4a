@@ -328,7 +328,8 @@ for package_arch in "${TERMUX_ARCHITECTURES[@]}"; do
 	pull_package xz-utils
 	pull_package clang
 	pull_package python
-
+	pull_package openssh
+	
 	# Additional.
 	pull_package ed
 	pull_package debianutils

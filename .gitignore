@@ -2,6 +2,8 @@
 bin/*
 app/build/*
 app/build
+app/.gradle
+app/.gradle/*
 .DS_STORE
 *.class
 *.lock

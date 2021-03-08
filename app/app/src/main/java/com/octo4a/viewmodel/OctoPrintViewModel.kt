@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 
 
 class OctoPrintViewModel : ViewModel() {
-    val serverStatus = MutableLiveData<ServerStatus>()
-
-    init {
-        serverStatus.value = ServerStatus.InstallingBootstrap
-    }
+//    val serverStatus = MutableLiveData<ServerStatus>()
+//
+//    init {
+//        serverStatus.value = ServerStatus.InstallingBootstrap
+//    }
 }
