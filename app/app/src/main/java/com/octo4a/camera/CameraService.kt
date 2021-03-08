@@ -14,15 +14,13 @@ import android.hardware.camera2.CameraManager
 import android.media.ImageReader
 import android.os.Handler
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import com.octo4a.MainActivity
+import com.octo4a.ui.MainActivity
 import com.octo4a.R
 import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.YUV420toNV21
-import kotlinx.coroutines.runBlocking
 
 class CameraService : Service(), MJpegFrameProvider {
     private val cameraManager by lazy { getSystemService(Context.CAMERA_SERVICE) as CameraManager }

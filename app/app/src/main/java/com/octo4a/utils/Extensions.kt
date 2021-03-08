@@ -8,6 +8,7 @@ import android.graphics.Rect
 
 import android.graphics.YuvImage
 import android.media.Image
+import android.view.View
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -15,6 +16,10 @@ import java.nio.ByteBuffer
 fun Int.isBitSet(bit: Int): Boolean {
     return this and (1 shl bit) != 0
 }
+
+//var View.isGone : Boolean
+//    get() = visibility == View.GONE
+//    set(value) { visibility = value ? View. }
 
 fun Activity.isServiceRunning(service: Class<*>): Boolean {
     val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

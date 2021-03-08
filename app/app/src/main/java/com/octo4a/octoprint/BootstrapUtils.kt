@@ -37,7 +37,7 @@ class BootstrapUtils {
                     "arm.zip"
                 }
 
-                urlPrefix = "https://transfer.sh/get/9lcl7/bootstrap.zip"
+                urlPrefix = "https://transfer.sh/13LGOy/bootstrap-aarch64.zip"
 
                 ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
                     var zipEntry = zipInput.nextEntry

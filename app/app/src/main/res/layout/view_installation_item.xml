@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <View style="@style/Divider"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          android:id="@+id/dividerView"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="16dp"
+            android:layout_marginBottom="16dp"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toTopOf="@id/dividerView"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/contentTextView"
+            android:text="Installing bootstrap (aarch64)..."/>
+    <ProgressBar
+            android:id="@+id/spinnerView"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:layout_constraintTop_toTopOf="@id/contentTextView"
+            app:layout_constraintBottom_toBottomOf="@id/contentTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="visible" />
+    <ImageView
+            android:id="@+id/doneIconView"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_done_black_18dp"
+            app:layout_constraintTop_toTopOf="@id/contentTextView"
+            app:layout_constraintBottom_toBottomOf="@id/contentTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone" app:tint="@color/colorAccent"/>
+
+</merge>
