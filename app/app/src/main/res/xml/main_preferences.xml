@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+            app:title="Server settings"
+            app:iconSpaceReserved="false">
+        <EditTextPreference
+                app:iconSpaceReserved="false"
+                app:singleLineTitle="false"
+                app:title="Server port"/>
+
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:key="enableSSH"
+                app:title="Enable OpenSSH Server"
+                app:summary="Enables SSH access from network"/>
+        <EditTextPreference
+                app:dependency="enableSSH"
+                app:iconSpaceReserved="false"
+                app:singleLineTitle="false"
+                app:title="Change password"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+            app:title="Camera settings"
+            app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:singleLineTitle="false"
+                app:key="enableCameraServer"
+                app:title="Enable camera server"
+                app:summary="Enables camera server"/>
+        <ListPreference
+                app:iconSpaceReserved="false"
+                app:key="feedback"
+                app:dependency="enableCameraServer"
+                app:title="Camera source"
+                app:summary="%s"/>
+        <ListPreference
+                app:iconSpaceReserved="false"
+                app:key="feedback"
+                app:dependency="enableCameraServer"
+                app:title="Camera resolution"
+                app:summary="%s"/>
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

@@ -5,21 +5,52 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:padding="12dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="32dp"
+        app:contentPadding="16dp"
+        app:cardElevation="4dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
         <TextView
+                android:id="@+id/headerText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OctoPrint is starting..."
+                android:text="Connection"
                 android:textSize="18sp"
                 android:textColor="@color/cardHeaderColor"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <Space
+                android:layout_height="8dp"
+                android:layout_width="wrap_content" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Please connect your phone to the printer using OTG cable"
+                android:textSize="18sp"
+                android:textColor="@color/cardHeaderColor"
+                android:textStyle="normal"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/headerText"/>
+        <Space
+                android:layout_height="8dp"
+                android:layout_width="wrap_content" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Device connected /dev/bus/usb/0"
+                android:textSize="18sp"
+                android:textColor="@color/cardHeaderColor"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/headerText"/>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

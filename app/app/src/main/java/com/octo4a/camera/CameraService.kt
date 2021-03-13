@@ -131,7 +131,7 @@ class CameraService : Service(), MJpegFrameProvider {
             .setContentTitle("OctoPrint")
             .setContentText("Octoprint something something")
             .setVibrate(null)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.drawable.ic_print_24px)
             .setContentIntent(pendingIntent)
     }
 }
