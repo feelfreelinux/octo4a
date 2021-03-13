@@ -6,6 +6,7 @@ import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
 import com.octo4a.camera.CameraService
+import com.octo4a.camera.MJpegServer
 import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
 import com.octo4a.utils.isServiceRunning
@@ -40,6 +41,8 @@ class InitialActivity: AppCompatActivity() {
         if (!isServiceRunning(OctoPrintService::class.java)) {
             val intent = Intent(this, OctoPrintService::class.java)
             startService(intent)
+//            val intentDocument = Intent(this, CameraService::class.java)
+//            startService(intentDocument)
         }
     }
 }

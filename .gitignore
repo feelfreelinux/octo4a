@@ -4,6 +4,7 @@ app/build/*
 app/build
 app/.gradle
 app/.gradle/*
+.gradle
 .DS_STORE
 *.class
 *.lock

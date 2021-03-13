@@ -12,10 +12,6 @@ import org.koin.dsl.module
 
 val appModule = module {
     factory<BootstrapRepository> { BootstrapRepositoryImpl() }
-
-//    scope<OctoPrintService> {
-//        scoped<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get()) }
-//    }
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get()) }
 
     viewModel { InstallationViewModel(get()) }

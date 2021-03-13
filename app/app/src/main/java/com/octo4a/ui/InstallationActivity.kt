@@ -11,9 +11,8 @@ import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_installation_progress.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
 class InstallationActivity : AppCompatActivity() {
-    val installationViewModel: InstallationViewModel by viewModel()
+    private val installationViewModel: InstallationViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +31,7 @@ class InstallationActivity : AppCompatActivity() {
         }
     }
 
-    fun setItemsState(status: ServerStatus) {
+    private fun setItemsState(status: ServerStatus) {
         bootstrapItem.setStatus(status, ServerStatus.InstallingBootstrap)
         downloadingOctoprintItem.setStatus(status, ServerStatus.DownloadingOctoPrint)
         installingDependenciesItem.setStatus(status, ServerStatus.InstallingDependencies)

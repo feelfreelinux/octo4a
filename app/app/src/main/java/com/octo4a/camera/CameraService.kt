@@ -60,6 +60,7 @@ class CameraService : Service(), MJpegFrameProvider {
         cameraManager.cameraIdList.firstOrNull {
             val characteristics = cameraManager.getCameraCharacteristics(it)
             characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK
+            //true
         }
     }
 

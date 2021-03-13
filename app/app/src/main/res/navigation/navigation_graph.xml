@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            app:startDestination="@id/serverNav"
+            android:id="@+id/main_nav">
+    <fragment
+            android:id="@+id/serverNav"
+            android:name="com.octo4a.ui.fragments.ServerFragment"
+            android:label="Server"
+            tools:layout="@layout/fragment_server">
+    </fragment>
+
+    <fragment
+            android:id="@+id/settingsNav"
+            android:name="com.octo4a.ui.fragments.SettingsFragment"
+            android:label="Settings"
+            tools:layout="@layout/fragment_settings">
+    </fragment>
+
+    <fragment
+            android:id="@+id/aboutNav"
+            android:name="com.octo4a.ui.fragments.AboutFragment"
+            android:label="About"
+            tools:layout="@layout/fragment_about">
+    </fragment>
+</navigation>

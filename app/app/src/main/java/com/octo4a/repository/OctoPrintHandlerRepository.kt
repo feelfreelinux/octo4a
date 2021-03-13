@@ -3,6 +3,7 @@ package com.octo4a.repository
 import android.content.Context
 import com.octo4a.octoprint.BootstrapUtils
 import com.octo4a.utils.log
+import com.octo4a.utils.setPassword
 import com.octo4a.utils.waitAndPrintOutput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,8 +58,17 @@ class OctoPrintHandlerRepositoryImpl(
             _serverState.emit(ServerStatus.Running)
         } else {
             log{"CORNED"}
-            bootstrapRepository.ensureHomeDirectory()
-            bootstrapRepository.runBashCommand("passwd").waitAndPrintOutput()
+            enableSSH()
         }
+    }
+
+    fun enableSSH() {
+        bootstrapRepository.ensureHomeDirectory()
+        // Generate ssh keys
+        bootstrapRepository.runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
+        // Sets password to `octoprint` @TODO Implement it properly
+        bootstrapRepository.runBashCommand("passwd").setPassword()
+        // Launches lemon demon
+        bootstrapRepository.runBashCommand("sshd").waitAndPrintOutput()
     }
 }

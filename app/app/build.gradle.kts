@@ -47,6 +47,8 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation("androidx.navigation:navigation-fragment-ktx:2.2.2")
+    implementation("androidx.navigation:navigation-ui-ktx:2.2.2")
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
     val koinVersion = "3.0.1-beta-1"
@@ -63,6 +65,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.0-alpha2")
+    implementation("androidx.preference:preference-ktx:1.1.1")
     implementation("com.google.android.material:material:1.4.0-alpha01")
 
     // Serial driver
@@ -75,6 +78,7 @@ dependencies {
     // Ktor server
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-client-gson:$ktorVersion")
 
     // Test dependencies
     testImplementation("junit:junit:4.13")

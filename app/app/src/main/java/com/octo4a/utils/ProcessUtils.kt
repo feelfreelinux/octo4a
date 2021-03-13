@@ -12,3 +12,12 @@ fun Process.waitAndPrintOutput() {
         Log.v("ASD", it)
     }
 }
+
+fun Process.setPassword() {
+    outputStream.bufferedWriter().apply {
+        write("octoprint\n")
+        flush()
+        write("octoprint\n")
+        flush()
+    }
+}
