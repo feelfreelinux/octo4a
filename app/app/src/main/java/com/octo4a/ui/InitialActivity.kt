@@ -41,8 +41,8 @@ class InitialActivity: AppCompatActivity() {
         if (!isServiceRunning(OctoPrintService::class.java)) {
             val intent = Intent(this, OctoPrintService::class.java)
             startService(intent)
-//            val intentDocument = Intent(this, CameraService::class.java)
-//            startService(intentDocument)
+            val intentDocument = Intent(this, CameraService::class.java)
+            startService(intentDocument)
         }
     }
 }

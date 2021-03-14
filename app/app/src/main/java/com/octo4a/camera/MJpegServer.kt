@@ -7,9 +7,12 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.utils.io.*
+import java.lang.Exception
 
 interface MJpegFrameProvider {
     val newestFrame: ByteArray
+    fun registerListener()
+    fun unregisterListener()
 }
 
 // Simple http server hosting mjpeg stream along with
@@ -29,13 +32,19 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider) {
 
                 get("/mjpeg") {
                     call.respondBytesWriter(ContentType.parse(CONTENT_TYPE), status = HttpStatusCode.OK) {
-                        while (!isClosedForWrite) {
-                            writeFully("--".toByteArray() + MJPEG_BOUNDARY.toByteArray() + CRLF)
-                            writeFully("Content-Type: image/jpeg".toByteArray() + CRLF)
-                            writeFully("Content-Length: ${frameProvider.newestFrame.size}".toByteArray() + CRLF + CRLF)
-                            writeFully(frameProvider.newestFrame + CRLF)
-                            flush()
+                        frameProvider.registerListener()
+                        try {
+                            while (!isClosedForWrite) {
+                                writeFully("--".toByteArray() + MJPEG_BOUNDARY.toByteArray() + CRLF)
+                                writeFully("Content-Type: image/jpeg".toByteArray() + CRLF)
+                                writeFully("Content-Length: ${frameProvider.newestFrame.size}".toByteArray() + CRLF + CRLF)
+                                writeFully(frameProvider.newestFrame + CRLF)
+                                flush()
+                            }
+                        } catch (e:Exception) {
+
                         }
+                        frameProvider.unregisterListener()
                     }
                 }
             }

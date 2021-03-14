@@ -1,5 +1,6 @@
 package com.octo4a.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,13 @@ class InstallationActivity : AppCompatActivity() {
         installationViewModel.serverStatus.observe(this) {
             progressTextView.text = "${it.getInstallationProgress()}%"
             setItemsState(it)
+            continueButton.isEnabled = it == ServerStatus.Running
+        }
+
+        continueButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 
