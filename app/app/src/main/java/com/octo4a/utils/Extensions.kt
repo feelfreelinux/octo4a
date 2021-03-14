@@ -8,7 +8,10 @@ import android.graphics.Rect
 
 import android.graphics.YuvImage
 import android.media.Image
+import android.util.TypedValue
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -17,9 +20,15 @@ fun Int.isBitSet(bit: Int): Boolean {
     return this and (1 shl bit) != 0
 }
 
-//var View.isGone : Boolean
-//    get() = visibility == View.GONE
-//    set(value) { visibility = value ? View. }
+@ColorInt
+fun Context.getColorFromAttr(
+    @AttrRes attrColor: Int,
+    typedValue: TypedValue = TypedValue(),
+    resolveRefs: Boolean = true
+): Int {
+    theme.resolveAttribute(attrColor, typedValue, resolveRefs)
+    return typedValue.data
+}
 
 fun Activity.isServiceRunning(service: Class<*>): Boolean {
     val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

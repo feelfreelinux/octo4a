@@ -1,56 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<merge
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="32dp"
-        app:contentPadding="16dp"
-        app:cardElevation="4dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+        <FrameLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/iconCircle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/circle_drawable">
+
+            <ImageView
+                    android:id="@+id/iconView"
+                    android:layout_margin="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_print_24px"
+                    app:tint="@android:color/white"/>
+        </FrameLayout>
 
         <TextView
-                android:id="@+id/headerText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Connection"
-                android:textSize="18sp"
-                android:textColor="@color/cardHeaderColor"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="OctoPrint running"
+                android:id="@+id/titleText"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/iconCircle"
+                app:layout_constraintTop_toTopOf="@id/iconCircle"
                 android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-        <Space
-                android:layout_height="8dp"
-                android:layout_width="wrap_content" />
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Please connect your phone to the printer using OTG cable"
+                android:textColor="@color/primaryTextColor"
                 android:textSize="18sp"
-                android:textColor="@color/cardHeaderColor"
-                android:textStyle="normal"
-                android:fontFamily="sans-serif-light"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/headerText"/>
-        <Space
-                android:layout_height="8dp"
-                android:layout_width="wrap_content" />
+        />
+
         <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Device connected /dev/bus/usb/0"
-                android:textSize="18sp"
-                android:textColor="@color/cardHeaderColor"
-                android:textStyle="bold"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="tap to copy address"
+                android:id="@+id/subtitleText"
                 android:fontFamily="sans-serif-light"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/headerText"/>
-    </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/iconCircle"
+                app:layout_constraintBottom_toBottomOf="@id/iconCircle"
+                android:textColor="@color/primaryTextColor"
+                android:textSize="17sp"
+        />
+</merge>

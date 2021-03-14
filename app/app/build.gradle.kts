@@ -52,6 +52,7 @@ dependencies {
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
     val koinVersion = "3.0.1-beta-1"
+    val cameraXVersion = "1.0.0-rc03"
 
     // Android lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
@@ -59,6 +60,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-service:$lifecycleVersion")
+
+    // CameraX apis
+    implementation("androidx.camera:camera-camera2:${cameraXVersion}")
+    implementation ("androidx.camera:camera-lifecycle:${cameraXVersion}")
+    // implementation "androidx.camera:camera-view:1.0.0-alpha22"
+    implementation("androidx.camera:camera-extensions:1.0.0-alpha22")
 
     // Android-specific dependencies
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.30")

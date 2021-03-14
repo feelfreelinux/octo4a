@@ -3,8 +3,67 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/green_gradient">
-    <include layout="@layout/view_status_card" />
+        android:layout_height="match_parent">
+    <com.google.android.material.card.MaterialCardView android:layout_width="match_parent"
+                                                       android:layout_height="wrap_content"
+                                                       android:layout_margin="12dp"
+    app:contentPadding="12dp"
+                                                       app:cardElevation="4dp"
+                                                       app:cardCornerRadius="8dp"
+                                                       app:cardBackgroundColor="@color/warningColor"
+    >
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:textColor="@android:color/black"
+                      android:textStyle="bold"
+                      android:fontFamily="sans-serif"
+                      android:textSize="16sp"
+                      android:text="Thanks for testing out this app."
+            />
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:textColor="@android:color/black"
+                      android:textStyle="normal"
+                      android:fontFamily="sans-serif-light"
+                      android:textSize="16sp"
+                      android:text="This is an unofficial app, not affiliated with OctoPrint project. Use at your own risk."
+            />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.octo4a.ui.views.StatusView
+            android:layout_width="match_parent"
+            android:layout_margin="8dp"
+            app:icon="@drawable/ic_print_24px"
+            app:iconColor="@color/iconGreen"
+            app:title="OctoPrint is running"
+            app:subtitle="http://192.168.254.103:5000"
+            android:layout_height="wrap_content"/>
+    <View style="@style/Divider"
+          android:id="@id/dividerView"/>
+    <com.octo4a.ui.views.StatusView
+            android:layout_width="match_parent"
+            android:layout_margin="8dp"
+            app:icon="@drawable/ic_usb_24px"
+            app:iconColor="@android:color/holo_blue_dark"
+            app:title="Printer connected"
+            app:subtitle="/dev/usb/tty/10/0"
+            android:layout_height="wrap_content"/>
+    <View style="@style/Divider"
+          android:id="@id/dividerView"/>
+    <com.octo4a.ui.views.StatusView
+            android:layout_width="match_parent"
+            android:layout_margin="8dp"
+            app:icon="@drawable/ic_videocam_24px"
+            app:iconColor="@android:color/holo_red_light"
+            app:title="Camera server running"
+            app:subtitle="Tap to preview"
+            android:layout_height="wrap_content"/>
 </LinearLayout>

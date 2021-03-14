@@ -59,7 +59,7 @@
             android:textStyle="bold"
             android:background="@android:color/transparent"
             app:cornerRadius="16dp"
-            app:strokeColor="@color/colorPrimary"
+            app:strokeColor="@color/primaryColor"
             app:layout_constraintTop_toBottomOf="@id/cardView"
 
             android:id="@+id/installButton"/>

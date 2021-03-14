@@ -1,15 +1,15 @@
 <resources>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="@style/Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorAccent">@color/secondaryColor</item>
         <item name="android:actionBarStyle">@style/ActionBarStyle</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
     <style name="ActionBarStyle">
-        <item name="android:background">@color/colorPrimaryDark</item>
+        <item name="android:background">@color/primaryDarkColor</item>
     </style>
     <style name="Divider">
         <item name="android:layout_width">match_parent</item>
