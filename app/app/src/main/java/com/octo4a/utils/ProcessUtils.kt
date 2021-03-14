@@ -9,7 +9,7 @@ suspend fun <T> withIO(block: suspend CoroutineScope.() -> T) = withContext(Disp
 
 fun Process.waitAndPrintOutput() {
     inputStream.reader().forEachLine {
-        Log.v("ASD", it)
+        log { it }
     }
 }
 
@@ -20,4 +20,12 @@ fun Process.setPassword() {
         write("octoprint\n")
         flush()
     }
+}
+fun Process.isRunning(): Boolean {
+    try {
+        exitValue()
+    } catch (_: Throwable) {
+        return true
+    }
+    return false
 }

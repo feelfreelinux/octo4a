@@ -11,5 +11,12 @@
     <string name="installation_step_dependencies">Installing dependencies…</string>
     <string name="installation_step_bootup">Booting OctoPrint for the first time…</string>
     <string name="installation_step_done">Installation complete</string>
+    <string name="status_starting">OctoPrint is starting…</string>
+    <string name="status_stopped">OctoPrint is stopped</string>
+    <string name="status_running">OctoPrint is running</string>
+    <string name="status_stopped_start">tap to start the server</string>
+    <string name="status_starting_subtitle">this should only take few seconds</string>
+
+
 
 </resources>

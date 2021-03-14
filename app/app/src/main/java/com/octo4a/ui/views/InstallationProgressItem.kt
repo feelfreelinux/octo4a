@@ -2,11 +2,9 @@ package com.octo4a.ui.views
 
 import android.animation.LayoutTransition
 import android.content.Context
-import android.graphics.LinearGradient
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.animation.LinearInterpolator
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isGone
 import com.octo4a.R
@@ -30,7 +28,7 @@ constructor(private val ctx: Context, private val attributeSet: AttributeSet? = 
             contentTextView.text = when (value) {
                 ServerStatus.InstallingBootstrap -> resources.getString(R.string.installation_step_bootstrap)
                 ServerStatus.InstallingDependencies -> resources.getString(R.string.installation_step_dependencies)
-                ServerStatus.FirstBoot -> resources.getString(R.string.installation_step_bootup)
+                ServerStatus.BootingUp -> resources.getString(R.string.installation_step_bootup)
                 ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.installation_step_downloading_octoprint)
                 ServerStatus.Running -> resources.getString(R.string.installation_step_done)
                 else -> "Unknown status"

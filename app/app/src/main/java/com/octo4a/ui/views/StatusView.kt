@@ -4,16 +4,23 @@ import android.content.Context
 import android.graphics.PorterDuff
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.octo4a.R
+import com.octo4a.repository.ServerStatus
+import kotlinx.android.synthetic.main.view_installation_item.view.*
 import kotlinx.android.synthetic.main.view_status_card.view.*
 
 
 class StatusView @JvmOverloads
 constructor(private val ctx: Context, private val attributeSet: AttributeSet? = null, private val defStyleAttr: Int = 0)
     : ConstraintLayout(ctx, attributeSet, defStyleAttr) {
+
+    var onActionClicked: () -> Unit = {}
 
     init {
         val inflater = ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -34,7 +41,29 @@ constructor(private val ctx: Context, private val attributeSet: AttributeSet? = 
             titleText.text = titleValue
             subtitleText.text = subtitleValue
             styledAttributes.recycle()
+        }
 
+        actionButton.setOnClickListener {
+            onActionClicked()
         }
     }
-}
+
+    fun setDrawableAndColor(@DrawableRes resource: Int, @ColorRes colorRes: Int) {
+        val backgroundDrawable = ContextCompat.getDrawable(context, resource)
+        val color = ContextCompat.getColor(context, colorRes);
+        backgroundDrawable!!.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        actionButton.background = backgroundDrawable
+    }
+
+    var title: String
+        get() = ""
+        set(value) {
+            titleText.text = value
+        }
+
+    var subtitle: String
+        get() = ""
+        set(value) {
+            subtitleText.text = value
+        }
+    }

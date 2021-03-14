@@ -3,6 +3,7 @@ package com.octo4a
 import com.google.gson.FieldNamingPolicy
 import com.octo4a.repository.*
 import com.octo4a.viewmodel.InstallationViewModel
+import com.octo4a.viewmodel.StatusViewModel
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.features.json.*
@@ -28,4 +29,5 @@ val appModule = module {
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }
+    viewModel { StatusViewModel(get()) }
 }

@@ -41,6 +41,7 @@
     <com.octo4a.ui.views.StatusView
             android:layout_width="match_parent"
             android:layout_margin="8dp"
+            android:id="@+id/serverStatus"
             app:icon="@drawable/ic_print_24px"
             app:iconColor="@color/iconGreen"
             app:title="OctoPrint is running"
@@ -51,6 +52,7 @@
     <com.octo4a.ui.views.StatusView
             android:layout_width="match_parent"
             android:layout_margin="8dp"
+            android:id="@+id/connectionStatus"
             app:icon="@drawable/ic_usb_24px"
             app:iconColor="@android:color/holo_blue_dark"
             app:title="Printer connected"
@@ -61,6 +63,7 @@
     <com.octo4a.ui.views.StatusView
             android:layout_width="match_parent"
             android:layout_margin="8dp"
+            android:id="@+id/camServerStatus"
             app:icon="@drawable/ic_videocam_24px"
             app:iconColor="@android:color/holo_red_light"
             app:title="Camera server running"

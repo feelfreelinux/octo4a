@@ -2,6 +2,7 @@ package com.octo4a.repository
 
 import android.content.Context
 import com.octo4a.octoprint.BootstrapUtils
+import com.octo4a.utils.isRunning
 import com.octo4a.utils.log
 import com.octo4a.utils.setPassword
 import com.octo4a.utils.waitAndPrintOutput
@@ -13,7 +14,7 @@ enum class ServerStatus(val value: Int) {
     InstallingBootstrap(0),
     DownloadingOctoPrint(1),
     InstallingDependencies(2),
-    FirstBoot(3),
+    BootingUp(3),
     Running(4),
     Stopped(5)
 }
@@ -29,7 +30,10 @@ fun ServerStatus.isInstallationFinished(): Boolean {
 
 interface OctoPrintHandlerRepository {
     val serverState: StateFlow<ServerStatus>
+    val octoPrintVersion: StateFlow<String>
     suspend fun beginInstallation()
+    fun startOctoPrint()
+    fun stopOctoPrint()
 }
 
 class OctoPrintHandlerRepositoryImpl(
@@ -37,32 +41,68 @@ class OctoPrintHandlerRepositoryImpl(
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository) : OctoPrintHandlerRepository {
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
+    private var _octoPrintVersion = MutableStateFlow("...")
+    private var octoPrintProcess: Process? = null
 
     override val serverState: StateFlow<ServerStatus> = _serverState
+    override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
 
     override suspend fun beginInstallation() {
         if (!bootstrapRepository.isBootstrapInstalled) {
-            log { "No bootstrap detected, proceeding with installation" }
+            val octoPrintRelease = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
+            _octoPrintVersion.emit(octoPrintRelease.tagName)
 
+            log { "No bootstrap detected, proceeding with installation" }
             _serverState.emit(ServerStatus.InstallingBootstrap)
-            bootstrapRepository.setupBootstrap()
+            bootstrapRepository.apply {
+                setupBootstrap()
+                ensureHomeDirectory()
+            }
             log { "Bootstrap installed" }
             _serverState.emit(ServerStatus.DownloadingOctoPrint)
-            Thread.sleep(3000)
-            log { "OctoPrint downloaded" }
+            bootstrapRepository.apply {
+                runBashCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput()
+                runBashCommand("unzip octoprint.zip").waitAndPrintOutput()
+            }
             _serverState.emit(ServerStatus.InstallingDependencies)
-            Thread.sleep(3000)
+            bootstrapRepository.apply {
+                runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
+                runBashCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
+            }
             log { "Dependencies installed" }
-            _serverState.emit(ServerStatus.FirstBoot)
-            Thread.sleep(3000)
-            log { "Booted up for the first time" }
-            _serverState.emit(ServerStatus.Running)
+            _serverState.emit(ServerStatus.BootingUp)
+            startOctoPrint()
         } else {
-            log{"CORNED"}
-            val release = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
-            log { "Newest OctoPrint release: " + release.tagName }
+            startOctoPrint()
             enableSSH()
         }
+    }
+
+    override fun startOctoPrint() {
+        if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
+            return
+        }
+        _serverState.value = ServerStatus.BootingUp
+        octoPrintProcess = BootstrapUtils.runBashCommand("octoprint")
+        Thread {
+            try {
+                octoPrintProcess!!.inputStream.reader().forEachLine {
+                    log { "octoprint: $it"}
+
+                    // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
+                    if (it.contains("Listening on")) {
+                        _serverState.value = ServerStatus.Running
+                    }
+                }
+            } catch (e: Throwable) {
+                _serverState.value = ServerStatus.Stopped
+            }
+        }.start()
+    }
+
+    override fun stopOctoPrint() {
+        octoPrintProcess?.destroy()
+        _serverState.value = ServerStatus.Stopped
     }
 
     fun enableSSH() {

@@ -35,7 +35,7 @@ class InstallationActivity : AppCompatActivity() {
         bootstrapItem.setStatus(status, ServerStatus.InstallingBootstrap)
         downloadingOctoprintItem.setStatus(status, ServerStatus.DownloadingOctoPrint)
         installingDependenciesItem.setStatus(status, ServerStatus.InstallingDependencies)
-        bootingOctoprintItem.setStatus(status, ServerStatus.FirstBoot)
+        bootingOctoprintItem.setStatus(status, ServerStatus.BootingUp)
         installationCompleteItem.setStatus(status, ServerStatus.Running)
     }
 
