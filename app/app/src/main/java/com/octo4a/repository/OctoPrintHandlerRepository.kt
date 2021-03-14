@@ -34,7 +34,8 @@ interface OctoPrintHandlerRepository {
 
 class OctoPrintHandlerRepositoryImpl(
     val context: Context,
-    private val bootstrapRepository: BootstrapRepository) : OctoPrintHandlerRepository {
+    private val bootstrapRepository: BootstrapRepository,
+    private val githubRepository: GithubRepository) : OctoPrintHandlerRepository {
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
 
     override val serverState: StateFlow<ServerStatus> = _serverState
@@ -58,6 +59,8 @@ class OctoPrintHandlerRepositoryImpl(
             _serverState.emit(ServerStatus.Running)
         } else {
             log{"CORNED"}
+            val release = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
+            log { "Newest OctoPrint release: " + release.tagName }
             enableSSH()
         }
     }
