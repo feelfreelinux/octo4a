@@ -4,6 +4,7 @@ import android.system.Os
 import android.util.Log
 import android.util.Pair
 import com.octo4a.octoprint.BootstrapUtils
+import com.octo4a.utils.log
 import com.octo4a.utils.setPassword
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,7 +22,7 @@ interface BootstrapRepository {
     val isSSHConfigured: Boolean
 }
 
-class BootstrapRepositoryImpl : BootstrapRepository {
+class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/usr"
@@ -36,6 +37,17 @@ class BootstrapRepositoryImpl : BootstrapRepository {
             }
 
             try {
+                val bootstrapReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a")
+                val arch = System.getProperty("os.arch")!!.toString()
+
+                val release = bootstrapReleases.firstOrNull {
+                    it.assets.any { asset -> asset.name.contains(arch) }
+                }
+
+                val asset = release?.assets?.first { asset -> asset.name.contains(arch)  }
+
+                log { "Downloading bootstrap ${release?.tagName}" }
+
                 val STAGING_PREFIX_PATH = "${FILES_PATH}/usr-staging"
                 val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
 
@@ -45,15 +57,8 @@ class BootstrapRepositoryImpl : BootstrapRepository {
 
                 val buffer = ByteArray(8096)
                 val symlinks = ArrayList<Pair<String, String>>(50)
-                var urlPrefix =
-                    "https://raw.githubusercontent.com/feelfreelinux/octo4a/master/termux-based-approach/bootstrap-"
-                urlPrefix += if (System.getProperty("os.arch") == "aarch64") {
-                    "aarch64.zip"
-                } else {
-                    "arm.zip"
-                }
 
-                urlPrefix = "https://github.com/feelfreelinux/octo4a/releases/download/0.0.1-bootstrap-test4/bootstrap-aarch64.zip"
+                val urlPrefix = asset?.browserDownloadUrl
 
                 ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
@@ -109,7 +114,7 @@ class BootstrapRepositoryImpl : BootstrapRepository {
                 if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
                     throw RuntimeException("Unable to rename staging folder")
                 }
-                Log.v("ASD", "donn")
+                log { "Bootstrap installation done" }
 
                 return@withContext
             } catch (e: Exception) {
