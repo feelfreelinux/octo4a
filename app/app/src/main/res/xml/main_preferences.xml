@@ -17,10 +17,11 @@
                 app:title="Enable OpenSSH Server"
                 app:summary="Enables SSH access from network"/>
         <EditTextPreference
-                app:dependency="changeSSHPassword"
+                app:dependency="enableSSH"
+                app:key="changeSSHPassword"
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
-                app:title="Change password"/>
+                app:title="Change SSH password"/>
     </PreferenceCategory>
     <PreferenceCategory
             app:title="Camera settings"

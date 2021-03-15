@@ -4,6 +4,7 @@ import android.content.Context
 import com.octo4a.octoprint.BootstrapUtils
 import com.octo4a.utils.isRunning
 import com.octo4a.utils.log
+import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.utils.setPassword
 import com.octo4a.utils.waitAndPrintOutput
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,17 +37,18 @@ interface OctoPrintHandlerRepository {
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
+    fun resetSSHPassword(password: String)
     val isSSHConfigured: Boolean
 }
 
 class OctoPrintHandlerRepositoryImpl(
     val context: Context,
+    private val preferences: MainPreferences,
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository) : OctoPrintHandlerRepository {
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
     private var octoPrintProcess: Process? = null
-    private var sshProcess: Process? = null
     override val isSSHConfigured: Boolean
         get() = bootstrapRepository.isSSHConfigured
 
@@ -81,7 +83,9 @@ class OctoPrintHandlerRepositoryImpl(
             startOctoPrint()
         } else {
             startOctoPrint()
-            // enableSSH()
+            if (preferences.enableSSH) {
+                startSSH()
+            }
         }
     }
 
@@ -112,14 +116,16 @@ class OctoPrintHandlerRepositoryImpl(
         _serverState.value = ServerStatus.Stopped
     }
 
+    override fun resetSSHPassword(password: String) {
+        bootstrapRepository.resetSSHPassword(password)
+    }
+
     override fun startSSH() {
         stopSSH()
-        sshProcess = bootstrapRepository.runBashCommand("sshd")
+        bootstrapRepository.runBashCommand("sshd").waitAndPrintOutput()
     }
 
     override fun stopSSH() {
-        if (sshProcess?.isRunning() == true) {
-            sshProcess?.destroy()
-        }
+        bootstrapRepository.runBashCommand("pkill sshd").waitAndPrintOutput()
     }
 }

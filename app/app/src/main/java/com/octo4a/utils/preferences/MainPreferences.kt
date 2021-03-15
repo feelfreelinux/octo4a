@@ -7,4 +7,5 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var selectedCamera by stringPref(defaultValue = null)
     var selectedResolution by stringPref()
     var enableSSH by booleanPref(defaultValue = false)
+    var changeSSHPassword by stringPref()
 }

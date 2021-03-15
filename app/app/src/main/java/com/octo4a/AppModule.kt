@@ -28,7 +28,7 @@ val appModule = module {
     factory<BootstrapRepository> { BootstrapRepositoryImpl() }
     factory <GithubRepository> { GithubRepositoryImpl(get()) }
 
-    single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get()) }
+    single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }
     viewModel { StatusViewModel(get()) }

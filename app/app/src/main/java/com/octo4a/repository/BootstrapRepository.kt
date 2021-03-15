@@ -16,6 +16,7 @@ interface BootstrapRepository {
     suspend fun setupBootstrap()
     fun runBashCommand(command: String): Process
     fun ensureHomeDirectory()
+    fun resetSSHPassword(newPassword: String)
     val isBootstrapInstalled: Boolean
     val isSSHConfigured: Boolean
 }
@@ -173,7 +174,7 @@ class BootstrapRepositoryImpl : BootstrapRepository {
             return File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").exists()
         }
 
-    fun resetSSHPassword(newPassword: String) {
+    override fun resetSSHPassword(newPassword: String) {
         if (isSSHConfigured) {
             File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").delete()
         }

@@ -13,8 +13,6 @@ import androidx.core.content.ContextCompat
 import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
-import com.octo4a.octoprint.OctoPrintService
-import com.octo4a.repository.BootstrapRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.log
@@ -35,6 +33,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val enableSSH by lazy { findPreference<SwitchPreferenceCompat>("enableSSH") }
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
+    private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
 
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -54,21 +53,41 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setDefaultValue("5000")
         }
 
+        setupSSHSettings()
     }
 
-    fun setupSSHSettings() {
+    private fun setupSSHSettings() {
         enableSSH?.setOnPreferenceChangeListener {
-                preference, newValue ->
+                _, newValue ->
             if (newValue as Boolean) {
                 if (octoprintHandler.isSSHConfigured) {
                     octoprintHandler.startSSH()
                 } else {
-
+                    enableSSH?.isChecked = false
+                    preferenceManager.showDialog(sshPasswordPref)
                 }
             } else {
                 octoprintHandler.stopSSH()
             }
             true
+        }
+
+        sshPasswordPref?.apply {
+            summary = "*".repeat(prefs.changeSSHPassword?.length ?: 0)
+            setOnBindEditTextListener {
+                it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                sshPasswordPref?.summaryProvider = Preference.SummaryProvider<EditTextPreference> {
+                        pref ->
+                    "*".repeat(pref?.text?.length ?: 0)
+                }
+            }
+            setOnPreferenceChangeListener { _, newValue ->
+                octoprintHandler.stopSSH()
+                octoprintHandler.resetSSHPassword(newValue as String)
+                octoprintHandler.startSSH()
+                enableSSH?.isChecked = true
+                true
+            }
         }
     }
 
