@@ -15,9 +15,8 @@ jobs:
           ndk-build NDK_PROJECT_PATH=app/src/main NDK_LIBS_OUT=app/src/main/jniLibs
           ./gradlew assembleRelease
         working-directory: ./app
-      - uses: actions/upload-artifact@v2
       - name: Upload artifacts
-        uses: actions/checkout@v2
+        uses: actions/upload-artifact@v2
         with:
           name: octo4a-unsigned.apk
-            path: app/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/app/build/outputs/apk/release/app-release-unsigned.apk
