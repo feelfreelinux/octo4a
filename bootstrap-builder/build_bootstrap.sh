@@ -340,6 +340,7 @@ for package_arch in "${TERMUX_ARCHITECTURES[@]}"; do
 	pull_package net-tools
 	pull_package patch
 	pull_package unzip
+	pull_package ffmpeg
 
 	# Handle additional packages.
 	for add_pkg in "${ADDITIONAL_PACKAGES[@]}"; do

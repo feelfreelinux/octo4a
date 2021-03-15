@@ -14,6 +14,8 @@ import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.octoprint.OctoPrintService
+import com.octo4a.repository.BootstrapRepository
+import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
@@ -22,6 +24,7 @@ import org.koin.android.ext.android.inject
 class SettingsFragment : PreferenceFragmentCompat() {
     private val manager by lazy { context?.getSystemService(CAMERA_SERVICE) as CameraManager }
     private val prefs: MainPreferences by inject()
+    private val octoprintHandler: OctoPrintHandlerRepository by inject()
 
     // Camera permission request
     private val hasCameraPermission: Boolean
@@ -29,6 +32,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     // Preferences
     private val enableCameraPref by lazy { findPreference<SwitchPreferenceCompat>("enableCameraServer") }
+    private val enableSSH by lazy { findPreference<SwitchPreferenceCompat>("enableSSH") }
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
 
@@ -50,6 +54,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setDefaultValue("5000")
         }
 
+    }
+
+    fun setupSSHSettings() {
+        enableSSH?.setOnPreferenceChangeListener {
+                preference, newValue ->
+            if (newValue as Boolean) {
+                if (octoprintHandler.isSSHConfigured) {
+                    octoprintHandler.startSSH()
+                } else {
+
+                }
+            } else {
+                octoprintHandler.stopSSH()
+            }
+            true
+        }
     }
 
     private fun setupCameraSettings() {

@@ -34,6 +34,9 @@ interface OctoPrintHandlerRepository {
     suspend fun beginInstallation()
     fun startOctoPrint()
     fun stopOctoPrint()
+    fun startSSH()
+    fun stopSSH()
+    val isSSHConfigured: Boolean
 }
 
 class OctoPrintHandlerRepositoryImpl(
@@ -43,6 +46,9 @@ class OctoPrintHandlerRepositoryImpl(
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
     private var octoPrintProcess: Process? = null
+    private var sshProcess: Process? = null
+    override val isSSHConfigured: Boolean
+        get() = bootstrapRepository.isSSHConfigured
 
     override val serverState: StateFlow<ServerStatus> = _serverState
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
@@ -68,13 +74,14 @@ class OctoPrintHandlerRepositoryImpl(
             bootstrapRepository.apply {
                 runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
                 runBashCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
+                runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
             }
             log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)
             startOctoPrint()
         } else {
             startOctoPrint()
-            enableSSH()
+            // enableSSH()
         }
     }
 
@@ -105,13 +112,14 @@ class OctoPrintHandlerRepositoryImpl(
         _serverState.value = ServerStatus.Stopped
     }
 
-    fun enableSSH() {
-        bootstrapRepository.ensureHomeDirectory()
-        // Generate ssh keys
-        bootstrapRepository.runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
-        // Sets password to `octoprint` @TODO Implement it properly
-        bootstrapRepository.runBashCommand("passwd").setPassword()
-        // Launches lemon demon
-        bootstrapRepository.runBashCommand("sshd").waitAndPrintOutput()
+    override fun startSSH() {
+        stopSSH()
+        sshProcess = bootstrapRepository.runBashCommand("sshd")
+    }
+
+    override fun stopSSH() {
+        if (sshProcess?.isRunning() == true) {
+            sshProcess?.destroy()
+        }
     }
 }

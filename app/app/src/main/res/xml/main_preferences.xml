@@ -13,10 +13,11 @@
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
                 app:key="enableSSH"
+                app:defaultValue="false"
                 app:title="Enable OpenSSH Server"
                 app:summary="Enables SSH access from network"/>
         <EditTextPreference
-                app:dependency="enableSSH"
+                app:dependency="changeSSHPassword"
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
                 app:title="Change password"/>
@@ -42,6 +43,13 @@
                 app:dependency="enableCameraServer"
                 app:title="Camera resolution"
                 app:summary="%s"/>
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:key="flashWhenObserved"
+                app:dependency="enableCameraServer"
+                app:defaultValue="false"
+                app:title="Turn on flash"
+                app:summary="Turn on flash when camera is being observed"/>
     </PreferenceCategory>
 
 

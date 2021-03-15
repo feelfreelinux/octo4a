@@ -13,11 +13,11 @@ fun Process.waitAndPrintOutput() {
     }
 }
 
-fun Process.setPassword() {
+fun Process.setPassword(password: String) {
     outputStream.bufferedWriter().apply {
-        write("octoprint\n")
+        write("$password\n")
         flush()
-        write("octoprint\n")
+        write("$password\n")
         flush()
     }
 }

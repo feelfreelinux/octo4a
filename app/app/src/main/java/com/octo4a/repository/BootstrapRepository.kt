@@ -4,6 +4,7 @@ import android.system.Os
 import android.util.Log
 import android.util.Pair
 import com.octo4a.octoprint.BootstrapUtils
+import com.octo4a.utils.setPassword
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.*
@@ -16,6 +17,7 @@ interface BootstrapRepository {
     fun runBashCommand(command: String): Process
     fun ensureHomeDirectory()
     val isBootstrapInstalled: Boolean
+    val isSSHConfigured: Boolean
 }
 
 class BootstrapRepositoryImpl : BootstrapRepository {
@@ -164,6 +166,18 @@ class BootstrapRepositoryImpl : BootstrapRepository {
         if (!homeFile.exists()) {
             homeFile.mkdir()
         }
+    }
+
+    override val isSSHConfigured: Boolean
+        get() {
+            return File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").exists()
+        }
+
+    fun resetSSHPassword(newPassword: String) {
+        if (isSSHConfigured) {
+            File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").delete()
+        }
+        runBashCommand("passwd").setPassword(newPassword)
     }
 
     override val isBootstrapInstalled: Boolean
