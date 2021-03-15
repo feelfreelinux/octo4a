@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.YuvImage
+import android.hardware.camera2.CameraManager
 import android.os.IBinder
 import android.util.Size
 import androidx.camera.core.CameraSelector
@@ -21,11 +22,16 @@ import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.ui.MainActivity
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.log
+import com.octo4a.utils.preferences.MainPreferences
+import org.koin.android.ext.android.inject
 import java.util.concurrent.Executors
 
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
+
+    private val cameraSettings: MainPreferences by inject()
+    private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
 
     override val newestFrame: ByteArray
         get() = synchronized(latestFrame) { return latestFrame }
@@ -53,6 +59,13 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         return null
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Thread {
+            mjpegServer.stopServer()
+        }.start()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         readyCamera()
@@ -68,17 +81,17 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         }
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
-        cameraProviderFuture.addListener(Runnable {
+        cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
             val cameraSelector = CameraSelector.Builder().apply {
-                requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                requireLensFacing(manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT)
             }.build()
             val imageAnalysis = ImageAnalysis.Builder()
-                .setTargetResolution(Size(840, 400))
+                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
 
-            imageAnalysis.setAnalyzer(callbackExecutorPool, ImageAnalysis.Analyzer { image ->
+            imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
                 synchronized(listenerCount) {
                     if (listenerCount > 0) {
                         val buffer = imageToByteArray(image)?.NV21toJPEG(image.width, image.height, 100) ?: ByteArray(0)
@@ -88,7 +101,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     }
                 }
                 image.close()
-            })
+            }
 
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(

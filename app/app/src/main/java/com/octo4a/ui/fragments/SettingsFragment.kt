@@ -2,6 +2,7 @@ package com.octo4a.ui.fragments
 
 import android.Manifest
 import android.content.Context.CAMERA_SERVICE
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
@@ -12,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
+import com.octo4a.octoprint.OctoPrintService
+import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
@@ -58,12 +61,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
             initCameraConfig()
         }
 
-        enableCameraPref?.setOnPreferenceChangeListener { _, _ ->
+        enableCameraPref?.setOnPreferenceChangeListener { _, newValue ->
             if (!hasCameraPermission) {
                 enableCameraPref.isChecked = false
                 requestCameraPermission.launch(Manifest.permission.CAMERA)
             } else {
                 initCameraConfig()
+                if (newValue as Boolean) {
+                    startCameraServer()
+                } else {
+                    stopCameraServer()
+                }
             }
             true
         }
@@ -94,6 +102,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 prefs.selectedResolution = selectedCam?.getRecommendedSize()?.readableString()
                 setCameraResolutions(newValue)
                 selectedCameraResolution?.value = prefs.selectedResolution
+                startCameraServer()
                 true
             }
         }
@@ -108,6 +117,30 @@ class SettingsFragment : PreferenceFragmentCompat() {
         selectedCameraResolution?.apply {
             entries = camera?.sizes?.map { it.readableString() }?.toTypedArray()
             entryValues = entries
+            setOnPreferenceChangeListener { _, value ->
+                prefs.selectedResolution = value as String
+                startCameraServer()
+                true
+            }
+        }
+    }
+
+    private fun startCameraServer() {
+        val activityContext = requireActivity()
+        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
+
+        if (activityContext.isServiceRunning(CameraService::class.java)) {
+            activityContext.stopService(cameraServiceIntent)
+        }
+        activityContext.startService(cameraServiceIntent)
+    }
+
+    private fun stopCameraServer() {
+        val activityContext = requireActivity()
+        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
+
+        if (activityContext.isServiceRunning(CameraService::class.java)) {
+            activityContext.stopService(cameraServiceIntent)
         }
     }
 }

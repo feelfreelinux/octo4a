@@ -54,4 +54,8 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider) {
     fun startServer() {
         server.start(true)
     }
+
+    fun stopServer() {
+        server.stop(0, timeoutMillis = 0)
+    }
 }
