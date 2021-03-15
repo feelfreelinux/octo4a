@@ -5,6 +5,7 @@
             app:title="Server settings"
             app:iconSpaceReserved="false">
         <EditTextPreference
+                app:key="serverPort"
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
                 app:title="Server port"/>
@@ -31,13 +32,13 @@
                 app:summary="Enables camera server"/>
         <ListPreference
                 app:iconSpaceReserved="false"
-                app:key="feedback"
+                app:key="selectedCamera"
                 app:dependency="enableCameraServer"
                 app:title="Camera source"
                 app:summary="%s"/>
         <ListPreference
                 app:iconSpaceReserved="false"
-                app:key="feedback"
+                app:key="selectedResolution"
                 app:dependency="enableCameraServer"
                 app:title="Camera resolution"
                 app:summary="%s"/>

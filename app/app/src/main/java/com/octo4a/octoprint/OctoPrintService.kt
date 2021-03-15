@@ -28,7 +28,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
 class OctoPrintService() : LifecycleService() {
-    val handlerRepository: OctoPrintHandlerRepository by inject()
+    private val handlerRepository: OctoPrintHandlerRepository by inject()
     private val scope = CoroutineScope(Dispatchers.IO)
 
     companion object {
@@ -106,7 +106,8 @@ class OctoPrintService() : LifecycleService() {
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
 
-        log { "CORN" }
+        virtualSerialDriver.initializeVSP()
+        virtualSerialDriver.handlePtyThread()
         scope.launch {
             handlerRepository.beginInstallation()
         }
@@ -115,6 +116,7 @@ class OctoPrintService() : LifecycleService() {
 
     override fun onDestroy() {
         unregisterReceiver(broadcastReceiver)
+        virtualSerialDriver.stopPtyThread()
         super.onDestroy()
     }
 

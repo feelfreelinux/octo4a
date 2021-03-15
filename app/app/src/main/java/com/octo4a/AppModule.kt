@@ -2,6 +2,7 @@ package com.octo4a
 
 import com.google.gson.FieldNamingPolicy
 import com.octo4a.repository.*
+import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
 import com.octo4a.viewmodel.StatusViewModel
 import io.ktor.client.*
@@ -23,6 +24,7 @@ val appModule = module {
         }
     }
 
+    factory { MainPreferences(androidContext()) }
     factory<BootstrapRepository> { BootstrapRepositoryImpl() }
     factory <GithubRepository> { GithubRepositoryImpl(get()) }
 

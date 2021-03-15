@@ -2,15 +2,13 @@ package com.octo4a.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
 import com.octo4a.camera.CameraService
-import com.octo4a.camera.MJpegServer
 import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
+import com.octo4a.ui.fragments.SettingsFragment
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
 

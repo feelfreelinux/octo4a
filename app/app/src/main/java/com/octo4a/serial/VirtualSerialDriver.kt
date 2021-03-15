@@ -25,6 +25,7 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
     var connection: UsbDeviceConnection? = null
     var serialInputManager: SerialInputOutputManager? = null
     var currentBaudrate = -1
+    var ptyThread: Thread? = null
 
 
     fun initializeVSP() {
@@ -32,9 +33,14 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
     }
 
     fun handlePtyThread() {
-        Thread {
+        ptyThread = Thread {
             pty.runPtyThread()
-        }.start()
+        }
+        ptyThread?.start()
+    }
+
+    fun stopPtyThread() {
+        ptyThread?.interrupt()
     }
 
     fun updateDevicesList(context: Context, intent: String) {

@@ -10,7 +10,6 @@ import android.os.IBinder
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -21,11 +20,8 @@ import com.octo4a.R
 import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.ui.MainActivity
 import com.octo4a.utils.NV21toJPEG
-import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.log
-import java.nio.ByteBuffer
 import java.util.concurrent.Executors
-
 
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
@@ -75,7 +71,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         cameraProviderFuture.addListener(Runnable {
             val cameraProvider = cameraProviderFuture.get()
             val cameraSelector = CameraSelector.Builder().apply {
-                requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                requireLensFacing(CameraSelector.LENS_FACING_FRONT)
             }.build()
             val imageAnalysis = ImageAnalysis.Builder()
                 .setTargetResolution(Size(840, 400))
