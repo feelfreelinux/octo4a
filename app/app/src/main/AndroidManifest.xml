@@ -26,9 +26,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity>
-
-        <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
@@ -37,8 +34,13 @@
                     android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                     android:resource="@xml/device_filter" />
         </activity>
+
+        <activity android:name=".ui.MainActivity">
+        </activity>
         <activity android:name=".ui.InstallationActivity"/>
-        <service android:name=".octoprint.OctoPrintService" />
+        <service android:name=".octoprint.OctoPrintService">
+
+        </service>
         <service android:name=".camera.CameraService" />
     </application>
 

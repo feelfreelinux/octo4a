@@ -17,6 +17,8 @@ enum class ServerStatus(val value: Int) {
     Stopped(5)
 }
 
+data class UsbDeviceStatus(val isAttached: Boolean, val port: String = "")
+
 fun ServerStatus.getInstallationProgress(): Int {
     return ((value.toDouble() / 4) * 100).roundToInt()
 }
@@ -25,16 +27,18 @@ fun ServerStatus.isInstallationFinished(): Boolean {
     return value == ServerStatus.Running.value
 }
 
-
 interface OctoPrintHandlerRepository {
     val serverState: StateFlow<ServerStatus>
     val octoPrintVersion: StateFlow<String>
+    val usbDeviceStatus: StateFlow<UsbDeviceStatus>
 
     suspend fun beginInstallation()
     fun startOctoPrint()
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
+    fun usbAttached(port: String)
+    fun usbDetached()
     fun resetSSHPassword(password: String)
     fun getConfigValue(value: String): String
     val isSSHConfigured: Boolean
@@ -47,12 +51,15 @@ class OctoPrintHandlerRepositoryImpl(
     private val githubRepository: GithubRepository) : OctoPrintHandlerRepository {
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
+    private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
+
     private var octoPrintProcess: Process? = null
     override val isSSHConfigured: Boolean
         get() = bootstrapRepository.isSSHConfigured
 
     override val serverState: StateFlow<ServerStatus> = _serverState
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
+    override val usbDeviceStatus: StateFlow<UsbDeviceStatus> = _usbDeviceStatus
 
     override suspend fun beginInstallation() {
         if (!bootstrapRepository.isBootstrapInstalled) {
@@ -132,6 +139,15 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun stopSSH() {
+        // Kills ssh demon
         bootstrapRepository.runBashCommand("pkill sshd").waitAndPrintOutput()
+    }
+
+    override fun usbAttached(port: String) {
+        _usbDeviceStatus.value = UsbDeviceStatus(true, port)
+    }
+
+    override fun usbDetached() {
+        _usbDeviceStatus.value = UsbDeviceStatus(false)
     }
 }

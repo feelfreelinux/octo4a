@@ -11,6 +11,8 @@ import java.lang.Exception
 
 interface MJpegFrameProvider {
     val newestFrame: ByteArray
+
+    suspend fun takeSnapshot(): ByteArray
     fun registerListener()
     fun unregisterListener()
 }
@@ -27,7 +29,7 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider) {
         embeddedServer(Netty, port = port) {
             routing {
                 get("/snapshot") {
-                    call.respondBytes(frameProvider.newestFrame, ContentType.Image.JPEG, HttpStatusCode.OK)
+                    call.respondBytes(frameProvider.takeSnapshot(), ContentType.Image.JPEG, HttpStatusCode.OK)
                 }
 
                 get("/mjpeg") {

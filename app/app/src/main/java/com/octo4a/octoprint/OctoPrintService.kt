@@ -11,9 +11,11 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.asLiveData
 import com.octo4a.ui.MainActivity
 import com.octo4a.R
 import com.octo4a.repository.OctoPrintHandlerRepository
+import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.log
 import com.octo4a.utils.withIO
@@ -30,6 +32,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class OctoPrintService() : LifecycleService() {
     private val handlerRepository: OctoPrintHandlerRepository by inject()
     private val scope = CoroutineScope(Dispatchers.IO)
+    private val notificationManager by lazy { getSystemService(NOTIFICATION_SERVICE) as NotificationManager }
 
     companion object {
         // Constants
@@ -50,15 +53,11 @@ class OctoPrintService() : LifecycleService() {
         VirtualSerialDriver(usbManager)
     }
 
-    val octoPrintManager by lazy {
-        OctoPrintManager(virtualSerialDriver)
-    }
-
     // Prepares intent filter for broadcast receiver
     private val intentFilter by lazy {
         val filter = IntentFilter()
         filter.addAction(BROADCAST_SERVICE_RECEIVE_ACTION)
-//        filter.addAction(BROADCAST_SERVICE_USB_GOT_ACCESS)
+        filter.addAction(BROADCAST_SERVICE_USB_GOT_ACCESS)
         filter.addAction(EVENT_USB_ATTACHED)
         filter.addAction(EVENT_USB_DETACHED)
 
@@ -71,25 +70,29 @@ class OctoPrintService() : LifecycleService() {
 
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("OctoPrint")
-            .setContentText("Octoprint something something")
+            .setContentText("...")
             .setVibrate(null)
             .setSmallIcon(R.drawable.ic_print_24px)
             .setContentIntent(pendingIntent)
     }
 
+    private fun updateNotificationStatus(status: String) {
+        notificationBuilder.setContentText(status)
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+    }
+
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
             when (intent?.action) {
-                BROADCAST_SERVICE_RECEIVE_ACTION -> {
-                    intent.getStringExtra(EXTRA_EVENTDATA)?.let {
-                        val event = JSONObject(it)
-                        octoPrintManager.handleEvent(OctoPrintEvent.valueOf(event.getString("eventType")), event)
+                EVENT_USB_ATTACHED -> {
+                    Log.v(LOG_TAG, "USB Device attached :)")
+                    virtualSerialDriver.updateDevicesList(this@OctoPrintService, BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
+                        handlerRepository.usbAttached(this)
                     }
                 }
 
-                EVENT_USB_ATTACHED -> {
-                    Log.v(LOG_TAG, "USB Device attached :)")
-                    virtualSerialDriver.updateDevicesList(this@OctoPrintService, BROADCAST_SERVICE_USB_GOT_ACCESS)
+                EVENT_USB_DETACHED -> {
+                    handlerRepository.usbDetached()
                 }
 
                 BROADCAST_SERVICE_USB_GOT_ACCESS -> {
@@ -105,11 +108,22 @@ class OctoPrintService() : LifecycleService() {
 
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
-
+        BootstrapUtils.ensureHomeDirectory()
         virtualSerialDriver.initializeVSP()
         virtualSerialDriver.handlePtyThread()
         scope.launch {
             handlerRepository.beginInstallation()
+        }
+
+        handlerRepository.serverState.asLiveData().observe(this) {
+            updateNotificationStatus(
+                when (it) {
+                    ServerStatus.Running -> resources.getString(R.string.notification_status_running)
+                    ServerStatus.Stopped -> resources.getString(R.string.notification_status_stopped)
+                    ServerStatus.InstallingDependencies, ServerStatus.InstallingBootstrap, ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.notification_status_installing)
+                    else -> resources.getString(R.string.notification_status_starting)
+                }
+            )
         }
         super.onCreate()
     }

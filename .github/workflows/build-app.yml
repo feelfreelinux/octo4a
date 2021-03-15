@@ -1,0 +1,17 @@
+name: Build app
+on: [pull_request, push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Setup ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21d
+      - name: Build the app
+        run: |
+          ndk-build NDK_PROJECT_PATH=app/src/main NDK_LIBS_OUT=app/src/main/jniLibs
+          ./gradlew assembleRelease
+        working-directory: ./app

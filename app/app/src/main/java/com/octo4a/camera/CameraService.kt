@@ -1,40 +1,60 @@
 package com.octo4a.camera
 
 import android.Manifest
-import android.app.PendingIntent
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.ImageFormat
-import android.graphics.YuvImage
 import android.hardware.camera2.CameraManager
 import android.os.IBinder
 import android.util.Size
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
-import com.octo4a.R
-import com.octo4a.octoprint.OctoPrintService
-import com.octo4a.ui.MainActivity
 import com.octo4a.utils.NV21toJPEG
+import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.util.concurrent.Executors
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
 
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
+    private var imageCapture: ImageCapture? = null
 
     private val cameraSettings: MainPreferences by inject()
     private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
+    private val captureExecutor by lazy { Executors.newCachedThreadPool() }
 
     override val newestFrame: ByteArray
         get() = synchronized(latestFrame) { return latestFrame }
+
+    override suspend fun takeSnapshot(): ByteArray = suspendCoroutine<ByteArray> {
+        if (imageCapture == null) {
+            it.resume(ByteArray(0))
+        } else {
+            imageCapture?.takePicture(captureExecutor, object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val buffer = image.planes[0].buffer
+                    val bytes = ByteArray(buffer.capacity()).also { array -> buffer.get(array) }
+                    super.onCaptureSuccess(image) //Closes the image
+                    image.close()
+                    it.resume(bytes)
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    super.onError(exception)
+                    log { "Single capture error: $exception" }
+                    it.resume(ByteArray(0))
+                }
+            })
+        }
+    }
 
     override fun registerListener() {
         synchronized(listenerCount) {
@@ -75,6 +95,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         return START_STICKY
     }
 
+    @SuppressLint("UnsafeExperimentalUsageError")
     private fun readyCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             return
@@ -86,17 +107,30 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             val cameraSelector = CameraSelector.Builder().apply {
                 requireLensFacing(manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT)
             }.build()
+            manager.cameraWithId(cameraSettings.selectedCamera!!)?.sizes?.forEach {
+                log { it.readableString() }
+            }
+
+            imageCapture = ImageCapture.Builder()
+                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .build()
+
             val imageAnalysis = ImageAnalysis.Builder()
-                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution))
+                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
 
+            val turnFlashOn = cameraSettings.flashWhenObserved
+
             imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
                 synchronized(listenerCount) {
-                    if (listenerCount > 0) {
-                        val buffer = imageToByteArray(image)?.NV21toJPEG(image.width, image.height, 100) ?: ByteArray(0)
-                        synchronized(latestFrame) {
-                            latestFrame = buffer
+                    if (listenerCount > 0 || latestFrame.isEmpty()) {
+                        val buffer = image.YUV420toNV21().NV21toJPEG(image.width, image.height, 100) ?: ByteArray(0)
+                        if (buffer.isNotEmpty()) {
+                            synchronized(latestFrame) {
+                                latestFrame = buffer
+                            }
                         }
                     }
                 }
@@ -104,38 +138,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             }
 
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
+            val camera = cameraProvider.bindToLifecycle(
                 this,
                 cameraSelector,
+                imageCapture,
                 imageAnalysis
             )
-        }, ContextCompat.getMainExecutor(applicationContext))
-    }
-    private fun imageToByteArray(image: ImageProxy): ByteArray? {
-        val planes = image.planes
-        val yBuffer = planes[0].buffer
-        val uBuffer = planes[1].buffer
-        val vBuffer = planes[2].buffer
-        val ySize = yBuffer.remaining()
-        val uSize = uBuffer.remaining()
-        val vSize = vBuffer.remaining()
-        val nv21 = ByteArray(ySize + uSize + vSize)
-        //U and V are swapped
-        yBuffer[nv21, 0, ySize]
-        vBuffer[nv21, ySize, vSize]
-        uBuffer[nv21, ySize + vSize, uSize]
-        val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
-        return yuvImage.yuvData
-    }
-    private val notificationBuilder by lazy {
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-        NotificationCompat.Builder(this, OctoPrintService.CHANNEL_ID)
-            .setContentTitle("OctoPrint")
-            .setContentText("Octoprint something something")
-            .setVibrate(null)
-            .setSmallIcon(R.drawable.ic_print_24px)
-            .setContentIntent(pendingIntent)
+            if (turnFlashOn) {
+                camera.cameraControl.enableTorch(true)
+            }
+        }, ContextCompat.getMainExecutor(applicationContext))
     }
 }

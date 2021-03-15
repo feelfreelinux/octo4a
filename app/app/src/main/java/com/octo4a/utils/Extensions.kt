@@ -12,6 +12,7 @@ import android.util.TypedValue
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import androidx.camera.core.ImageProxy
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -49,7 +50,7 @@ fun ByteArray.NV21toJPEG( width: Int, height: Int, quality: Int): ByteArray? {
     return out.toByteArray()
 }
 
-fun Image.YUV420toNV21(): ByteArray {
+fun ImageProxy.YUV420toNV21(): ByteArray {
     val width: Int = cropRect.width()
     val height: Int = cropRect.height()
     val data = ByteArray(width * height * ImageFormat.getBitsPerPixel(format) / 8)

@@ -12,6 +12,7 @@ import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import java.nio.charset.Charset
 import com.hoho.android.usbserial.util.SerialInputOutputManager
+import com.octo4a.utils.log
 import java.lang.Exception
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -43,10 +44,10 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
         ptyThread?.interrupt()
     }
 
-    fun updateDevicesList(context: Context, intent: String) {
+    fun updateDevicesList(context: Context, intent: String): String? {
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
-            return
+            return null
         }
 
         val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
@@ -54,35 +55,48 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
             val mPendingIntent =
                 PendingIntent.getBroadcast(context, 0, Intent(intent), 0)
             usbManager.requestPermission(device.device, mPendingIntent)
+            log { "REQUESTED DEVICE"}
+            return null
         } else {
             selectedDevice = device
+            log { "GOT DEVICE"}
+            return device.device.deviceName
         }
     }
 
     override fun onDataReceived(data: SerialData?) {
-        data?.apply {
-            if (isStartPacket || currentBaudrate != baudrate) {
-                if (port?.isOpen == true) {
-                    port?.close()
+        try {
+            data?.apply {
+                if (isStartPacket || currentBaudrate != baudrate && selectedDevice != null) {
+                    if (port?.isOpen == true) {
+                        port?.close()
+                    }
+                    connection = usbManager.openDevice(selectedDevice?.device)
+                    port = selectedDevice!!.ports.first()
+
+                    port?.open(connection)
+
+                    Log.v("COCKRN", (data.c_cflag and 768).toString())
+
+                    // @TODO get it from flags
+                    port?.setParameters(
+                        pty.getBaudrate(baudrate),
+                        8,
+                        UsbSerialPort.STOPBITS_2,
+                        UsbSerialPort.PARITY_NONE
+                    )
+                    currentBaudrate = baudrate
+
+                    serialInputManager = SerialInputOutputManager(port, this@VirtualSerialDriver)
+                    Executors.newSingleThreadExecutor().submit(serialInputManager)
                 }
-                connection = usbManager.openDevice(selectedDevice?.device)
-                port = selectedDevice!!.ports.first()
 
-                port?.open(connection)
-
-                Log.v("COCKRN", (data.c_cflag and 768).toString())
-
-                // @TODO get it from flags
-                port?.setParameters(pty.getBaudrate(baudrate), 8, UsbSerialPort.STOPBITS_2, UsbSerialPort.PARITY_NONE)
-                currentBaudrate = baudrate
-
-                serialInputManager = SerialInputOutputManager(port, this@VirtualSerialDriver)
-                Executors.newSingleThreadExecutor().submit(serialInputManager)
+                if (data.data.size > 1) {
+                    port?.write(data.serialData, 0)
+                }
             }
-
-            if (data.data.size > 1) {
-                port?.write(data.serialData, 0)
-            }
+        } catch (e: Exception) {
+            log { "Exception during write ${e.message}" }
         }
     }
 

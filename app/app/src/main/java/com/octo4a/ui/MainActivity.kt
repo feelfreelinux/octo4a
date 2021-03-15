@@ -1,5 +1,6 @@
 package com.octo4a.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -19,4 +20,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         bottomNavigationBar.setupWithNavController(findNavController(R.id.navHost))
     }
+
+
 }

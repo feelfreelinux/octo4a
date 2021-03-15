@@ -27,15 +27,30 @@ class ServerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        statusViewModel.usbStatus.observe(viewLifecycleOwner) {
+            if (it.isAttached) {
+                connectionStatus.title = "Printer is connected"
+                connectionStatus.subtitle = it.port
+            } else {
+                connectionStatus.title = "Printer not connected"
+                connectionStatus.subtitle = "Connect your printer using OTG cable"
+            }
+        }
+
         statusViewModel.serverStatus.observe(viewLifecycleOwner) {
             when (it) {
                 ServerStatus.Running -> {
                     serverStatus.setDrawableAndColor(R.drawable.ic_stop_24px, android.R.color.holo_red_light)
                     serverStatus.title = resources.getString(R.string.status_running)
-                    serverStatus.subtitle = statusViewModel.getServerAddress()
                     serverStatus.onActionClicked = {
                         statusViewModel.stopServer()
                     }
+//                    Thread {
+//                        val serverAddr = statusViewModel.getServerAddress()
+//                        requireActivity().runOnUiThread {
+//                            serverStatus.subtitle = serverAddr
+//                        }
+//                    }.run()
                 }
 
                 ServerStatus.BootingUp -> {

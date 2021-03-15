@@ -12,6 +12,8 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 
 class StatusViewModel(context: Application, private val octoPrintHandlerRepository: OctoPrintHandlerRepository) : AndroidViewModel(context) {
     val serverStatus = octoPrintHandlerRepository.serverState.asLiveData()
+    val usbStatus = octoPrintHandlerRepository.usbDeviceStatus.asLiveData()
+
     private val ipAddress: String
         get() {
             val wm = getApplication<Octo4aApplication>().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager

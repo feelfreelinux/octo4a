@@ -6,7 +6,6 @@ import android.hardware.camera2.CameraManager
 import android.util.Size
 import androidx.camera.core.CameraSelector
 
-
 data class CameraDescription(val id: String, val megapixels: Int, val lensFacing: Int, val sizes: List<Size>)
 
 fun CameraDescription.describeString(): String{

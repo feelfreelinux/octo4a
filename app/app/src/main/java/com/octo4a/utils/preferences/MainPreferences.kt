@@ -8,4 +8,5 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var selectedResolution by stringPref()
     var enableSSH by booleanPref(defaultValue = false)
     var changeSSHPassword by stringPref()
+    var flashWhenObserved by booleanPref()
 }
