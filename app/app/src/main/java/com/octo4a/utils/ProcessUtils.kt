@@ -1,6 +1,5 @@
 package com.octo4a.utils
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,6 +10,16 @@ fun Process.waitAndPrintOutput() {
     inputStream.reader().forEachLine {
         log { it }
     }
+}
+
+fun Process.getOutputAsString(): String {
+    val log = StringBuilder()
+    var line: String?
+    while (inputStream.bufferedReader().readLine().also { line = it } != null) {
+        log.append(line + "\n")
+    }
+
+    return log.toString()
 }
 
 fun Process.setPassword(password: String) {

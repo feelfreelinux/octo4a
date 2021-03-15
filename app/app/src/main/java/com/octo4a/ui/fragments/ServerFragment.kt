@@ -32,7 +32,7 @@ class ServerFragment : Fragment() {
                 ServerStatus.Running -> {
                     serverStatus.setDrawableAndColor(R.drawable.ic_stop_24px, android.R.color.holo_red_light)
                     serverStatus.title = resources.getString(R.string.status_running)
-                    serverStatus.subtitle = "192.168.254.103:5000"
+                    serverStatus.subtitle = statusViewModel.getServerAddress()
                     serverStatus.onActionClicked = {
                         statusViewModel.stopServer()
                     }

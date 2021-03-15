@@ -8,6 +8,7 @@ import com.octo4a.viewmodel.StatusViewModel
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.features.json.*
+import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -31,5 +32,5 @@ val appModule = module {
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }
-    viewModel { StatusViewModel(get()) }
+    viewModel { StatusViewModel(androidApplication(), get()) }
 }

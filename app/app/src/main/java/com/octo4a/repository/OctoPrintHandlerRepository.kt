@@ -2,11 +2,8 @@ package com.octo4a.repository
 
 import android.content.Context
 import com.octo4a.octoprint.BootstrapUtils
-import com.octo4a.utils.isRunning
-import com.octo4a.utils.log
+import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
-import com.octo4a.utils.setPassword
-import com.octo4a.utils.waitAndPrintOutput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
@@ -32,12 +29,14 @@ fun ServerStatus.isInstallationFinished(): Boolean {
 interface OctoPrintHandlerRepository {
     val serverState: StateFlow<ServerStatus>
     val octoPrintVersion: StateFlow<String>
+
     suspend fun beginInstallation()
     fun startOctoPrint()
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
     fun resetSSHPassword(password: String)
+    fun getConfigValue(value: String): String
     val isSSHConfigured: Boolean
 }
 
@@ -109,6 +108,13 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
+    }
+
+    override fun getConfigValue(value: String): String {
+        return bootstrapRepository.runBashCommand("octoprint config get $value")
+            .getOutputAsString()
+            .replace("\n", "")
+            .removeSurrounding("'")
     }
 
     override fun stopOctoPrint() {
