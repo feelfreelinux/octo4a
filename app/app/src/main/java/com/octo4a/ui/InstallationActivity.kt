@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
+import com.octo4a.octoprint.OctoPrintService
 import com.octo4a.repository.ServerStatus
 import com.octo4a.repository.getInstallationProgress
 import com.octo4a.ui.views.InstallationProgressItem
@@ -33,7 +34,8 @@ class InstallationActivity : AppCompatActivity() {
         }
 
         continueButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+            stopService(Intent(this, OctoPrintService::class.java))
+            val intent = Intent(this, InitialActivity::class.java)
             startActivity(intent)
             finish()
         }
