@@ -20,7 +20,15 @@
     <string name="notification_status_starting">Server is starting up…</string>
     <string name="notification_status_stopped">Server is stopped</string>
     <string name="notification_status_installing">Server is being installed…</string>
-
+    <string name="camera_preview">Camera preview</string>
+    <string name="action_ok">OK</string>
+    <string name="camserver_status_tap">Tap to show preview</string>
+    <string name="camserver_running">Camera server is running</string>
+    <string name="camserver_disabled">Camera server disabled</string>
+    <string name="camserver_enable">Enable in settings</string>
+    <string name="connection_not_connected">Printer not connected</string>
+    <string name="connection_connected">Printer is connected</string>
+    <string name="connection_otg_cable">Connect your printer using OTG cable</string>
 
 
 </resources>

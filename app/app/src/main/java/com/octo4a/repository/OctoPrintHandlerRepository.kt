@@ -31,6 +31,7 @@ interface OctoPrintHandlerRepository {
     val serverState: StateFlow<ServerStatus>
     val octoPrintVersion: StateFlow<String>
     val usbDeviceStatus: StateFlow<UsbDeviceStatus>
+    val cameraServerStatus: StateFlow<Boolean>
 
     suspend fun beginInstallation()
     fun startOctoPrint()
@@ -42,6 +43,7 @@ interface OctoPrintHandlerRepository {
     fun resetSSHPassword(password: String)
     fun getConfigValue(value: String): String
     val isSSHConfigured: Boolean
+    var isCameraServerRunning: Boolean
 }
 
 class OctoPrintHandlerRepositoryImpl(
@@ -52,6 +54,7 @@ class OctoPrintHandlerRepositoryImpl(
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
+    private var _cameraServerStatus = MutableStateFlow(false)
 
     private var octoPrintProcess: Process? = null
     override val isSSHConfigured: Boolean
@@ -60,6 +63,13 @@ class OctoPrintHandlerRepositoryImpl(
     override val serverState: StateFlow<ServerStatus> = _serverState
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
     override val usbDeviceStatus: StateFlow<UsbDeviceStatus> = _usbDeviceStatus
+    override val cameraServerStatus: StateFlow<Boolean> = _cameraServerStatus
+
+    override var isCameraServerRunning: Boolean
+        get() = _cameraServerStatus.value
+        set(value) {
+            _cameraServerStatus.value = value
+        }
 
     override suspend fun beginInstallation() {
         if (!bootstrapRepository.isBootstrapInstalled) {

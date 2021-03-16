@@ -13,6 +13,7 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 class StatusViewModel(context: Application, private val octoPrintHandlerRepository: OctoPrintHandlerRepository) : AndroidViewModel(context) {
     val serverStatus = octoPrintHandlerRepository.serverState.asLiveData()
     val usbStatus = octoPrintHandlerRepository.usbDeviceStatus.asLiveData()
+    val cameraStatus = octoPrintHandlerRepository.cameraServerStatus.asLiveData()
 
     private val ipAddress: String
         get() {

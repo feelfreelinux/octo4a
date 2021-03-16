@@ -1,12 +1,21 @@
 package com.octo4a.ui.fragments
 
+import android.app.AlertDialog
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
+import com.octo4a.camera.CameraService
 import com.octo4a.repository.ServerStatus
 import com.octo4a.utils.log
 import com.octo4a.viewmodel.InstallationViewModel
@@ -17,7 +26,19 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ServerFragment : Fragment() {
     private val statusViewModel: StatusViewModel by sharedViewModel()
+    private lateinit var cameraService: CameraService
+    private var boundToCameraService = false
+    private val cameraServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as CameraService.LocalBinder
+            cameraService = binder.getService()
+            boundToCameraService = true
+        }
 
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            boundToCameraService = false
+        }
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -25,15 +46,45 @@ class ServerFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_server, container, false)
     }
 
+    override fun onStart() {
+        super.onStart()
+        val activity = requireActivity()
+        Intent(activity, CameraService::class.java).also { intent ->
+            activity.bindService(intent, cameraServiceConnection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireActivity().unbindService(cameraServiceConnection)
+        boundToCameraService = false
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         statusViewModel.usbStatus.observe(viewLifecycleOwner) {
             if (it.isAttached) {
-                connectionStatus.title = "Printer is connected"
+                connectionStatus.title = getString(R.string.connection_connected)
                 connectionStatus.subtitle = it.port
             } else {
-                connectionStatus.title = "Printer not connected"
-                connectionStatus.subtitle = "Connect your printer using OTG cable"
+                connectionStatus.title = getString(R.string.connection_not_connected)
+                connectionStatus.subtitle = getString(R.string.connection_otg_cable)
+            }
+        }
+
+        camServerStatus.setOnClickListener {
+            if (statusViewModel.cameraStatus.value == true) {
+                showPreviewDialog()
+            }
+        }
+
+        statusViewModel.cameraStatus.observe(viewLifecycleOwner) {
+            if (it) {
+                camServerStatus.title = getString(R.string.camserver_running)
+                camServerStatus.subtitle = getString(R.string.camserver_status_tap)
+            } else {
+                camServerStatus.title = getString(R.string.camserver_disabled)
+                camServerStatus.subtitle = getString(R.string.camserver_enable)
             }
         }
 
@@ -70,6 +121,18 @@ class ServerFragment : Fragment() {
             }
             serverStatus.actionProgressbar.isGone = it != ServerStatus.BootingUp
             serverStatus.actionButton.isGone = it == ServerStatus.BootingUp
+        }
+    }
+
+    private fun showPreviewDialog() {
+        val dialog = MaterialAlertDialogBuilder(requireActivity())
+            .setTitle(R.string.camera_preview)
+            .setView(R.layout.dialog_camera_preview)
+            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
+            .show()
+        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
+        if (boundToCameraService) {
+            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
         }
     }
 }

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraManager
+import android.os.Binder
 import android.os.IBinder
 import android.util.Size
 import androidx.camera.core.*
@@ -12,6 +13,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
+import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.log
@@ -25,20 +27,56 @@ import kotlin.coroutines.suspendCoroutine
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
-    private var imageCapture: ImageCapture? = null
 
     private val cameraSettings: MainPreferences by inject()
+    private val octoprintHandler: OctoPrintHandlerRepository by inject()
     private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
     private val captureExecutor by lazy { Executors.newCachedThreadPool() }
+
+    var cameraInitialized = false
+    var cameraProcessProvider: ProcessCameraProvider? = null
+    val cameraSelector by lazy {
+        CameraSelector.Builder().apply {
+            requireLensFacing(
+                manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT
+            )
+        }.build()
+    }
+    val cameraPreview  by lazy {
+        Preview.Builder()
+            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+            .build()
+    }
+
+    val imageCapture by lazy {
+        ImageCapture.Builder()
+            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+    }
+
+    val imageAnalysis by lazy {
+        ImageAnalysis.Builder()
+            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+    }
 
     override val newestFrame: ByteArray
         get() = synchronized(latestFrame) { return latestFrame }
 
+    inner class LocalBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods
+        fun getService(): CameraService = this@CameraService
+    }
+
+    private val binder = LocalBinder()
+
     override suspend fun takeSnapshot(): ByteArray = suspendCoroutine<ByteArray> {
-        if (imageCapture == null) {
+        if (!cameraInitialized) {
             it.resume(ByteArray(0))
         } else {
-            imageCapture?.takePicture(captureExecutor, object : ImageCapture.OnImageCapturedCallback() {
+            imageCapture.takePicture(captureExecutor, object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     val buffer = image.planes[0].buffer
                     val bytes = ByteArray(buffer.capacity()).also { array -> buffer.get(array) }
@@ -74,9 +112,9 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
     private val callbackExecutorPool = Executors.newCachedThreadPool()
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
-        return null
+        return binder
     }
 
     override fun onDestroy() {
@@ -84,6 +122,27 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         Thread {
             mjpegServer.stopServer()
         }.start()
+        octoprintHandler.isCameraServerRunning = false
+    }
+
+    fun getPreview(): Preview {
+        cameraInitialized = false
+        val turnFlashOn = cameraSettings.flashWhenObserved
+
+        cameraProcessProvider?.unbindAll()
+        val camera = cameraProcessProvider?.bindToLifecycle(
+            this,
+            cameraSelector,
+            imageCapture,
+            imageAnalysis,
+            cameraPreview
+        )
+
+        if (turnFlashOn) {
+            camera?.cameraControl?.enableTorch(true)
+        }
+        cameraInitialized = true
+        return cameraPreview
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -103,23 +162,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val cameraSelector = CameraSelector.Builder().apply {
-                requireLensFacing(manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT)
-            }.build()
-            manager.cameraWithId(cameraSettings.selectedCamera!!)?.sizes?.forEach {
-                log { it.readableString() }
-            }
-
-            imageCapture = ImageCapture.Builder()
-                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .build()
-
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
+            cameraProcessProvider = cameraProviderFuture.get()
 
             val turnFlashOn = cameraSettings.flashWhenObserved
 
@@ -137,8 +180,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                 image.close()
             }
 
-            cameraProvider.unbindAll()
-            val camera = cameraProvider.bindToLifecycle(
+            cameraProcessProvider?.unbindAll()
+            val camera = cameraProcessProvider?.bindToLifecycle(
                 this,
                 cameraSelector,
                 imageCapture,
@@ -146,8 +189,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             )
 
             if (turnFlashOn) {
-                camera.cameraControl.enableTorch(true)
+                camera?.cameraControl?.enableTorch(true)
             }
+            cameraInitialized = true
         }, ContextCompat.getMainExecutor(applicationContext))
+        octoprintHandler.isCameraServerRunning = true
     }
 }
