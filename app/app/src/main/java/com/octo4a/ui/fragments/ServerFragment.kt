@@ -96,12 +96,7 @@ class ServerFragment : Fragment() {
                     serverStatus.onActionClicked = {
                         statusViewModel.stopServer()
                     }
-//                    Thread {
-//                        val serverAddr = statusViewModel.getServerAddress()
-//                        requireActivity().runOnUiThread {
-//                            serverStatus.subtitle = serverAddr
-//                        }
-//                    }.run()
+                    serverStatus.subtitle = statusViewModel.getServerAddress()
                 }
 
                 ServerStatus.BootingUp -> {

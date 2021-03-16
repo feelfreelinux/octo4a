@@ -93,6 +93,8 @@ class OctoPrintHandlerRepositoryImpl(
                 runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
                 runBashCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
                 runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
+                runBashCommand("octoprint config append_value serial.additionalPorts /data/data/com.octo4a/files/home/serialpipe").waitAndPrintOutput()
+                runBashCommand("octoprint config set serial.exclusive False").waitAndPrintOutput()
             }
             log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)

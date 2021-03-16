@@ -30,7 +30,7 @@ class StatusViewModel(context: Application, private val octoPrintHandlerReposito
     }
 
     fun getServerAddress(): String {
-        return "$ipAddress:${getServerPort()}"
+        return "$ipAddress:5000"
     }
 
     fun stopServer() {
