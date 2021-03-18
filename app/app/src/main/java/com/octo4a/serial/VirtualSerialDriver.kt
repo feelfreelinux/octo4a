@@ -17,9 +17,12 @@ import java.lang.Exception
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-
-class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, SerialInputOutputManager.Listener {
+class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputManager.Listener {
     val pty by lazy { VSPPty() }
+
+    private val usbManager by lazy {
+        context.getSystemService(Context.USB_SERVICE) as UsbManager
+    }
 
     var selectedDevice: UsbSerialDriver? = null
     var port: UsbSerialPort? = null
@@ -27,7 +30,9 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
     var serialInputManager: SerialInputOutputManager? = null
     var currentBaudrate = -1
     var ptyThread: Thread? = null
-
+    companion object {
+        val usbPermissionRequestCode = 2212
+    }
 
     fun initializeVSP() {
         pty.setVSPListener(this)
@@ -44,7 +49,7 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
         ptyThread?.interrupt()
     }
 
-    fun updateDevicesList(context: Context, intent: String): String? {
+    fun updateDevicesList(intent: String): String? {
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
             return null
@@ -53,7 +58,7 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
         val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
         if (!usbManager.hasPermission(device!!.device)) {
             val mPendingIntent =
-                PendingIntent.getBroadcast(context, 0, Intent(intent), 0)
+                PendingIntent.getBroadcast(context, usbPermissionRequestCode, Intent(intent), 0)
             usbManager.requestPermission(device.device, mPendingIntent)
             log { "REQUESTED DEVICE"}
             return null

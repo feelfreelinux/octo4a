@@ -2,6 +2,7 @@ package com.octo4a
 
 import com.google.gson.FieldNamingPolicy
 import com.octo4a.repository.*
+import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
 import com.octo4a.viewmodel.StatusViewModel
@@ -30,6 +31,7 @@ val appModule = module {
     factory<BootstrapRepository> { BootstrapRepositoryImpl(get(), androidContext()) }
 
     single<FIFOEventRepository> { FIFOEventRepositoryImpl() }
+    single<VirtualSerialDriver> { VirtualSerialDriver(androidContext()) }
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }

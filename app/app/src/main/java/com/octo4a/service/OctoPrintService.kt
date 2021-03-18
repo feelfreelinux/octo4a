@@ -45,10 +45,7 @@ class OctoPrintService() : LifecycleService() {
         const val EXTRA_EVENTDATA = "EXTRA_EVENTDATA"
     }
 
-    val virtualSerialDriver: VirtualSerialDriver by lazy {
-        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-        VirtualSerialDriver(usbManager)
-    }
+    val virtualSerialDriver: VirtualSerialDriver by inject()
 
     // Prepares intent filter for broadcast receiver
     private val intentFilter by lazy {
@@ -83,7 +80,7 @@ class OctoPrintService() : LifecycleService() {
             when (intent?.action) {
                 EVENT_USB_ATTACHED -> {
                     Log.v(LOG_TAG, "USB Device attached :)")
-                    virtualSerialDriver.updateDevicesList(this@OctoPrintService, BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
+                    virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
                         handlerRepository.usbAttached(this)
                     }
                 }
@@ -95,7 +92,7 @@ class OctoPrintService() : LifecycleService() {
                 BROADCAST_SERVICE_USB_GOT_ACCESS -> {
                     val granted = intent.extras!!.getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED)
                     if (granted) {
-                        virtualSerialDriver.updateDevicesList(this@OctoPrintService, BROADCAST_SERVICE_USB_GOT_ACCESS)
+                        virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)
                     }
                 }
             }
