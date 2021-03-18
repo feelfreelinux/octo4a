@@ -4,6 +4,7 @@ app/build/*
 app/build
 app/.gradle
 app/.gradle/*
+app/app/src/main/jniLibs/*
 .gradle
 .DS_STORE
 *.class

@@ -91,7 +91,7 @@ static jint getBaudrate(speed_t baudrate)
     case B4000000:
         return 4000000;
     default:
-        return -1;
+        return 250000;
     }
 }
 

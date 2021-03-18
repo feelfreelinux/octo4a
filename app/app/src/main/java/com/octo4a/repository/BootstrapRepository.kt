@@ -1,9 +1,9 @@
 package com.octo4a.repository
 
+import android.app.Application
+import android.content.Context
 import android.system.Os
-import android.util.Log
 import android.util.Pair
-import com.octo4a.octoprint.BootstrapUtils
 import com.octo4a.utils.log
 import com.octo4a.utils.setPassword
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +22,7 @@ interface BootstrapRepository {
     val isSSHConfigured: Boolean
 }
 
-class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : BootstrapRepository {
+class BootstrapRepositoryImpl(val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/usr"
@@ -31,7 +31,7 @@ class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : Bootstra
 
     override suspend fun setupBootstrap() {
         withContext(Dispatchers.IO) {
-            val PREFIX_FILE = File(BootstrapUtils.PREFIX_PATH)
+            val PREFIX_FILE = File(PREFIX_PATH)
             if (PREFIX_FILE.isDirectory) {
                 return@withContext
             }
@@ -157,6 +157,7 @@ class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : Bootstra
         pb.environment()["PREFIX"] = "$FILES/usr"
         pb.environment()["HOME"] = "$FILES/home"
         pb.environment()["LD_LIBRARY_PATH"] = "$FILES/usr/lib"
+        pb.environment()["LD_PRELOAD"] = context.applicationInfo.nativeLibraryDir + "/libioctlHook.so"
         pb.environment()["PWD"] = "$FILES/home"
         pb.environment()["PATH"] =
             "$FILES/usr/bin:$FILES/usr/bin/applets:$FILES/usr/bin:$FILES/usr/bin/applets:/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
@@ -168,7 +169,7 @@ class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : Bootstra
     }
 
     override fun ensureHomeDirectory() {
-        val homeFile = File(BootstrapUtils.HOME_PATH)
+        val homeFile = File(HOME_PATH)
         if (!homeFile.exists()) {
             homeFile.mkdir()
         }
@@ -176,16 +177,16 @@ class BootstrapRepositoryImpl(val githubRepository: GithubRepository) : Bootstra
 
     override val isSSHConfigured: Boolean
         get() {
-            return File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").exists()
+            return File("${HOME_PATH}/.termux_authinfo").exists()
         }
 
     override fun resetSSHPassword(newPassword: String) {
         if (isSSHConfigured) {
-            File("${BootstrapUtils.HOME_PATH}/.termux_authinfo").delete()
+            File("${HOME_PATH}/.termux_authinfo").delete()
         }
         runBashCommand("passwd").setPassword(newPassword)
     }
 
     override val isBootstrapInstalled: Boolean
-        get() = File(BootstrapUtils.PREFIX_PATH).isDirectory
+        get() = File(PREFIX_PATH).isDirectory
 }

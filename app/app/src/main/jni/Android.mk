@@ -23,3 +23,12 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
 
 include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := ioctlHook
+LOCAL_SRC_FILES := ioctl-hook.c
+LOCAL_C_INCLUDES += $(LOCAL_PATH)
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
+
+include $(BUILD_SHARED_LIBRARY)

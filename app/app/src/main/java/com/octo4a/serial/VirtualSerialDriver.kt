@@ -67,7 +67,8 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
     override fun onDataReceived(data: SerialData?) {
         try {
             data?.apply {
-                if (isStartPacket || currentBaudrate != baudrate && selectedDevice != null) {
+                log { pty.getBaudrate(baudrate).toString() }
+                if ((isStartPacket || currentBaudrate != baudrate) && selectedDevice != null) {
                     if (port?.isOpen == true) {
                         port?.close()
                     }
@@ -75,9 +76,6 @@ class VirtualSerialDriver(private val usbManager: UsbManager): VSPListener, Seri
                     port = selectedDevice!!.ports.first()
 
                     port?.open(connection)
-
-                    Log.v("COCKRN", (data.c_cflag and 768).toString())
-
                     // @TODO get it from flags
                     port?.setParameters(
                         pty.getBaudrate(baudrate),

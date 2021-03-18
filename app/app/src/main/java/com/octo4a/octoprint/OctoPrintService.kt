@@ -14,6 +14,8 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.asLiveData
 import com.octo4a.ui.MainActivity
 import com.octo4a.R
+import com.octo4a.repository.BootstrapRepository
+import com.octo4a.repository.FIFOEventRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
@@ -31,6 +33,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 // OctoprintService handles foreground service that OctoPrintManager resides in
 class OctoPrintService() : LifecycleService() {
     private val handlerRepository: OctoPrintHandlerRepository by inject()
+    private val bootstrapRepository: BootstrapRepository by inject()
+    private val fifoEventRepository: FIFOEventRepository by inject()
     private val scope = CoroutineScope(Dispatchers.IO)
     private val notificationManager by lazy { getSystemService(NOTIFICATION_SERVICE) as NotificationManager }
 
@@ -108,7 +112,7 @@ class OctoPrintService() : LifecycleService() {
 
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
-        BootstrapUtils.ensureHomeDirectory()
+        bootstrapRepository.ensureHomeDirectory()
         virtualSerialDriver.initializeVSP()
         virtualSerialDriver.handlePtyThread()
         scope.launch {
@@ -124,6 +128,15 @@ class OctoPrintService() : LifecycleService() {
                     else -> resources.getString(R.string.notification_status_starting)
                 }
             )
+        }
+        fifoEventRepository.eventState.observe(this) {
+            when (it.eventType) {
+                "stopServer" -> scope.launch { handlerRepository.stopOctoPrint() }
+                "restartServer" -> scope.launch {
+                    handlerRepository.stopOctoPrint()
+                    handlerRepository.startOctoPrint()
+                }
+            }
         }
         super.onCreate()
     }

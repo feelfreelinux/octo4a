@@ -1,7 +1,6 @@
 package com.octo4a.repository
 
 import android.content.Context
-import com.octo4a.octoprint.BootstrapUtils
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,13 +49,17 @@ class OctoPrintHandlerRepositoryImpl(
     val context: Context,
     private val preferences: MainPreferences,
     private val bootstrapRepository: BootstrapRepository,
-    private val githubRepository: GithubRepository) : OctoPrintHandlerRepository {
+    private val githubRepository: GithubRepository,
+    private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
+
+
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
     private var _cameraServerStatus = MutableStateFlow(false)
 
     private var octoPrintProcess: Process? = null
+    private var fifoProcess: Process? = null
     override val isSSHConfigured: Boolean
         get() = bootstrapRepository.isSSHConfigured
 
@@ -111,8 +114,9 @@ class OctoPrintHandlerRepositoryImpl(
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             return
         }
+        bootstrapRepository.runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = BootstrapUtils.runBashCommand("octoprint")
+        octoPrintProcess = bootstrapRepository.runBashCommand("octoprint")
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -127,6 +131,9 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
+        Thread {
+            fifoEventRepository.handleFifoEvents()
+        }.run()
     }
 
     override fun getConfigValue(value: String): String {

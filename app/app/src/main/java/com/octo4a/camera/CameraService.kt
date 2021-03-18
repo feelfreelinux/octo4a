@@ -23,7 +23,6 @@ import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0

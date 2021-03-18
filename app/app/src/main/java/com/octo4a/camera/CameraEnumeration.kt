@@ -10,7 +10,7 @@ data class CameraDescription(val id: String, val megapixels: Int, val lensFacing
 
 fun CameraDescription.describeString(): String{
     val isFront = lensFacing == CameraSelector.LENS_FACING_FRONT
-    return (if (isFront)  "Front" else "Back") + " camera, $megapixels MP"
+    return (if (isFront) "Front" else "Back") + " camera, $megapixels MP"
 }
 
 fun CameraDescription.getRecommendedSize(): Size? {
