@@ -22,10 +22,7 @@ import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.log
 import com.octo4a.utils.withIO
 import com.octo4a.viewmodel.InstallationViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -131,9 +128,11 @@ class OctoPrintService() : LifecycleService() {
         }
         fifoEventRepository.eventState.observe(this) {
             when (it.eventType) {
-                "stopServer" -> scope.launch { handlerRepository.stopOctoPrint() }
+                "stopServer" -> handlerRepository.stopOctoPrint()
                 "restartServer" -> scope.launch {
+                    log { "UH" }
                     handlerRepository.stopOctoPrint()
+                    delay(5000)
                     handlerRepository.startOctoPrint()
                 }
             }

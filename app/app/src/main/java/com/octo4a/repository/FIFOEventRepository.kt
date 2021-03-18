@@ -36,7 +36,7 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
                     val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
                     _eventState.postValue(event)
                 } catch (e: Exception) {
-                    log { "Error occured when parsing fifo event: " + e.message }
+                    log { "Error occured when parsing fifo event " + e.message }
                 }
             }
         }

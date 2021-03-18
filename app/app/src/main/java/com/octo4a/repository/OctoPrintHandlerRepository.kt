@@ -59,7 +59,7 @@ class OctoPrintHandlerRepositoryImpl(
     private var _cameraServerStatus = MutableStateFlow(false)
 
     private var octoPrintProcess: Process? = null
-    private var fifoProcess: Process? = null
+    private var fifoThread: Thread? = null
     override val isSSHConfigured: Boolean
         get() = bootstrapRepository.isSSHConfigured
 
@@ -131,9 +131,12 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
-        Thread {
-            fifoEventRepository.handleFifoEvents()
-        }.run()
+        if (fifoThread?.isAlive != true) {
+            fifoThread = Thread {
+                fifoEventRepository.handleFifoEvents()
+            }
+            fifoThread?.start()
+        }
     }
 
     override fun getConfigValue(value: String): String {
