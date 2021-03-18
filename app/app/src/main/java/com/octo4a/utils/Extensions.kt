@@ -8,6 +8,7 @@ import android.graphics.Rect
 
 import android.graphics.YuvImage
 import android.media.Image
+import android.os.Build
 import android.util.TypedValue
 import android.view.View
 import androidx.annotation.AttrRes
@@ -99,4 +100,21 @@ fun ImageProxy.YUV420toNV21(): ByteArray {
         }
     }
     return data
+}
+
+private fun is64Bit(): Boolean {
+    return (Build.SUPPORTED_64_BIT_ABIS!= null && Build.SUPPORTED_64_BIT_ABIS.isNotEmpty())
+}
+
+fun getArchString(): String {
+    var arch = System.getProperty("os.arch")!!.toString()
+
+    if (arch != "x86_64" && arch != "i686") {
+        arch = if (is64Bit()) {
+            "aarch64"
+        } else {
+            "arm"
+        }
+    }
+    return arch
 }

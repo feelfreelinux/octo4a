@@ -1,4 +1,4 @@
-package com.octo4a.octoprint
+package com.octo4a.service
 
 import android.app.*
 import android.content.BroadcastReceiver
@@ -20,12 +20,8 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.log
-import com.octo4a.utils.withIO
-import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.coroutines.*
-import org.json.JSONObject
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
 class OctoPrintService() : LifecycleService() {

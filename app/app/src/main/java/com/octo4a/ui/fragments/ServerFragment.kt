@@ -1,6 +1,5 @@
 package com.octo4a.ui.fragments
 
-import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -15,10 +14,8 @@ import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
-import com.octo4a.camera.CameraService
+import com.octo4a.service.CameraService
 import com.octo4a.repository.ServerStatus
-import com.octo4a.utils.log
-import com.octo4a.viewmodel.InstallationViewModel
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
 import kotlinx.android.synthetic.main.view_status_card.view.*

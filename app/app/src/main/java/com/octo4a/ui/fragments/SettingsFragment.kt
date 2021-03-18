@@ -14,8 +14,8 @@ import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
+import com.octo4a.service.CameraService
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 

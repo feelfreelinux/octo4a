@@ -1,4 +1,4 @@
-package com.octo4a.camera
+package com.octo4a.service
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -13,6 +13,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
+import com.octo4a.camera.MJpegFrameProvider
+import com.octo4a.camera.MJpegServer
+import com.octo4a.camera.cameraWithId
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.YUV420toNV21
@@ -34,27 +37,27 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
     var cameraInitialized = false
     var cameraProcessProvider: ProcessCameraProvider? = null
-    val cameraSelector by lazy {
+    private val cameraSelector by lazy {
         CameraSelector.Builder().apply {
             requireLensFacing(
                 manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT
             )
         }.build()
     }
-    val cameraPreview  by lazy {
+    private val cameraPreview  by lazy {
         Preview.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
             .build()
     }
 
-    val imageCapture by lazy {
+    private val imageCapture by lazy {
         ImageCapture.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .build()
     }
 
-    val imageAnalysis by lazy {
+    private val imageAnalysis by lazy {
         ImageAnalysis.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -65,13 +68,12 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         get() = synchronized(latestFrame) { return latestFrame }
 
     inner class LocalBinder : Binder() {
-        // Return this instance of LocalService so clients can call public methods
         fun getService(): CameraService = this@CameraService
     }
 
     private val binder = LocalBinder()
 
-    override suspend fun takeSnapshot(): ByteArray = suspendCoroutine<ByteArray> {
+    override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
         if (!cameraInitialized) {
             it.resume(ByteArray(0))
         } else {

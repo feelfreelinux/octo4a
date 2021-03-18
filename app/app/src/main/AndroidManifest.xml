@@ -38,10 +38,10 @@
         <activity android:name=".ui.MainActivity">
         </activity>
         <activity android:name=".ui.InstallationActivity"/>
-        <service android:name=".octoprint.OctoPrintService">
+        <service android:name=".service.OctoPrintService">
 
         </service>
-        <service android:name=".camera.CameraService" />
+        <service android:name=".service.CameraService" />
     </application>
 
 </manifest>

@@ -2,8 +2,10 @@ package com.octo4a.repository
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import android.util.Pair
+import com.octo4a.utils.getArchString
 import com.octo4a.utils.log
 import com.octo4a.utils.setPassword
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +24,7 @@ interface BootstrapRepository {
     val isSSHConfigured: Boolean
 }
 
-class BootstrapRepositoryImpl(val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
+class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/usr"
@@ -38,7 +40,7 @@ class BootstrapRepositoryImpl(val githubRepository: GithubRepository, val contex
 
             try {
                 val bootstrapReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a")
-                val arch = System.getProperty("os.arch")!!.toString()
+                val arch = getArchString()
 
                 val release = bootstrapReleases.firstOrNull {
                     it.assets.any { asset -> asset.name.contains(arch) }

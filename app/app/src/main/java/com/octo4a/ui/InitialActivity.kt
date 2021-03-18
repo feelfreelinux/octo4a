@@ -4,10 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
-import com.octo4a.camera.CameraService
-import com.octo4a.octoprint.OctoPrintService
+import com.octo4a.service.CameraService
+import com.octo4a.service.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
-import com.octo4a.ui.fragments.SettingsFragment
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_landing.*
