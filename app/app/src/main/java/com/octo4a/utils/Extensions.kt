@@ -8,12 +8,15 @@ import android.graphics.Rect
 
 import android.graphics.YuvImage
 import android.media.Image
+import android.net.wifi.WifiManager
 import android.os.Build
+import android.text.format.Formatter
 import android.util.TypedValue
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.camera.core.ImageProxy
+import com.octo4a.Octo4aApplication
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -118,3 +121,9 @@ fun getArchString(): String {
     }
     return arch
 }
+
+val Context.ipAddress: String
+    get() {
+        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        return Formatter.formatIpAddress(wm.connectionInfo.ipAddress)
+    }

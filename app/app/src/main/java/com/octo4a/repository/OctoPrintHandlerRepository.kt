@@ -5,6 +5,9 @@ import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.yaml.snakeyaml.Yaml
+import java.io.File
+import java.io.FileWriter
 import kotlin.math.roundToInt
 
 enum class ServerStatus(val value: Int) {
@@ -51,7 +54,10 @@ class OctoPrintHandlerRepositoryImpl(
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
-
+    private val configFile by lazy {
+        File("/data/data/com.octo4a/files/home/.octoprint/config.yaml")
+    }
+    private val yaml by lazy { Yaml() }
 
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
     private var _octoPrintVersion = MutableStateFlow("...")
@@ -96,11 +102,10 @@ class OctoPrintHandlerRepositoryImpl(
                 runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
                 runBashCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
                 runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
-                runBashCommand("octoprint config append_value serial.additionalPorts /data/data/com.octo4a/files/home/serialpipe").waitAndPrintOutput()
-                runBashCommand("octoprint config set serial.exclusive False").waitAndPrintOutput()
             }
             log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)
+            insertInitialConfig()
             startOctoPrint()
         } else {
             startOctoPrint()
@@ -171,5 +176,49 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun usbDetached() {
         _usbDeviceStatus.value = UsbDeviceStatus(false)
+    }
+
+    private fun insertInitialConfig() {
+        bootstrapRepository.ensureHomeDirectory()
+        bootstrapRepository.runBashCommand("mkdir -p /data/data/com.octo4a/files/home/.octoprint")
+        val map = getConfig()
+        map["webcam"] = mapOf(
+            "stream" to "http://${context.ipAddress}:5001/mjpeg",
+            "ffmpeg" to "/data/data/com.octo4a/files/usr/bin/ffmpeg",
+            "snapshot" to "http://localhost:5001/snapshot"
+        )
+        map["serial"] = mapOf(
+            "exclusive" to false,
+            "additionalPorts" to listOf("/data/data/com.octo4a/files/home/serialpipe"),
+            "blacklistedPorts" to listOf("/dev/*")
+            )
+        map["server"] = mapOf("commands" to mapOf(
+            "serverRestartCommand" to "echo \"{\\\"eventType\\\": \\\"restartServer\\\"}\" > eventPipe",
+            "systemShutdownCommand" to "echo \"{\\\"eventType\\\": \\\"stopServer\\\"}\" > eventPipe"
+        ))
+
+        saveConfig(map)
+    }
+
+    private fun getConfig(): MutableMap<String, Any> { var output = emptyMap<String, Any>()
+        if (configFile.exists()) {
+            output = yaml.load(configFile.inputStream()) as Map<String, Any>
+        } else {
+            configFile.createNewFile()
+        }
+
+        return output.toMutableMap()
+    }
+
+    fun saveConfig(config: MutableMap<String, Any>) {
+        val writer = FileWriter(configFile, false)
+
+        yaml.dump(config, writer)
+        writer.flush()
+        writer.close()
+
+        val backupFile = File("/data/data/com.octo4a/files/home/.octoprint/config.backup")
+        backupFile.delete()
+        bootstrapRepository.runBashCommand("cp .octoprint/config.yaml .octoprint/config.backup")
     }
 }

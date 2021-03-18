@@ -79,6 +79,9 @@ dependencies {
     // Serial driver
     implementation("com.github.mik3y:usb-serial-for-android:3.3.0")
 
+    // YAML parser
+    implementation ("com.github.bmoliveira:snake-yaml:v1.18-android")
+
     // Koin dependency injection
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-android:$koinVersion")

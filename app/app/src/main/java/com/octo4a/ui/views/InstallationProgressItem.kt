@@ -10,6 +10,7 @@ import androidx.core.view.isGone
 import com.octo4a.R
 import com.octo4a.repository.ServerStatus
 import com.octo4a.utils.animatedAlpha
+import com.octo4a.utils.getArchString
 import kotlinx.android.synthetic.main.view_installation_item.view.*
 
 class InstallationProgressItem @JvmOverloads
@@ -26,10 +27,10 @@ constructor(private val ctx: Context, private val attributeSet: AttributeSet? = 
         get() = ServerStatus.Stopped
         set(value) {
             contentTextView.text = when (value) {
-                ServerStatus.InstallingBootstrap -> resources.getString(R.string.installation_step_bootstrap)
+                ServerStatus.InstallingBootstrap -> resources.getString(R.string.installation_step_bootstrap, getArchString())
                 ServerStatus.InstallingDependencies -> resources.getString(R.string.installation_step_dependencies)
                 ServerStatus.BootingUp -> resources.getString(R.string.installation_step_bootup)
-                ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.installation_step_downloading_octoprint)
+                ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.installation_step_downloading_octoprint, "newest")
                 ServerStatus.Running -> resources.getString(R.string.installation_step_done)
                 else -> "Unknown status"
             }

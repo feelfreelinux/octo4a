@@ -39,6 +39,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             enableCameraPref?.isChecked = isGranted
             if (isGranted) {
+                octoprintHandler.isCameraServerRunning = true
                 initCameraConfig()
             }
         }

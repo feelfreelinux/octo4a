@@ -66,6 +66,7 @@ class OctoPrintService() : LifecycleService() {
             .setContentTitle("OctoPrint")
             .setContentText("...")
             .setVibrate(null)
+            .setOnlyAlertOnce(true)
             .setSmallIcon(R.drawable.ic_print_24px)
             .setContentIntent(pendingIntent)
     }
