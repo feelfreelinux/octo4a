@@ -20,6 +20,7 @@ TERMUX_ARCHITECTURES=("aarch64" "arm" "i686" "x86_64")
 
 # Can be changed by using '--repository' option.
 REPO_BASE_URL="https://dl.bintray.com/termux/termux-packages-24"
+WORK_DIR = $PWD
 
 # A list of non-essential packages. By default it is empty, but can
 # be filled with option '--add'.
@@ -178,6 +179,10 @@ create_bootstrap_archive() {
 			rm -f "$link"
 		done < <(find . -type l -print0)
         go run "$REPLACER_PATH" ./
+		mv dpkg realDpkg
+		echo $WORK_DIR
+		GOOS=android GOARCH=arm go build -o dpkg_replacer $WORK_DIR/dpkg_replacer.go
+		cp $WORK_DIR/fake_dpkg.sh dpkg
 		zip -r9 "${BOOTSTRAP_TMPDIR}/bootstrap-${1}.zip" ./*
 	)
 
