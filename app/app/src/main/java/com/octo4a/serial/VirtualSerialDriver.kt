@@ -58,16 +58,16 @@ class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputM
         }
 
         val device = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).first()
-        if (!usbManager.hasPermission(device!!.device)) {
+        return if (!usbManager.hasPermission(device!!.device)) {
             val mPendingIntent =
                 PendingIntent.getBroadcast(context, usbPermissionRequestCode, Intent(intent), 0)
             usbManager.requestPermission(device.device, mPendingIntent)
             log { "REQUESTED DEVICE"}
-            return null
+            null
         } else {
             selectedDevice = device
             log { "GOT DEVICE"}
-            return device.device.deviceName
+            device.device.deviceName
         }
     }
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OctoPrint For Android (DEV)</string>
+    <string name="app_name">OctoPrint For Android</string>
     <string name="landing_install">Install OctoPrint</string>
     <string name="landing_no_installation">No existing installation detected</string>
     <string name="landing_description">This application will install OctoPrint server on your android device. Please
