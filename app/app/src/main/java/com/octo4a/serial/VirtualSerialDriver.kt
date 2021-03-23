@@ -49,8 +49,10 @@ class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputM
         ptyThread?.interrupt()
     }
 
+    private val printerProber by lazy { UsbSerialProber(getCustomPrinterProber()) }
+
     fun updateDevicesList(intent: String): String? {
-        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+        val availableDrivers = printerProber.findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
             return null
         }
