@@ -56,6 +56,9 @@
         <service android:name=".service.CameraService" />
         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
         <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true"/>
+        <meta-data android:name="com.bugsnag.android.API_KEY"
+                   android:value="002d1ae9fff3a791929cce6ad91da47e"/>
+
     </application>
 
 </manifest>

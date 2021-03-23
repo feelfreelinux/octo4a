@@ -22,6 +22,7 @@ import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
+import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
