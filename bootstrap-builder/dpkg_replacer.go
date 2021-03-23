@@ -24,7 +24,7 @@ func ReplaceInReader(r io.Reader, w io.Writer) error {
     return fmt.Errorf("failed to read from reader: %w", err)
   }
   out := bytes.Replace(data, REPLACE_FROM, REPLACE_TO, -1)
-  r2 := bytes.NewReader(data)
+  r2 := bytes.NewReader(out)
   n, err := io.Copy(w, r2)
   if err != nil {
     return fmt.Errorf("failed to write to writer: %w", err)

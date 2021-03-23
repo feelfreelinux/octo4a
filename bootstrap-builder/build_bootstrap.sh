@@ -17,10 +17,13 @@ BOOTSTRAP_ANDROID10_COMPATIBLE=false
 # supported by Termux application.
 # Override with option '--architectures'.
 TERMUX_ARCHITECTURES=("aarch64" "arm" "i686" "x86_64")
-
+GOOS=linux GOARCH=arm go build -o dpkg_replacer_arm dpkg_replacer.go
+GOOS=linux GOARCH=arm64 go build -o dpkg_replacer_aarch64 dpkg_replacer.go
+GOOS=linux GOARCH=amd64 go build -o dpkg_replacer_x86_64 dpkg_replacer.go
+GOOS=linux GOARCH=386 go build -o dpkg_replacer_i686 dpkg_replacer.go
 # Can be changed by using '--repository' option.
-REPO_BASE_URL="https://dl.bintray.com/termux/termux-packages-24"
-WORK_DIR = $PWD
+REPO_BASE_URL="http://termux.net"
+export WORK_DIR=$PWD
 
 # A list of non-essential packages. By default it is empty, but can
 # be filled with option '--add'.
@@ -178,11 +181,12 @@ create_bootstrap_archive() {
 			echo "$(readlink "$link")←${link}" >> SYMLINKS.txt
 			rm -f "$link"
 		done < <(find . -type l -print0)
-        go run "$REPLACER_PATH" ./
-		mv dpkg realDpkg
+        	go run "$REPLACER_PATH" ./
+		ls -al
+		mv bin/dpkg bin/realDpkg
 		echo $WORK_DIR
-		GOOS=android GOARCH=arm go build -o dpkg_replacer $WORK_DIR/dpkg_replacer.go
-		cp $WORK_DIR/fake_dpkg.sh dpkg
+		cp $WORK_DIR/dpkg_replacer_${1} bin/dpkg_replacer
+		cp $WORK_DIR/fake_dpkg.sh bin/dpkg
 		zip -r9 "${BOOTSTRAP_TMPDIR}/bootstrap-${1}.zip" ./*
 	)
 
@@ -285,6 +289,8 @@ for package_arch in "${TERMUX_ARCHITECTURES[@]}"; do
 	if ! ${BOOTSTRAP_ANDROID10_COMPATIBLE}; then
 		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/etc/apt/apt.conf.d"
 		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/etc/apt/preferences.d"
+		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/tmp"
+		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/var/cache/apt/archives/partial"
 		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/var/lib/dpkg/info"
 		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/var/lib/dpkg/triggers"
 		mkdir -p "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}/var/lib/dpkg/updates"
@@ -334,13 +340,14 @@ for package_arch in "${TERMUX_ARCHITECTURES[@]}"; do
 	pull_package clang
 	pull_package python
 	pull_package openssh
+	pull_package busybox
 	
 	# Additional.
 	pull_package ed
 	pull_package debianutils
 	pull_package dos2unix
 	pull_package inetutils
-	pull_package lsof
+#	pull_package lsof
 	pull_package nano
 	pull_package net-tools
 	pull_package patch
