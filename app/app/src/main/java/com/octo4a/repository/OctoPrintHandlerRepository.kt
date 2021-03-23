@@ -204,6 +204,8 @@ class OctoPrintHandlerRepositoryImpl(
         if (configFile.exists()) {
             output = yaml.load(configFile.inputStream()) as Map<String, Any>
         } else {
+            val file = File("/data/data/com.octo4a/files/home/.octoprint")
+            file.mkdirs()
             configFile.createNewFile()
         }
 

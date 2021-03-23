@@ -37,7 +37,6 @@ class InstallationActivity : AppCompatActivity() {
             stopService(Intent(this, OctoPrintService::class.java))
             val intent = Intent(this, InitialActivity::class.java)
             startActivity(intent)
-            finish()
         }
     }
 

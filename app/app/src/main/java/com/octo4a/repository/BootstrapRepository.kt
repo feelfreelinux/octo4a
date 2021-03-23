@@ -1,8 +1,6 @@
 package com.octo4a.repository
 
-import android.app.Application
 import android.content.Context
-import android.os.Build
 import android.system.Os
 import android.util.Pair
 import com.octo4a.utils.getArchString
