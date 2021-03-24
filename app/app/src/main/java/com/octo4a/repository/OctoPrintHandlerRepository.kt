@@ -136,12 +136,12 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
-        if (fifoThread?.isAlive != true) {
-            fifoThread = Thread {
-                fifoEventRepository.handleFifoEvents()
-            }
-            fifoThread?.start()
-        }
+//        if (fifoThread?.isAlive != true) {
+//            fifoThread = Thread {
+//                fifoEventRepository.handleFifoEvents()
+//            }
+//            fifoThread?.start()
+//        }
     }
 
     override fun getConfigValue(value: String): String {

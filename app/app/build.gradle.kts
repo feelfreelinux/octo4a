@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     kotlin("android.extensions")
     id("com.bugsnag.android.gradle")
+    id("com.gladed.androidgitversion") version "0.4.14"
 }
 
 android {
@@ -13,14 +14,10 @@ android {
         applicationId = "com.octo4a"
         minSdkVersion(21)
         targetSdkVersion(28)
-        versionCode = 1
-        versionName = "1.0"
+        versionName = androidGitVersion.name()
+        versionCode = androidGitVersion.code()
 
         testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
-
-        ndk {
-            moduleName = "hello-jni"
-        }
     }
 //    buildFeatures {
 ////        // Enables Jetpack Compose for this module
@@ -50,8 +47,8 @@ android {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation("androidx.navigation:navigation-fragment-ktx:2.2.2")
-    implementation("androidx.navigation:navigation-ui-ktx:2.2.2")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.3.4")
+    implementation("androidx.navigation:navigation-ui-ktx:2.3.4")
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
     val koinVersion = "3.0.1-beta-1"
