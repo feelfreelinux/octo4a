@@ -30,9 +30,11 @@ jobs:
           name: Signed app
           path: ${{steps.sign_app.outputs.signedReleaseFile}}
       - name: Get the version
+        if: startsWith(github.ref, 'refs/tags/')
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
       - name: Move and name release
+        if: startsWith(github.ref, 'refs/tags/')
         run: mv ${{steps.sign_app.outputs.signedReleaseFile}} octo4a-${{steps.get_version.outputs.VERSION}}.apk
       - name: Create github release
         uses: softprops/action-gh-release@v1
