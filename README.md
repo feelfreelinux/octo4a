@@ -15,7 +15,7 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 3. Open the app.
 4. Click "Install OctoPrint" to download and install OctoPrint
 5. Allow the app to access the storage, if asked for permission.
-6. Wait for the installation to complete. This may take a logn time, depending on your internet speed.
+6. Wait for the installation to complete. This may take a long time, depending on your internet speed.
 7. Click "Continue" when the installation finishes.
 8. Optionally start the camera server to enable watching your printer from octoprint. 
 9. Navigate to the IP address shown at the top in your browser to access and set-up OctoPrint.
