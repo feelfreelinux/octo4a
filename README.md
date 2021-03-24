@@ -56,7 +56,7 @@ Please try disabling any battery optimizations in your phone settings. Also make
 
 ### My printer is not being detected by octo4a. The app says "Printer not connected" even though it is connected via USB.
 
-It is possible that your printer has an uncommon USB vendor id/product id. This happens especially on exotic Chinese 3D printers and mainboards. The app [has a list of VIDs/PIDs](https://github.com/feelfreelinux/octo4a/blob/master/app/app/src/main/res/xml/device_filter.xml) which is used by Android to choose the app to handle the device. Please leave a message on the Telegram channel or create an issue so that we can adds your printer.
+It is possible that your printer has an uncommon USB vendor id/product id. This happens especially on exotic Chinese 3D printers and mainboards. The app [has a list of VIDs/PIDs](https://github.com/feelfreelinux/octo4a/blob/master/app/app/src/main/res/xml/device_filter.xml) which is used by Android to choose the app to handle the device. Please leave a message on the Telegram channel or create an issue so that we can add your printer.
 
 ### I need help with using this app. Is there any way I can get support?
 
