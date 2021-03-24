@@ -6,16 +6,16 @@ You don't have a Raspberry Pi, but you want to control your 3D printer remotely?
 
 ## Download
 
-Currently .apk files are available at our telegram group [https://t.me/octo4achat](https://t.me/octo4achat) (see pinned messages). We will add a releases page soon.
+Newest `.apk` files are available in the [releases page](https://github.com/feelfreelinux/octo4a/releases).
 
 ## Usage
 
 1. Enable installing 3rd-party .apk in your phone's settings.
-2. Install the apk file.
+2. Install the apk file downloaded from the releases page.
 3. Open the app.
 4. Click "Install OctoPrint" to download and install OctoPrint
 5. Allow the app to access the storage, if asked for permission.
-6. Wait for the installation to complete. This may take a logn time, depending on your internet speed.
+6. Wait for the installation to complete. This may take a long time, depending on your internet speed.
 7. Click "Continue" when the installation finishes.
 8. Optionally start the camera server to enable watching your printer from octoprint. 
 9. Navigate to the IP address shown at the top in your browser to access and set-up OctoPrint.
@@ -25,13 +25,18 @@ Currently .apk files are available at our telegram group [https://t.me/octo4acha
 
 - Quick and easy octoprint installation.
 - Printer connection via USB OTG. Thanks to our custom USB driver you can use octoprint even on phones without root access.
-- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prins, instead of buing a separate module.
+- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prins, instead of buing a separate module. The app also supports  octolapse.
+- SSH support. You can easily log-in via ssh and customize your octoprint installation. 
 
 ## FAQ
 
 ### What are the requirements to run this app?
 
 Octo4a should run on Android 5 (Lolipop) and newer, because it uses Termux under the hood. You will also need an USB OTG cable (preferably the Y type) and about 700 MB of free storage on your phone.
+
+### Why cannot I download octo4a from the Play Store?
+
+Unfortunately due to legal and technical limitations the Play Store does not allow apps like octo4a.
 
 ### How do I charge my phone and connect to the printer at the same time?
 
@@ -48,6 +53,10 @@ If you don't care about your phone's condition you can also replace the battery 
 ### The performance of OctoPrint is poor when the screen is off. What can I do?
 
 Please try disabling any battery optimizations in your phone settings. Also make sure that the phone is plugged in and charging. As a last resort you can prevent the screen from turning off by going to the the developer settings and checking "Stay Awake".
+
+### My printer is not being detected by octo4a. The app says "Printer not connected" even though it is connected via USB.
+
+It is possible that your printer has an uncommon USB vendor id/product id. This happens especially on exotic Chinese 3D printers and mainboards. The app [has a list of VIDs/PIDs](https://github.com/feelfreelinux/octo4a/blob/master/app/app/src/main/res/xml/device_filter.xml) which is used by Android to choose the app to handle the device. Please leave a message on the Telegram channel or create an issue so that we can add your printer.
 
 ### I need help with using this app. Is there any way I can get support?
 
@@ -66,3 +75,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
 
 TL;DR: If your house burns down because this app malfunctioned, you cannot sue me.
+
+
+## License
+
+This project is licensed under the AGPL license.
