@@ -28,17 +28,21 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
     }
 
     override fun handleFifoEvents() {
-        val fifoFile = File(eventFifoPath)
-        while (true) {
-            fifoFile.inputStream().bufferedReader().forEachLine {
-                log { "Got event $it" }
-                try {
-                    val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
-                    _eventState.postValue(event)
-                } catch (e: Exception) {
-                    log { "Error occured when parsing fifo event " + e.message }
+        try {
+            val fifoFile = File(eventFifoPath)
+            while (true) {
+                fifoFile.inputStream().bufferedReader().forEachLine {
+                    log { "Got event $it" }
+                    try {
+                        val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
+                        _eventState.postValue(event)
+                    } catch (e: Exception) {
+                        log { "Error occured when parsing fifo event " + e.message }
+                    }
                 }
             }
+        } catch (e: Exception) {
+            log { "FIFO Handler error " + e.message }
         }
     }
 
