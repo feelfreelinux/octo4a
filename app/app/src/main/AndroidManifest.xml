@@ -38,16 +38,6 @@
 
         <activity android:name=".ui.MainActivity">
         </activity>
-        <provider
-                android:name=".OctoPrintDocumentProvider"
-                android:authorities="com.octo4a.documents"
-                android:grantUriPermissions="true"
-                android:exported="true"
-                android:permission="android.permission.MANAGE_DOCUMENTS">
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
-            </intent-filter>
-        </provider>
         <activity android:name=".ui.InstallationActivity"/>
         <service android:name=".service.OctoPrintService">
 
