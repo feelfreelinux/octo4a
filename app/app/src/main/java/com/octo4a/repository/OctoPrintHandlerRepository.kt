@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
+import java.lang.Exception
 import kotlin.math.roundToInt
 
 enum class ServerStatus(val value: Int) {
@@ -136,12 +137,16 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
-//        if (fifoThread?.isAlive != true) {
-//            fifoThread = Thread {
-//                fifoEventRepository.handleFifoEvents()
-//            }
-//            fifoThread?.start()
-//        }
+        try {
+            if (fifoThread?.isAlive != true) {
+                fifoThread = Thread {
+                    fifoEventRepository.handleFifoEvents()
+                }
+                fifoThread?.start()
+            }
+        } catch (e: Exception) {
+            log { "Error creating fifo, " + e.message }
+        }
     }
 
     override fun getConfigValue(value: String): String {

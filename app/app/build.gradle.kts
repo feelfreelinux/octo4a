@@ -15,7 +15,7 @@ android {
         minSdkVersion(21)
         targetSdkVersion(28)
         versionName = androidGitVersion.name()
-        versionCode = androidGitVersion.code()
+        versionCode = maxOf(androidGitVersion.code(), 1)
 
         testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
     }
