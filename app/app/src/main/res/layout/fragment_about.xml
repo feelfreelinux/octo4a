@@ -1,32 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="vertical"
-        android:padding="22dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-    <TextView
-            android:text="@string/app_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-    <TextView
-            android:id="@+id/versionTextString"
-            tools:text="Build: 0.0.1-test6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="normal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-</LinearLayout>
+    <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+        <TextView android:layout_width="wrap_content"
+                  android:id="@+id/appVersionText"
+                  android:layout_marginHorizontal="22dp"
+                  android:layout_marginTop="22dp"
+                  android:layout_marginBottom="16dp"
+                  android:layout_height="wrap_content"
+                  android:textColor="@android:color/black"
+                  android:textStyle="normal"
+                  android:fontFamily="sans-serif"
+                  android:textSize="16sp"
+                  android:text="octo4a build 0.0.1-test14"/>
+        <com.octo4a.ui.views.StatusView
+                android:layout_width="match_parent"
+                android:layout_margin="8dp"
+                android:id="@+id/appProjectButton"
+                app:icon="@drawable/ic_code_24px"
+                app:iconColor="@color/iconGreen"
+                app:title="Visit project's website"
+                app:subtitle="octo4a is completely open-source"
+                android:layout_height="wrap_content"/>
+        <View style="@style/Divider"
+              android:id="@id/dividerView"/>
+        <com.octo4a.ui.views.StatusView
+                android:layout_width="match_parent"
+                android:layout_margin="8dp"
+                android:id="@+id/joinTelegramButton"
+                app:icon="@drawable/ic_chat_24px"
+                app:iconColor="@android:color/holo_blue_dark"
+                app:title="Join our telegram chat"
+                app:subtitle="Feel free to post your feedback"
+                android:layout_height="wrap_content"/>
+        <View style="@style/Divider"
+              android:id="@id/dividerView"/>
+        <com.octo4a.ui.views.StatusView
+                android:layout_width="match_parent"
+                android:layout_margin="8dp"
+                android:id="@+id/donateButton"
+                app:icon="@drawable/ic_favorite_24px"
+                app:iconColor="@android:color/holo_red_light"
+                app:title="Donate to the project"
+                app:subtitle="Thank you for your support"
+                android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>
