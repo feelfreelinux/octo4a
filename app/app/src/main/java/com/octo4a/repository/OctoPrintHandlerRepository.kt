@@ -141,17 +141,17 @@ class OctoPrintHandlerRepositoryImpl(
             }
         }.start()
 
-        try {
+//        try {
             if (fifoThread?.isAlive != true) {
                 fifoThread = Thread {
                     fifoEventRepository.handleFifoEvents()
                 }
                 fifoThread?.start()
             }
-        } catch (e: Exception) {
-            Bugsnag.notify(e)
-            log { "Error creating fifo, " + e.message }
-        }
+//        } catch (e: Exception) {
+//            Bugsnag.notify(e)
+//            log { "Error creating fifo, " + e.message }
+//        }
     }
 
     override fun getConfigValue(value: String): String {

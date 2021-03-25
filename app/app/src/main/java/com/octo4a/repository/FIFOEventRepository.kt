@@ -28,7 +28,7 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
     }
 
     override fun handleFifoEvents() {
-        try {
+//        try {
             val fifoFile = File(eventFifoPath)
             while (true) {
                 fifoFile.inputStream().bufferedReader().forEachLine {
@@ -41,9 +41,9 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
                     }
                 }
             }
-        } catch (e: Exception) {
-            log { "FIFO Handler error " + e.message }
-        }
+//        } catch (e: Exception) {
+//            log { "FIFO Handler error " + e.message }
+//        }
     }
 
 }
