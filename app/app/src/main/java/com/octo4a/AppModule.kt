@@ -31,7 +31,7 @@ val appModule = module {
     factory<BootstrapRepository> { BootstrapRepositoryImpl(get(), androidContext()) }
 
     single<FIFOEventRepository> { FIFOEventRepositoryImpl() }
-    single<VirtualSerialDriver> { VirtualSerialDriver(androidContext()) }
+    single<VirtualSerialDriver> { VirtualSerialDriver(androidContext(), get()) }
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }

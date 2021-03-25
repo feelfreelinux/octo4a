@@ -12,12 +12,14 @@ import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import java.nio.charset.Charset
 import com.hoho.android.usbserial.util.SerialInputOutputManager
+import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.log
+import kotlinx.coroutines.selects.select
 import java.lang.Exception
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputManager.Listener {
+class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintHandlerRepository): VSPListener, SerialInputOutputManager.Listener {
     val pty by lazy { VSPPty() }
 
     private val usbManager by lazy {
@@ -66,7 +68,7 @@ class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputM
             null
         } else {
             selectedDevice = device
-            log { "GOT DEVICE"}
+            octoPrintHandler.usbAttached(device.device.deviceName)
             device.device.deviceName
         }
     }

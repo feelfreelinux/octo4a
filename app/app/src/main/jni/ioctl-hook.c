@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <signal.h>
 
+int g_obvio=0;
+#define DPRINTF(format, args...)	if (!g_obvio) { g_obvio=1; fprintf(stderr, format, ## args); g_obvio=0; }
+
 #ifndef RTLD_NEXT
 #define RTLD_NEXT ((void *)-1l)
 #endif
@@ -52,6 +55,6 @@ int ioctl(int fd, int request, ...)
         writeEventToPipe("customBaud", 10);
         return 0;
     }
-
+//    DPRINTF ("HOOK: ioctl (fd=%d, request=%p, argp=%p [%02X])\n", fd, request, argp);
     return funcIoctl(fd, request, argp);
 }
