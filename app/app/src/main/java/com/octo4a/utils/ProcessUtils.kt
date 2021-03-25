@@ -1,15 +1,20 @@
 package com.octo4a.utils
 
+import com.bugsnag.android.Bugsnag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 suspend fun <T> withIO(block: suspend CoroutineScope.() -> T) = withContext(Dispatchers.IO, block)
 
-fun Process.waitAndPrintOutput() {
+fun Process.waitAndPrintOutput(): String {
+    var outputStr = ""
     inputStream.reader().forEachLine {
         log { it }
+        outputStr += it
     }
+    Bugsnag.leaveBreadcrumb(outputStr)
+    return outputStr
 }
 
 fun Process.getOutputAsString(): String {

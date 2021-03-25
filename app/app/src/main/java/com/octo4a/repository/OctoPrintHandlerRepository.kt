@@ -1,6 +1,7 @@
 package com.octo4a.repository
 
 import android.content.Context
+import com.bugsnag.android.Bugsnag
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
+import java.io.IOException
 import java.lang.Exception
 import kotlin.math.roundToInt
 
@@ -126,6 +128,7 @@ class OctoPrintHandlerRepositoryImpl(
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
+                    Bugsnag.leaveBreadcrumb(it)
                     log { "octoprint: $it"}
 
                     // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
@@ -137,6 +140,7 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
+
         try {
             if (fifoThread?.isAlive != true) {
                 fifoThread = Thread {
@@ -145,6 +149,7 @@ class OctoPrintHandlerRepositoryImpl(
                 fifoThread?.start()
             }
         } catch (e: Exception) {
+            Bugsnag.notify(e)
             log { "Error creating fifo, " + e.message }
         }
     }
