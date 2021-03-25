@@ -89,7 +89,7 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
                     port?.setParameters(
                         pty.getBaudrate(baudrate),
                         8,
-                        UsbSerialPort.STOPBITS_2,
+                        UsbSerialPort.STOPBITS_1,
                         UsbSerialPort.PARITY_NONE
                     )
                     currentBaudrate = baudrate
