@@ -91,13 +91,15 @@ class VirtualSerialDriver(val context: Context): VSPListener, SerialInputOutputM
                         UsbSerialPort.PARITY_NONE
                     )
                     currentBaudrate = baudrate
+                    port?.dtr = true
+                    port?.rts = true
 
                     serialInputManager = SerialInputOutputManager(port, this@VirtualSerialDriver)
                     Executors.newSingleThreadExecutor().submit(serialInputManager)
                 }
 
                 if (data.data.size > 1) {
-                    port?.write(data.serialData, 0)
+                    port?.write(data.serialData, 2000)
                 }
             }
         } catch (e: Exception) {
