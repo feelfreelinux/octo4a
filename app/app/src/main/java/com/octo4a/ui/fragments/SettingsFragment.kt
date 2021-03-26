@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.text.InputType
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.core.content.ContextCompat
@@ -102,15 +103,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         enableCameraPref?.setOnPreferenceChangeListener { _, newValue ->
-            if (!hasCameraPermission) {
+            if (manager.enumerateDevices().isEmpty()) {
                 enableCameraPref.isChecked = false
-                requestCameraPermission.launch(Manifest.permission.CAMERA)
+                Toast.makeText(requireContext(), "No cameras available", Toast.LENGTH_LONG).show()
             } else {
-                initCameraConfig()
-                if (newValue as Boolean) {
-                    startCameraServer()
+                if (!hasCameraPermission) {
+                    enableCameraPref.isChecked = false
+                    requestCameraPermission.launch(Manifest.permission.CAMERA)
                 } else {
-                    stopCameraServer()
+                    initCameraConfig()
+                    if (newValue as Boolean) {
+                        startCameraServer()
+                    } else {
+                        stopCameraServer()
+                    }
                 }
             }
             true
@@ -120,6 +126,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
     // Injects proper camera resolution configs
     private fun initCameraConfig() {
         val cameras = manager.enumerateDevices()
+        if (cameras.isEmpty()) {
+            return
+        }
         if (prefs.selectedCamera == null) {
             // Select first back camera or use whatever camera's available
             val selectedCamera =
