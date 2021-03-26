@@ -4,6 +4,7 @@
 #include <android/log.h>
 #include <stdio.h>
 #include <pty.h>
+#include <pthread.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -23,6 +24,9 @@ static JavaVM *jvm = NULL;
 JNIEnv *storedEnv;
 jmethodID stringCallback;
 jweak storeWeakListener;
+jclass serialDataClass;
+jmethodID serialDataConstructor;
+pthread_t ptyThreadHandle = NULL;
 
 static jint getBaudrate(speed_t baudrate)
 {
@@ -135,9 +139,7 @@ extern "C"
 
         jbyteArray serialDataArr = gEnv->NewByteArray(dataSize);
         gEnv->SetByteArrayRegion(serialDataArr, 0, dataSize, (jbyte *)val);
-        jclass cls = gEnv->FindClass("com/octo4a/serial/SerialData");
-        jmethodID constructor = gEnv->GetMethodID(cls, "<init>", "([BIIIII)V");
-        jobject object = gEnv->NewObject(cls, constructor, serialDataArr, baudrate);
+        jobject object = gEnv->NewObject(serialDataClass, serialDataConstructor, serialDataArr, baudrate);
 
         gEnv->CallVoidMethod(storeWeakListener, stringCallback, object);
         gEnv->DeleteLocalRef(object);
@@ -147,14 +149,12 @@ extern "C"
             gEnv->ExceptionDescribe();
         }
 
-        if (getEnvStat != JNI_EDETACHED)
-        {
-            jvm->DetachCurrentThread();
-        }
+
+        jvm->DetachCurrentThread();
     }
 }
 
-void ptyThread()
+static void* ptyThread(void* irrelevant)
 {
 
     int slave;
@@ -295,6 +295,8 @@ extern "C"
         storedEnv = env;
 
         storeWeakListener = env->NewWeakGlobalRef(listener);
+        serialDataClass = (jclass) env->NewGlobalRef(env->FindClass("com/octo4a/serial/SerialData"));
+        serialDataConstructor = env->GetMethodID(serialDataClass, "<init>", "([BIIIII)V");
         jclass clazz = env->GetObjectClass(storeWeakListener);
         stringCallback = env->GetMethodID(clazz, "onDataReceived", "(Lcom/octo4a/serial/SerialData;)V");
 
@@ -305,6 +307,8 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_runPtyThread(JNIEnv *env, jobject instance)
     {
-        ptyThread();
+        if (ptyThreadHandle == NULL) {
+            pthread_create(&ptyThreadHandle, NULL, &ptyThread, NULL);
+        }
     }
 }
