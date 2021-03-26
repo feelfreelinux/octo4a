@@ -1,27 +1,28 @@
 package com.octo4a.service
 
 import android.app.*
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.hardware.usb.UsbManager
+import android.content.*
+import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.asLiveData
-import com.octo4a.ui.MainActivity
 import com.octo4a.R
 import com.octo4a.repository.BootstrapRepository
 import com.octo4a.repository.FIFOEventRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.ui.MainActivity
 import com.octo4a.utils.log
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
+
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
 class OctoPrintService() : LifecycleService() {
@@ -30,6 +31,8 @@ class OctoPrintService() : LifecycleService() {
     private val fifoEventRepository: FIFOEventRepository by inject()
     private val scope = CoroutineScope(Dispatchers.IO)
     private val notificationManager by lazy { getSystemService(NOTIFICATION_SERVICE) as NotificationManager }
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var wifiLock: WifiManager.WifiLock? = null
 
     companion object {
         // Constants

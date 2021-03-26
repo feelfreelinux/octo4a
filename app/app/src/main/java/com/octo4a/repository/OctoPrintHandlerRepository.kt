@@ -66,6 +66,7 @@ class OctoPrintHandlerRepositoryImpl(
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
     private var _cameraServerStatus = MutableStateFlow(false)
+    private var wakeLock = Octo4aWakeLock(context)
 
     private var octoPrintProcess: Process? = null
     private var fifoThread: Thread? = null
@@ -119,6 +120,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun startOctoPrint() {
+        wakeLock.acquire()
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             return
         }
@@ -140,18 +142,12 @@ class OctoPrintHandlerRepositoryImpl(
                 _serverState.value = ServerStatus.Stopped
             }
         }.start()
-
-//        try {
-            if (fifoThread?.isAlive != true) {
-                fifoThread = Thread {
-                    fifoEventRepository.handleFifoEvents()
-                }
-                fifoThread?.start()
+        if (fifoThread?.isAlive != true) {
+            fifoThread = Thread {
+                fifoEventRepository.handleFifoEvents()
             }
-//        } catch (e: Exception) {
-//            Bugsnag.notify(e)
-//            log { "Error creating fifo, " + e.message }
-//        }
+            fifoThread?.start()
+        }
     }
 
     override fun getConfigValue(value: String): String {
@@ -162,6 +158,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun stopOctoPrint() {
+        wakeLock.remove()
         octoPrintProcess?.destroy()
         _serverState.value = ServerStatus.Stopped
     }

@@ -29,6 +29,7 @@
     <string name="connection_not_connected">Printer not connected</string>
     <string name="connection_connected">Printer is connected</string>
     <string name="connection_otg_cable">Connect your printer using OTG cable</string>
+    <string name="turn_off_bat_optimization">Please turn off battery optimization</string>
 
 
 </resources>
