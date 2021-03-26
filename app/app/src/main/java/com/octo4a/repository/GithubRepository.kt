@@ -7,7 +7,7 @@ import io.ktor.http.*
 
 data class GithubAsset(val name: String, val url: String, val browserDownloadUrl: String)
 
-data class GithubRelease(val tagName: String, val zipballUrl: String, val body: String, val assets: List<GithubAsset>)
+data class GithubRelease(val tagName: String, val zipballUrl: String, val body: String, val assets: List<GithubAsset>, val htmlUrl: String)
 
 interface GithubRepository {
     suspend fun getNewestRelease(repository: String): GithubRelease

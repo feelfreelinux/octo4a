@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.view.LayoutInflater
@@ -14,17 +15,23 @@ import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
-import com.octo4a.service.CameraService
+import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.ServerStatus
+import com.octo4a.service.CameraService
+import com.octo4a.utils.log
+import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
 import kotlinx.android.synthetic.main.view_status_card.view.*
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ServerFragment : Fragment() {
     private val statusViewModel: StatusViewModel by sharedViewModel()
     private lateinit var cameraService: CameraService
     private var boundToCameraService = false
+    private val mainPreferences: MainPreferences by inject()
+
     private val cameraServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as CameraService.LocalBinder
@@ -59,6 +66,12 @@ class ServerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
+            log { "Update available" }
+            showUpdateDialog(it)
+        }
+
         statusViewModel.usbStatus.observe(viewLifecycleOwner) {
             if (it.isAttached) {
                 connectionStatus.title = getString(R.string.connection_connected)
@@ -113,6 +126,28 @@ class ServerFragment : Fragment() {
             }
             serverStatus.actionProgressbar.isGone = it != ServerStatus.BootingUp
             serverStatus.actionButton.isGone = it == ServerStatus.BootingUp
+        }
+
+        // Fetch autoupdater
+        statusViewModel.checkUpdateAvailable()
+    }
+
+    private fun showUpdateDialog(update: GithubRelease) {
+        if (update.tagName != mainPreferences.updateDismissed) {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.update_available))
+                .setMessage(getString(R.string.update_available_message).format(update.tagName))
+                .setPositiveButton(getString(R.string.action_download)) { dialog, _ ->
+                    val i = Intent(Intent.ACTION_VIEW)
+                    i.data = Uri.parse(update.htmlUrl)
+                    startActivity(i)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(getString(R.string.action_later)) { dialog, _ ->
+                    dialog.dismiss()
+                    mainPreferences.updateDismissed = update.tagName
+                }
+                .show()
         }
     }
 

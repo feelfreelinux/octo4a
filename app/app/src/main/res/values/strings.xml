@@ -30,6 +30,12 @@
     <string name="connection_connected">Printer is connected</string>
     <string name="connection_otg_cable">Connect your printer using OTG cable</string>
     <string name="turn_off_bat_optimization">Please turn off battery optimization</string>
+    <string name="update_available">New update available</string>
+    <string name="update_available_message">A new version %1$s of the app is available. Please update the app to access
+        newest the features. Please download and install the asset ending with .apk.
+    </string>
+    <string name="action_download">Download</string>
+    <string name="action_later">Later</string>
 
 
 </resources>
