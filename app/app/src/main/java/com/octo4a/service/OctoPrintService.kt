@@ -126,7 +126,6 @@ class OctoPrintService() : LifecycleService() {
             when (it.eventType) {
                 "stopServer" -> handlerRepository.stopOctoPrint()
                 "restartServer" -> scope.launch {
-                    log { "UH" }
                     handlerRepository.stopOctoPrint()
                     delay(5000)
                     handlerRepository.startOctoPrint()

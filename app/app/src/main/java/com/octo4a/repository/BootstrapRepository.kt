@@ -157,7 +157,7 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         pb.environment()["PREFIX"] = "$FILES/usr"
         pb.environment()["HOME"] = "$FILES/home"
         pb.environment()["LD_LIBRARY_PATH"] = "$FILES/usr/lib"
-         pb.environment()["LD_PRELOAD"] = context.applicationInfo.nativeLibraryDir + "/libioctlHook.so"
+        pb.environment()["LD_PRELOAD"] = context.applicationInfo.nativeLibraryDir + "/libioctlHook.so"
         pb.environment()["PWD"] = "$FILES/home"
         pb.environment()["PATH"] =
             "$FILES/usr/bin:$FILES/usr/bin/applets:$FILES/usr/bin:$FILES/usr/bin/applets:/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"

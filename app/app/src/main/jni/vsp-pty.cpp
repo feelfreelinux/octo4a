@@ -140,13 +140,14 @@ extern "C"
         jobject object = gEnv->NewObject(cls, constructor, serialDataArr, baudrate);
 
         gEnv->CallVoidMethod(storeWeakListener, stringCallback, object);
+        gEnv->DeleteLocalRef(object);
 
         if (gEnv->ExceptionCheck())
         {
             gEnv->ExceptionDescribe();
         }
 
-        if (getEnvStat == JNI_EDETACHED)
+        if (getEnvStat != JNI_EDETACHED)
         {
             jvm->DetachCurrentThread();
         }
