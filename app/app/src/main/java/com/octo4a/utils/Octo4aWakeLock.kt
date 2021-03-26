@@ -44,7 +44,6 @@ class Octo4aWakeLock(val context: Context) {
             } catch (e: ActivityNotFoundException) {
                 log { "failed to open battery optimization dialog" }
             }
-            Toast.makeText(context, context.getString(R.string.turn_off_bat_optimization), Toast.LENGTH_LONG).show()
         }
     }
 

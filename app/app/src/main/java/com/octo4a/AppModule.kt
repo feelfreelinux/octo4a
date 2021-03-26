@@ -35,5 +35,5 @@ val appModule = module {
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get()) }
 
     viewModel { InstallationViewModel(get()) }
-    viewModel { StatusViewModel(androidApplication(), get()) }
+    viewModel { StatusViewModel(androidApplication(), get(), get()) }
 }

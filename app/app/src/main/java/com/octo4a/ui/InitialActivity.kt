@@ -1,13 +1,17 @@
 package com.octo4a.ui
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import com.octo4a.R
 import com.octo4a.service.CameraService
@@ -23,7 +27,16 @@ class InitialActivity: AppCompatActivity() {
     private val bootstrapRepository: BootstrapRepository by inject()
     private val prefs: MainPreferences by inject()
     private val pm  by lazy { getSystemService(LifecycleService.POWER_SERVICE) as PowerManager }
+    // Storage permission request
+    private val hasStoragePermission: Boolean
+        get() = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
 
+    private val requestStoragePermission =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+            if (isGranted.values.all { it }) {
+                startApp()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,10 +45,7 @@ class InitialActivity: AppCompatActivity() {
         setContentView(R.layout.activity_landing)
 
         if (bootstrapRepository.isBootstrapInstalled) {
-            startOctoService()
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+            checkWritePermissionAndRun()
         }
 
         installButton.setOnClickListener {
@@ -51,11 +61,29 @@ class InitialActivity: AppCompatActivity() {
                     log { "failed to open battery optimization dialog" }
                 }
             } else {
-                startOctoService()
-                val intent = Intent(this, InstallationActivity::class.java)
-                startActivity(intent)
-                finish()
+                checkWritePermissionAndRun()
             }
+        }
+    }
+
+    private fun checkWritePermissionAndRun() {
+        if (!hasStoragePermission) requestStoragePermission.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE))
+        else {
+            startApp()
+        }
+    }
+
+    private fun startApp() {
+        if (!bootstrapRepository.isBootstrapInstalled) {
+            startOctoService()
+            val intent = Intent(this, InstallationActivity::class.java)
+            startActivity(intent)
+            finish()
+        } else {
+            startOctoService()
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 

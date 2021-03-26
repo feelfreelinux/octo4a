@@ -1,6 +1,7 @@
 package com.octo4a.repository
 
 import android.content.Context
+import android.os.Environment
 import com.bugsnag.android.Bugsnag
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
@@ -57,8 +58,10 @@ class OctoPrintHandlerRepositoryImpl(
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
+    private val externalStorageSymlinkPath = Environment.getExternalStorageDirectory().path + "/OctoPrint"
+    private val octoPrintStoragePath = "/data/data/com.octo4a/files/home/.octoprint"
     private val configFile by lazy {
-        File("/data/data/com.octo4a/files/home/.octoprint/config.yaml")
+        File("$octoPrintStoragePath/config.yaml")
     }
     private val yaml by lazy { Yaml() }
 
@@ -124,9 +127,16 @@ class OctoPrintHandlerRepositoryImpl(
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             return
         }
-        bootstrapRepository.runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
+        bootstrapRepository.run {
+            runBashCommand("mkdir -p $octoPrintStoragePath")
+            runBashCommand("mkdir -p $externalStorageSymlinkPath/timelapse").waitAndPrintOutput()
+            runBashCommand("mkdir -p $externalStorageSymlinkPath/uploads").waitAndPrintOutput()
+            runBashCommand("ln -s $externalStorageSymlinkPath/uploads $octoPrintStoragePath/uploads").waitAndPrintOutput()
+            runBashCommand("ln -s $externalStorageSymlinkPath/timelapse $octoPrintStoragePath/timelapse").waitAndPrintOutput()
+            runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
+        }
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = bootstrapRepository.runBashCommand("octoprint")
+        octoPrintProcess = bootstrapRepository.runBashCommand("octoprint -b $octoPrintStoragePath")
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -187,7 +197,6 @@ class OctoPrintHandlerRepositoryImpl(
 
     private fun insertInitialConfig() {
         bootstrapRepository.ensureHomeDirectory()
-        bootstrapRepository.runBashCommand("mkdir -p /data/data/com.octo4a/files/home/.octoprint")
         val map = getConfig()
         map["webcam"] = mapOf(
             "stream" to "http://${context.ipAddress}:5001/mjpeg",
@@ -211,7 +220,7 @@ class OctoPrintHandlerRepositoryImpl(
         if (configFile.exists()) {
             output = yaml.load(configFile.inputStream()) as Map<String, Any>
         } else {
-            val file = File("/data/data/com.octo4a/files/home/.octoprint")
+            val file = File(octoPrintStoragePath)
             file.mkdirs()
             configFile.createNewFile()
         }
@@ -226,8 +235,8 @@ class OctoPrintHandlerRepositoryImpl(
         writer.flush()
         writer.close()
 
-        val backupFile = File("/data/data/com.octo4a/files/home/.octoprint/config.backup")
+        val backupFile = File("$octoPrintStoragePath/config.backup")
         backupFile.delete()
-        bootstrapRepository.runBashCommand("cp .octoprint/config.yaml .octoprint/config.backup")
+        bootstrapRepository.runBashCommand("cp $octoPrintStoragePath/config.yaml $octoPrintStoragePath/config.backup")
     }
 }
