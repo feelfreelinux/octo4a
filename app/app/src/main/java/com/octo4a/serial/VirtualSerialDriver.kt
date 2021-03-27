@@ -77,7 +77,13 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
         try {
             data?.apply {
                 log { pty.getBaudrate(baudrate).toString() }
-                if ((isStartPacket || currentBaudrate != baudrate) && selectedDevice != null) {
+                val newConnectionRequired = ((isStartPacket || currentBaudrate != baudrate) && selectedDevice != null)
+                if (newConnectionRequired || port?.isOpen != true) {
+                    if (selectedDevice == null) {
+                        updateDevicesList("")
+                        if (selectedDevice == null) return
+                    }
+
                     if (port?.isOpen == true) {
                         port?.close()
                     }
@@ -93,15 +99,21 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
                         UsbSerialPort.PARITY_NONE
                     )
                     currentBaudrate = baudrate
-                    port?.dtr = true
-                    port?.rts = true
+                    if (newConnectionRequired) {
+                        port?.dtr = true
+                        port?.rts = true
+                    }
 
                     serialInputManager = SerialInputOutputManager(port, this@VirtualSerialDriver)
                     Executors.newSingleThreadExecutor().submit(serialInputManager)
                 }
 
                 if (data.data.size > 1) {
-                    port?.write(data.serialData, 2000)
+                    try {
+                        port?.write(data.serialData, 5000)
+                    } catch (e: Exception) {
+                        port?.close()
+                    }
                 }
             }
         } catch (e: Exception) {
