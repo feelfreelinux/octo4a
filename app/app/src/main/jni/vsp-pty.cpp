@@ -18,15 +18,14 @@
 #include <thread>
 
 #define BUFSIZE 512
-#define CHECK_BIT(var, pos) ((var) & (1 << (pos)))
 int master;
-static JavaVM *jvm = NULL;
+static JavaVM *jvm = nullptr;
 JNIEnv *storedEnv;
 jmethodID stringCallback;
 jweak storeWeakListener;
 jclass serialDataClass;
 jmethodID serialDataConstructor;
-pthread_t ptyThreadHandle = NULL;
+pthread_t ptyThreadHandle = 0;
 
 static jint getBaudrate(speed_t baudrate)
 {
@@ -102,12 +101,12 @@ static jint getBaudrate(speed_t baudrate)
 extern "C"
 {
 
-    void passReceivedData(char *val, size_t dataSize, speed_t baudrate, tcflag_t cIflag, tcflag_t cOflag, tcflag_t cCflag, tcflag_t CLflag)
+    void passReceivedData(unsigned char *val, size_t dataSize, speed_t baudrate, tcflag_t cIflag, tcflag_t cOflag, tcflag_t cCflag, tcflag_t CLflag)
     {
-        __android_log_print(ANDROID_LOG_VERBOSE, "GetEnv:", " start Callback to JNL [%d]  \n", val);
+        __android_log_print(ANDROID_LOG_VERBOSE, "GetEnv:", " start Callback to JNL\n");
         JNIEnv *gEnv;
 
-        if (NULL == jvm)
+        if (nullptr == jvm)
         {
             __android_log_print(ANDROID_LOG_ERROR, "GetEnv:", "  No VM  \n");
             return;
@@ -115,10 +114,10 @@ extern "C"
 
         JavaVMAttachArgs args;
         args.version = JNI_VERSION_1_6; // set your JNI version
-        args.name = NULL;
-        args.group = NULL;
+        args.name = nullptr;
+        args.group = nullptr;
 
-        int getEnvStat = jvm->GetEnv((void **)&gEnv, JNI_VERSION_1_6);
+        int getEnvStat = jvm->GetEnv(reinterpret_cast<void **>(&gEnv), JNI_VERSION_1_6);
 
         if (getEnvStat == JNI_EDETACHED)
         {
@@ -139,30 +138,26 @@ extern "C"
 
         jbyteArray serialDataArr = gEnv->NewByteArray(dataSize);
         gEnv->SetByteArrayRegion(serialDataArr, 0, dataSize, (jbyte *)val);
-        jobject object = gEnv->NewObject(serialDataClass, serialDataConstructor, serialDataArr, baudrate);
+        jobject object = gEnv->NewObject(serialDataClass, serialDataConstructor, serialDataArr, static_cast<jint>(baudrate));
 
         gEnv->CallVoidMethod(storeWeakListener, stringCallback, object);
         gEnv->DeleteLocalRef(object);
 
         if (gEnv->ExceptionCheck())
-        {
             gEnv->ExceptionDescribe();
-        }
 
-        if (getEnvStat != JNI_EDETACHED) {
-            jvm->DetachCurrentThread();
-        }
+        jvm->DetachCurrentThread();
     }
 }
 
-static void* ptyThread(void* irrelevant)
+[[noreturn]] static void* ptyThread(void* irrelevant)
 {
 
     int slave;
     __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "OK GETTIN READY");
 
     char name[256];
-    openpty(&master, &slave, name, NULL, NULL);
+    openpty(&master, &slave, name, nullptr, nullptr);
     __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "CORN");
 
     unlink("/data/data/com.octo4a/files/home/serialpipe");
@@ -172,9 +167,9 @@ static void* ptyThread(void* irrelevant)
     // Prepare fds
     fd_set rfds, xfds;
     int retval, nread, status = 0, nonzero = 1;
-    char buf[BUFSIZE];
+    unsigned char buf[BUFSIZE];
     ioctl(master, TIOCPKT, &nonzero); // Packet mode go brr
-    while (1)
+    while (true)
     {
         //        setbuf(master, NULL); // gtfu buffer
 
@@ -183,7 +178,7 @@ static void* ptyThread(void* irrelevant)
         FD_ZERO(&xfds);
         FD_SET(master, &xfds);
 
-        select(1 + master, &rfds, NULL, &xfds, NULL);
+        select(1 + master, &rfds, nullptr, &xfds, nullptr);
 
         const char *r_text = (FD_ISSET(master, &rfds) ? "master ready for reading" : "- ");
         const char *x_text = (FD_ISSET(master, &xfds) ? "exception on master" : "- ");
@@ -195,79 +190,53 @@ static void* ptyThread(void* irrelevant)
         {
             //            buf[nread] = '\0';
 
-            if (CHECK_BIT(*buf, TIOCPKT_DATA))
-            {
+            if (*buf == TIOCPKT_DATA)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_DATA\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_START))
-            {
+            if (*buf == TIOCPKT_START)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_START\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_STOP))
-            {
+            if (*buf == TIOCPKT_STOP)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_STOP\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_IOCTL))
-            {
+            if (*buf == TIOCPKT_IOCTL)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "IOCTL\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_FLUSHREAD))
-            {
+            if (*buf == TIOCPKT_FLUSHREAD)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_FLUSHREAD\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_FLUSHWRITE))
-            {
+            if (*buf == TIOCPKT_FLUSHWRITE)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_FLUSHWRITE\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_DOSTOP))
-            {
+            if (*buf == TIOCPKT_DOSTOP)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_DOSTOP\n");
-            }
 
-            if (CHECK_BIT(*buf, TIOCPKT_NOSTOP))
-            {
+            if (*buf == TIOCPKT_NOSTOP)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_NOSTOP\n");
-            }
 
-            struct termios tio;
+            struct termios tio={};
             tcgetattr(master, &tio);
             __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "Baudrate: %d\n", cfgetospeed(&tio));
-            if (tio.c_cflag & CS8)
-            {
+            if ((tio.c_cflag & CSIZE) == CS8)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "8 b i t \n");
-            }
-            if (tio.c_cflag & CS7)
-            {
+
+            if ((tio.c_cflag & CSIZE) == CS7)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "7 b i t \n");
-            }
-            if (tio.c_cflag & CS6)
-            {
+
+            if ((tio.c_cflag & CSIZE) == CS6)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "6 b i t \n");
-            }
-            if (tio.c_cflag & CS5)
-            {
+
+            if ((tio.c_cflag & CSIZE) == CS5)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "5 b i t \n");
-            }
 
-            if (CHECK_BIT(tio.c_cflag, CSTOPB))
-            {
+            if (tio.c_cflag & CSTOPB)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "2 stop bits\n");
-            }
 
-            if (CHECK_BIT(tio.c_cflag, PARENB)) {
+            if (tio.c_cflag & PARENB)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "Got parity\n");
-            }
 
-            if (CHECK_BIT(tio.c_cflag, PARODD))
-            {
+            if (tio.c_cflag & PARODD)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "Odd parity\n");
-            }
 
             passReceivedData(buf, nread, cfgetospeed(&tio), tio.c_iflag, tio.c_oflag, tio.c_cflag, tio.c_lflag);
         }
@@ -302,14 +271,14 @@ extern "C"
         stringCallback = env->GetMethodID(clazz, "onDataReceived", "(Lcom/octo4a/serial/SerialData;)V");
 
         __android_log_print(ANDROID_LOG_VERBOSE, "GetEnv:", " Subscribe to Listener  OK \n");
-        if (NULL == stringCallback)
+        if (nullptr == stringCallback)
             return;
     }
 
     JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_runPtyThread(JNIEnv *env, jobject instance)
     {
-        if (ptyThreadHandle == NULL) {
-            pthread_create(&ptyThreadHandle, NULL, &ptyThread, NULL);
+        if (ptyThreadHandle == 0) {
+            pthread_create(&ptyThreadHandle, nullptr, &ptyThread, nullptr);
         }
     }
 }
