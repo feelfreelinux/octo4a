@@ -149,8 +149,9 @@ extern "C"
             gEnv->ExceptionDescribe();
         }
 
-
-        jvm->DetachCurrentThread();
+        if (getEnvStat != JNI_EDETACHED) {
+            jvm->DetachCurrentThread();
+        }
     }
 }
 
