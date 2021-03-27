@@ -12,6 +12,7 @@ app/app/src/main/jniLibs/*
 *.log
 *.pyc
 *.swp
+*.o
 .DS_Store
 .atom/
 .buildlog/

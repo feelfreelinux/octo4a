@@ -26,6 +26,7 @@ android {
     packagingOptions {
         pickFirst("META-INF/INDEX.LIST")
         pickFirst("META-INF/io.netty.versions.properties")
+        pickFirst("**/*.so")
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -40,6 +41,11 @@ android {
         getByName("release") {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path = file("src/main/jni/Android.mk")
         }
     }
 }
