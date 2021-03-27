@@ -43,9 +43,13 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path = file("src/main/jni/Android.mk")
+
+    // Only enable NDK build on archs other than aarch64 (M1 Mac workaround)
+    if (System.getProperty("os.arch") != "aarch64") {
+        externalNativeBuild {
+            ndkBuild {
+                path = file("src/main/jni/Android.mk")
+            }
         }
     }
 }
