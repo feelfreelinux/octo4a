@@ -45,11 +45,11 @@ android {
 
     // Only enable NDK build on archs other than aarch64 (M1 Mac workaround)
     if (System.getProperty("os.arch") != "aarch64") {
-        externalNativeBuild {
-            ndkBuild {
-                path = file("src/main/jni/Android.mk")
-            }
-        }
+//        externalNativeBuild {
+//            ndkBuild {
+//                path = file("src/main/jni/Android.mk")
+//            }
+//        }
     }
 }
 

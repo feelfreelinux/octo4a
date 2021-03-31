@@ -12,6 +12,7 @@ import com.octo4a.utils.SemVer
 import com.octo4a.utils.ipAddress
 import com.octo4a.utils.withIO
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 
 class StatusViewModel(context: Application,
@@ -42,7 +43,7 @@ class StatusViewModel(context: Application,
                             updateAvailable.postValue(newestRelease)
                         }
                     }
-                } catch (e: PackageManager.NameNotFoundException) {
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }

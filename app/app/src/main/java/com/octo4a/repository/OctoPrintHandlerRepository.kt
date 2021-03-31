@@ -96,29 +96,28 @@ class OctoPrintHandlerRepositoryImpl(
             _serverState.emit(ServerStatus.InstallingBootstrap)
             bootstrapRepository.apply {
                 setupBootstrap()
-                ensureHomeDirectory()
+//                ensureHomeDirectory()
             }
             log { "Bootstrap installed" }
             _serverState.emit(ServerStatus.DownloadingOctoPrint)
             bootstrapRepository.apply {
-                runBashCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput()
-                runBashCommand("unzip octoprint.zip").waitAndPrintOutput()
+                runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput()
+                runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput()
+                runCommand("unzip octoprint.zip").waitAndPrintOutput()
             }
             _serverState.emit(ServerStatus.InstallingDependencies)
             bootstrapRepository.apply {
-                runBashCommand("python3 -m ensurepip").waitAndPrintOutput()
-                runBashCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
-                runBashCommand("ssh-keygen -A -N \'\'").waitAndPrintOutput()
+                runCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
             }
             log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)
-            insertInitialConfig()
+//            insertInitialConfig()
             startOctoPrint()
         } else {
             startOctoPrint()
-            if (preferences.enableSSH) {
-                startSSH()
-            }
+//            if (preferences.enableSSH) {
+//                startSSH()
+//            }
         }
     }
 
@@ -128,15 +127,15 @@ class OctoPrintHandlerRepositoryImpl(
             return
         }
         bootstrapRepository.run {
-            runBashCommand("mkdir -p $octoPrintStoragePath")
-            runBashCommand("mkdir -p $externalStorageSymlinkPath/timelapse").waitAndPrintOutput()
-            runBashCommand("mkdir -p $externalStorageSymlinkPath/uploads").waitAndPrintOutput()
-            runBashCommand("ln -s $externalStorageSymlinkPath/uploads $octoPrintStoragePath/uploads").waitAndPrintOutput()
-            runBashCommand("ln -s $externalStorageSymlinkPath/timelapse $octoPrintStoragePath/timelapse").waitAndPrintOutput()
-            runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
+//            runBashCommand("mkdir -p $octoPrintStoragePath")
+//            runBashCommand("mkdir -p $externalStorageSymlinkPath/timelapse").waitAndPrintOutput()
+//            runBashCommand("mkdir -p $externalStorageSymlinkPath/uploads").waitAndPrintOutput()
+//            runBashCommand("ln -s $externalStorageSymlinkPath/uploads $octoPrintStoragePath/uploads").waitAndPrintOutput()
+//            runBashCommand("ln -s $externalStorageSymlinkPath/timelapse $octoPrintStoragePath/timelapse").waitAndPrintOutput()
+//            runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
         }
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = bootstrapRepository.runBashCommand("octoprint -b $octoPrintStoragePath")
+        octoPrintProcess = bootstrapRepository.runCommand("octoprint", root = false)
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -161,7 +160,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun getConfigValue(value: String): String {
-        return bootstrapRepository.runBashCommand("octoprint config get $value")
+        return bootstrapRepository.runCommand("octoprint config get $value", root = false)
             .getOutputAsString()
             .replace("\n", "")
             .removeSurrounding("'")
@@ -179,12 +178,12 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startSSH() {
         stopSSH()
-        bootstrapRepository.runBashCommand("sshd").waitAndPrintOutput()
+        bootstrapRepository.runCommand("sshd -p 2137").waitAndPrintOutput()
     }
 
     override fun stopSSH() {
         // Kills ssh demon
-        bootstrapRepository.runBashCommand("pkill sshd").waitAndPrintOutput()
+        bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput()
     }
 
     override fun usbAttached(port: String) {
@@ -237,6 +236,6 @@ class OctoPrintHandlerRepositoryImpl(
 
         val backupFile = File("$octoPrintStoragePath/config.backup")
         backupFile.delete()
-        bootstrapRepository.runBashCommand("cp $octoPrintStoragePath/config.yaml $octoPrintStoragePath/config.backup")
+//        bootstrapRepository.runCommand("cp $octoPrintStoragePath/config.yaml $octoPrintStoragePath/config.backup")
     }
 }
