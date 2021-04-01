@@ -15,7 +15,7 @@
     <string name="status_stopped">OctoPrint is stopped</string>
     <string name="status_running">OctoPrint is running</string>
     <string name="status_stopped_start">tap to start the server</string>
-    <string name="status_starting_subtitle">this should only take few seconds</string>
+    <string name="status_starting_subtitle">this could take a couple of minutes</string>
     <string name="notification_status_running">Server is running</string>
     <string name="notification_status_starting">Server is starting up…</string>
     <string name="notification_status_stopped">Server is stopped</string>
