@@ -160,8 +160,8 @@ extern "C"
     openpty(&master, &slave, name, nullptr, nullptr);
     __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "CORN");
 
-    unlink("/data/data/com.octo4a/files/home/serialpipe");
-    symlink(name, "/data/data/com.octo4a/files/home/serialpipe");
+    unlink("/data/data/com.octo4a/files/serialpipe");
+    symlink(name, "/data/data/com.octo4a/files/serialpipe");
     __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "SYMLIKED");
 
     // Prepare fds

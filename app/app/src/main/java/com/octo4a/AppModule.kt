@@ -3,6 +3,7 @@ package com.octo4a
 import com.google.gson.FieldNamingPolicy
 import com.octo4a.repository.*
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.utils.TLSSocketFactory
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
 import com.octo4a.viewmodel.StatusViewModel
@@ -21,6 +22,11 @@ val appModule = module {
                 serializer = GsonSerializer {
                     serializeNulls()
                     setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                }
+            }
+            engine {
+                sslManager = {
+                    it.sslSocketFactory = TLSSocketFactory()
                 }
             }
         }

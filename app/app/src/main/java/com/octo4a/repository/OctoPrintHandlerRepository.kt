@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
-import java.lang.Exception
+import java.lang.reflect.Field
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 import kotlin.math.roundToInt
 
 enum class ServerStatus(val value: Int) {
@@ -59,7 +60,7 @@ class OctoPrintHandlerRepositoryImpl(
     private val githubRepository: GithubRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
     private val externalStorageSymlinkPath = Environment.getExternalStorageDirectory().path + "/OctoPrint"
-    private val octoPrintStoragePath = "/data/data/com.octo4a/files/home/.octoprint"
+    private val octoPrintStoragePath = "/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.octoprint"
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
@@ -111,19 +112,39 @@ class OctoPrintHandlerRepositoryImpl(
             }
             log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)
-//            insertInitialConfig()
+            insertInitialConfig()
             startOctoPrint()
         } else {
             startOctoPrint()
 //            if (preferences.enableSSH) {
-//                startSSH()
-//            }
+            log { "CORN12" }
+                startSSH()
+            //}
         }
+    }
+
+    fun getPid(p: Process): Int {
+        var pid = -1
+        try {
+            val f: Field = p.javaClass.getDeclaredField("pid")
+            f.setAccessible(true)
+            pid = f.getInt(p)
+            f.setAccessible(false)
+        } catch (ignored: Throwable) {
+            pid = try {
+                val m: Matcher = Pattern.compile("pid=(\\d+)").matcher(p.toString())
+                if (m.find()) m.group(1).toInt() else -1
+            } catch (ignored2: Throwable) {
+                -1
+            }
+        }
+        return pid
     }
 
     override fun startOctoPrint() {
         wakeLock.acquire()
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
+            log { "Octo print running" }
             return
         }
         bootstrapRepository.run {
@@ -132,10 +153,10 @@ class OctoPrintHandlerRepositoryImpl(
 //            runBashCommand("mkdir -p $externalStorageSymlinkPath/uploads").waitAndPrintOutput()
 //            runBashCommand("ln -s $externalStorageSymlinkPath/uploads $octoPrintStoragePath/uploads").waitAndPrintOutput()
 //            runBashCommand("ln -s $externalStorageSymlinkPath/timelapse $octoPrintStoragePath/timelapse").waitAndPrintOutput()
-//            runBashCommand("mkfifo eventPipe").waitAndPrintOutput()
+            runCommand("mkfifo /home/octoprint/eventPipe").waitAndPrintOutput()
         }
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = bootstrapRepository.runCommand("octoprint", root = false)
+        octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint", root = false)
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -168,6 +189,7 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun stopOctoPrint() {
         wakeLock.remove()
+        bootstrapRepository.runCommand("kill `pidof octoprint`")
         octoPrintProcess?.destroy()
         _serverState.value = ServerStatus.Stopped
     }
@@ -178,7 +200,7 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startSSH() {
         stopSSH()
-        bootstrapRepository.runCommand("sshd -p 2137").waitAndPrintOutput()
+        bootstrapRepository.runCommand("/usr/sbin/sshd -p 2137").waitAndPrintOutput()
     }
 
     override fun stopSSH() {
@@ -204,7 +226,7 @@ class OctoPrintHandlerRepositoryImpl(
         )
         map["serial"] = mapOf(
             "exclusive" to false,
-            "additionalPorts" to listOf("/data/data/com.octo4a/files/home/serialpipe"),
+            "additionalPorts" to listOf("/dev/ttyOcto4a"),
             "blacklistedPorts" to listOf("/dev/*")
             )
         map["server"] = mapOf("commands" to mapOf(

@@ -1,19 +1,21 @@
 package com.octo4a
 
-import android.app.Application
-import androidx.camera.camera2.Camera2Config
-import androidx.camera.core.CameraX
-import androidx.camera.core.CameraXConfig
+import androidx.multidex.MultiDexApplication
 import com.bugsnag.android.Bugsnag
-import org.koin.android.ext.koin.androidContext
+import com.octo4a.utils.TLSSocketFactory
 import org.koin.android.ext.koin.androidLogger
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 
-class Octo4aApplication : Application(), CameraXConfig.Provider {
-    override fun getCameraXConfig(): CameraXConfig = Camera2Config.defaultConfig()
+
+class Octo4aApplication : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        initializeSSLContext()
         // Start Koin
         startKoin {
             androidLogger()
@@ -22,5 +24,11 @@ class Octo4aApplication : Application(), CameraXConfig.Provider {
         }
 
         Bugsnag.start(this)
+    }
+
+    fun initializeSSLContext() {
+        val noSSLv3Factory: TLSSocketFactory = TLSSocketFactory()
+
+        HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
     }
 }

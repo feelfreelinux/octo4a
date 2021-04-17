@@ -21,29 +21,29 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
     private var _eventState = MutableLiveData<FIFOEvent>()
     override val eventState = _eventState
 
-    private val eventFifoPath = "/data/data/com.octo4a/files/home/eventPipe"
+    private val eventFifoPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/eventPipe"
     private val gson by lazy {
         GsonBuilder()
             .create()
     }
 
     override fun handleFifoEvents() {
-//        try {
-//            val fifoFile = File(eventFifoPath)
-//            while (true) {
-//                fifoFile.inputStream().bufferedReader().forEachLine {
-//                    log { "Got event $it" }
-//                    try {
-//                        val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
-//                        _eventState.postValue(event)
-//                    } catch (e: Exception) {
-//                        log { "Error occured when parsing fifo event " + e.message }
-//                    }
-//                }
-//            }
-//        } catch (e: Exception) {
-//            log { "FIFO Handler error " + e.message }
-//        }
+        try {
+            val fifoFile = File(eventFifoPath)
+            while (true) {
+                fifoFile.inputStream().bufferedReader().forEachLine {
+                    log { "Got event $it" }
+                    try {
+                        val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
+                        _eventState.postValue(event)
+                    } catch (e: Exception) {
+                        log { "Error occured when parsing fifo event " + e.message }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            log { "FIFO Handler error " + e.message }
+        }
     }
 
 }

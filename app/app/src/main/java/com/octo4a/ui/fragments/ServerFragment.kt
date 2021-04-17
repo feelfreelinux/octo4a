@@ -10,7 +10,6 @@ import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -152,14 +151,14 @@ class ServerFragment : Fragment() {
     }
 
     private fun showPreviewDialog() {
-        val dialog = MaterialAlertDialogBuilder(requireActivity())
-            .setTitle(R.string.camera_preview)
-            .setView(R.layout.dialog_camera_preview)
-            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
-            .show()
-        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
-        if (boundToCameraService) {
-            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
-        }
+//        val dialog = MaterialAlertDialogBuilder(requireActivity())
+//            .setTitle(R.string.camera_preview)
+//            .setView(R.layout.dialog_camera_preview)
+//            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
+//            .show()
+//        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
+//        if (boundToCameraService) {
+//            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
+//        }
     }
 }

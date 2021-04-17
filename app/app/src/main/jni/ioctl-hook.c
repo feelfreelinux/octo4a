@@ -19,7 +19,7 @@ int g_obvio=0;
 
 #define REAL_LIBC RTLD_NEXT
 
-static char fifoPath[] = "/data/data/com.octo4a/files/home/eventPipe";
+static char fifoPath[] = "/home/octoprint/eventPipe";
 static char eventJsonStart[] = "{\"eventType\": \"";
 static char eventJsonEnd[] = "\"}\n";
 
@@ -46,13 +46,13 @@ int ioctl(int fd, int request, ...)
 
     if (request == TIOCMBIS)
     {
-        writeEventToPipe("rtsDts", 6);
+        //writeEventToPipe("rtsDts", 6);
         return 0;
     }
 
     if (request == 0x802c542a || request == 0x402C542B)
     {
-        writeEventToPipe("customBaud", 10);
+        //writeEventToPipe("customBaud", 10);
         return 0;
     }
 //    DPRINTF ("HOOK: ioctl (fd=%d, request=%p, argp=%p [%02X])\n", fd, request, argp);

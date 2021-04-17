@@ -12,10 +12,11 @@ android {
 
     defaultConfig {
         applicationId = "com.octo4a"
-        minSdkVersion(21)
+        minSdkVersion(17)
         targetSdkVersion(28)
         versionName = androidGitVersion.name()
         versionCode = maxOf(androidGitVersion.code(), 1)
+        multiDexEnabled = true
 
         //testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
     }
@@ -57,6 +58,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.4")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.4")
+    implementation("com.android.support:multidex:1.0.3")
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
     val koinVersion = "3.0.1-beta-1"
@@ -69,28 +71,28 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-service:$lifecycleVersion")
 
-    // CameraX apis
-    implementation("androidx.camera:camera-core") {
-        version {
-            strictly(cameraXVersion)
-        }
-        because("Umidigi S2 Lite")
-    }
-
-    implementation("androidx.camera:camera-camera2") {
-        version {
-            strictly(cameraXVersion)
-        }
-        because("Umidigi S2 Lite")
-    }
-    implementation ("androidx.camera:camera-lifecycle") {
-        version {
-            strictly(cameraXVersion)
-        }
-        because("Umidigi S2 Lite")
-    }
-    implementation("androidx.camera:camera-view:1.0.0-alpha22")
-    implementation("androidx.camera:camera-extensions:1.0.0-alpha22")
+//    // CameraX apis
+//    implementation("androidx.camera:camera-core") {
+//        version {
+//            strictly(cameraXVersion)
+//        }
+//        because("Umidigi S2 Lite")
+//    }
+//
+//    implementation("androidx.camera:camera-camera2") {
+//        version {
+//            strictly(cameraXVersion)
+//        }
+//        because("Umidigi S2 Lite")
+//    }
+//    implementation ("androidx.camera:camera-lifecycle") {
+//        version {
+//            strictly(cameraXVersion)
+//        }
+//        because("Umidigi S2 Lite")
+//    }
+//    implementation("androidx.camera:camera-view:1.0.0-alpha22")
+//    implementation("androidx.camera:camera-extensions:1.0.0-alpha22")
 
     // Android-specific dependencies
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.30")
@@ -117,6 +119,7 @@ dependencies {
     implementation("io.ktor:ktor-client-android:$ktorVersion")
     implementation("io.ktor:ktor-client-gson:$ktorVersion")
     implementation("org.nanohttpd:nanohttpd:2.3.1")
+    implementation("com.google.android.gms:play-services-safetynet:17.0.0")
 
     // Bugsnag bug reporting
     implementation("com.bugsnag:bugsnag-android:5.+")

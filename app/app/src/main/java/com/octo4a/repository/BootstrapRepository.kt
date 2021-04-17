@@ -1,19 +1,21 @@
 package com.octo4a.repository
 
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import android.util.Pair
 import com.octo4a.BuildConfig
-import com.octo4a.utils.getArchString
-import com.octo4a.utils.log
-import com.octo4a.utils.setPassword
-import com.octo4a.utils.waitAndPrintOutput
+import com.octo4a.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.net.URL
-import java.util.ArrayList
 import java.util.zip.ZipInputStream
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 
 interface BootstrapRepository {
     suspend fun setupBootstrap()
@@ -29,6 +31,14 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/bootstrap"
         val HOME_PATH = "$FILES_PATH/home"
+    }
+
+    private fun shouldUsePre5Bootstrap(): Boolean {
+        if (getArchString() != "arm" && getArchString() != "i686") {
+            return false
+        }
+
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
     }
 
     override suspend fun setupBootstrap() {
@@ -60,9 +70,16 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
                 val buffer = ByteArray(8096)
                 val symlinks = ArrayList<Pair<String, String>>(50)
 
-                val urlPrefix = asset?.browserDownloadUrl
+                val urlPrefix = asset!!.browserDownloadUrl
+                val sslcontext = SSLContext.getInstance("TLSv1")
+                sslcontext.init(null, null, null)
+                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
 
-                ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
+                HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
+                val connection: HttpsURLConnection = URL(urlPrefix).openConnection() as HttpsURLConnection
+                connection.sslSocketFactory = noSSLv3Factory
+
+                ZipInputStream(connection.inputStream).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
 
@@ -89,7 +106,12 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
                     throw RuntimeException("Unable to rename staging folder")
                 }
                 log { "Bootstrap extracted, setting it up..." }
-                runCommand("chmod -R +x ./root/*", prooted = false).waitAndPrintOutput()
+                runCommand("ls", prooted = false).waitAndPrintOutput()
+                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput()
+                if (shouldUsePre5Bootstrap()) {
+                    runCommand("rm -r root && mv root-pre5 root", prooted = false).waitAndPrintOutput()
+                }
+
                 runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput()
                 runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput()
                 runCommand("cat /etc/motd").waitAndPrintOutput()
@@ -147,13 +169,14 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         pb.environment()["HOME"] = "$FILES/bootstrap"
         pb.environment()["LANG"] = "'en_US.UTF-8'"
         pb.environment()["PWD"] = "$FILES/bootstrap"
+        pb.environment()["EXTRA_BIND"] = "-b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
         pb.environment()["PATH"] = "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
         pb.directory(File("$FILES/bootstrap"))
         var user = "root"
         if (!root) user = "octoprint"
         if (prooted) {
             // run inside proot
-            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", command)
+            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", "$command")
         } else {
             pb.command("sh", "-c", command)
         }
