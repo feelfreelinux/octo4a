@@ -127,9 +127,9 @@ class OctoPrintHandlerRepositoryImpl(
         var pid = -1
         try {
             val f: Field = p.javaClass.getDeclaredField("pid")
-            f.setAccessible(true)
+            f.isAccessible = true
             pid = f.getInt(p)
-            f.setAccessible(false)
+            f.isAccessible = false
         } catch (ignored: Throwable) {
             pid = try {
                 val m: Matcher = Pattern.compile("pid=(\\d+)").matcher(p.toString())

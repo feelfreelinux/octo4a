@@ -17,6 +17,7 @@ import com.octo4a.R
 import com.octo4a.service.CameraService
 import com.octo4a.service.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
+import com.octo4a.service.LegacyCameraService
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
@@ -92,6 +93,9 @@ class InitialActivity: AppCompatActivity() {
             val intent = Intent(this, OctoPrintService::class.java)
             startService(intent)
         }
+        log { "Starting service" }
+        val intent = Intent(this, LegacyCameraService::class.java)
+        startService(intent)
 
         if (!isServiceRunning(CameraService::class.java) && prefs.enableCameraServer) {
             val intent = Intent(this, CameraService::class.java)

@@ -17,6 +17,7 @@
             android:allowBackup="false"
             android:name=".Octo4aApplication"
             android:icon="@mipmap/ic_launcher"
+            android:hardwareAccelerated="false"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
@@ -46,6 +47,8 @@
 
         </service>
         <service android:name=".service.CameraService" />
+        <service android:name=".service.LegacyCameraService" />
+
         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
         <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true"/>
         <meta-data android:name="com.bugsnag.android.API_KEY"
