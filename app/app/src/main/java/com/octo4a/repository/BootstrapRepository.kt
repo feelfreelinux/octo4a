@@ -123,9 +123,9 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
 
                 // Turn ssh on for easier debug
                 if (BuildConfig.DEBUG) {
-                    runCommand("passwd").setPassword("octoprint")
-                    runCommand("passwd octoprint").setPassword("octoprint")
-                    runCommand("/usr/sbin/sshd -p 2137")
+//                    runCommand("passwd").setPassword("octoprint")
+//                    runCommand("passwd octoprint").setPassword("octoprint")
+//                    runCommand("/usr/sbin/sshd -p 2137")
                 }
 
                 log { "Bootstrap installation done" }
@@ -189,17 +189,16 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
 //            homeFile.mkdir()
 //        }
     }
-
     override val isSSHConfigured: Boolean
         get() {
-            return File("${HOME_PATH}/.termux_authinfo").exists()
+            return File("/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.ssh_configured").exists()
         }
 
     override fun resetSSHPassword(newPassword: String) {
-        if (isSSHConfigured) {
-            File("${HOME_PATH}/.termux_authinfo").delete()
-        }
-        runCommand("passwd").setPassword(newPassword)
+        log { "Deleting password just in case" }
+        runCommand("passwd -d octoprint").waitAndPrintOutput()
+        runCommand("passwd octoprint").setPassword(newPassword)
+        runCommand("touch .ssh_configured", root = false)
     }
 
     override val isBootstrapInstalled: Boolean

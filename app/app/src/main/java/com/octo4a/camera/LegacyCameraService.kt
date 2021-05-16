@@ -1,72 +1,55 @@
-package com.octo4a.service
+package com.octo4a.camera
+
+//import com.octo4a.camera.cameraWithId
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.hardware.camera2.CameraManager
+import android.graphics.ImageFormat
+import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.hardware.Camera
 import android.os.Binder
 import android.os.IBinder
-import android.util.Size
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.WindowManager
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
-import com.octo4a.camera.MJpegFrameProvider
-import com.octo4a.camera.MJpegServer
-//import com.octo4a.camera.cameraWithId
 import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
-import java.io.IOException
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
-import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class CameraService : LifecycleService(), MJpegFrameProvider {
+
+class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolder.Callback {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
-
+    private val preview by lazy {
+        SurfaceView(applicationContext)
+    }
+    private val camera by lazy {
+        Camera.open()
+    }
     private val cameraSettings: MainPreferences by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
-//    private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
-//    private val captureExecutor by lazy { Executors.newCachedThreadPool() }
-//
-//    var cameraInitialized = false
-//    var cameraProcessProvider: ProcessCameraProvider? = null
-//    private val cameraSelector by lazy {
-//        CameraSelector.Builder().apply {
-//            requireLensFacing(
-//                manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT
-//            )
-//        }.build()
-//    }
-//    private val cameraPreview  by lazy {
-//        Preview.Builder()
-//            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-//            .build()
-//    }
-//
-//    private val imageCapture by lazy {
-//        ImageCapture.Builder()
-//            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-//            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-//            .build()
-//    }
-//
-//    private val imageAnalysis by lazy {
-//        ImageAnalysis.Builder()
-//            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-//            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//            .build()
-//    }
+
 
     override val newestFrame: ByteArray
         get() = synchronized(latestFrame) { return latestFrame }
 
     inner class LocalBinder : Binder() {
-        fun getService(): CameraService = this@CameraService
+        fun getService(): LegacyCameraService = this@LegacyCameraService
+    }
+
+    private val windowManager by lazy {
+        getSystemService(Context.WINDOW_SERVICE) as WindowManager
     }
 
     private val binder = LocalBinder()
@@ -121,6 +104,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         Thread {
             mjpegServer.stopServer()
         }.start()
+        camera.release()
         octoprintHandler.isCameraServerRunning = false
     }
 
@@ -146,18 +130,32 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-//        readyCamera()
-//        Thread {
-//            mjpegServer.startServer()
-//        }.start()
+        readyCamera()
+        Thread {
+            mjpegServer.startServer()
+        }.start()
         return START_STICKY
     }
 
-//    @SuppressLint("UnsafeExperimentalUsageError")
-//    private fun readyCamera() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-//            return
-//        }
+    @SuppressLint("UnsafeExperimentalUsageError")
+    private fun readyCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        preview.holder.apply {
+            setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
+            addCallback(this@LegacyCameraService)
+        }
+        val params = WindowManager.LayoutParams(
+            1, 1,
+            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+            0,
+            PixelFormat.UNKNOWN
+        )
+
+        windowManager.addView(preview, params)
+
 //
 //        val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
 //        cameraProviderFuture.addListener({
@@ -193,5 +191,38 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 //            cameraInitialized = true
 //        }, ContextCompat.getMainExecutor(applicationContext))
 //        octoprintHandler.isCameraServerRunning = true
-//    }
+    }
+
+    override fun surfaceCreated(holder: SurfaceHolder?) {
+        try {
+            camera.setPreviewDisplay(holder)
+            camera.parameters.pictureFormat = ImageFormat.NV21
+            val rect = Rect(0, 0, camera.parameters.previewSize.width, camera.parameters.previewSize.height)
+            val out = ByteArrayOutputStream()
+            camera.setPreviewCallback { bytes, cam ->
+                YuvImage(
+                    bytes,
+                    ImageFormat.NV21,
+                    cam.parameters.previewSize.width,
+                    cam.parameters.previewSize.height, null
+                ).compressToJpeg(rect, 100, out)
+
+                synchronized(latestFrame) {
+                    latestFrame = out.toByteArray()
+                }
+                out.reset()
+            }
+            camera.startPreview()
+        } catch (e: Throwable) {
+        }
+    }
+
+    override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
+        camera.setPreviewDisplay(p0)
+        camera.startPreview()
+    }
+
+    override fun surfaceDestroyed(p0: SurfaceHolder?) {
+    }
+
 }

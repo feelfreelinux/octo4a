@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
           package="com.octo4a">
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -12,7 +15,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-
+    <uses-sdk android:minSdkVersion="17"
+            android:targetSdkVersion="28"
+            tools:overrideLibrary="androidx.camera.view, androidx.camera.extensions, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.core"/>
     <application
             android:allowBackup="false"
             android:name=".Octo4aApplication"
@@ -46,8 +51,8 @@
 
 
         </service>
-        <service android:name=".service.CameraService" />
-        <service android:name=".service.LegacyCameraService" />
+        <service android:name=".camera.CameraService" />
+        <service android:name=".camera.LegacyCameraService" />
 
         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
         <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true"/>

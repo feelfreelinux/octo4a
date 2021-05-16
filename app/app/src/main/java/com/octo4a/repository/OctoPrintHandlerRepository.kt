@@ -49,8 +49,8 @@ interface OctoPrintHandlerRepository {
     fun usbDetached()
     fun resetSSHPassword(password: String)
     fun getConfigValue(value: String): String
-    val isSSHConfigured: Boolean
     var isCameraServerRunning: Boolean
+    val isSSHConfigured: Boolean
 }
 
 class OctoPrintHandlerRepositoryImpl(
@@ -74,8 +74,7 @@ class OctoPrintHandlerRepositoryImpl(
 
     private var octoPrintProcess: Process? = null
     private var fifoThread: Thread? = null
-    override val isSSHConfigured: Boolean
-        get() = bootstrapRepository.isSSHConfigured
+
 
     override val serverState: StateFlow<ServerStatus> = _serverState
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
@@ -116,10 +115,10 @@ class OctoPrintHandlerRepositoryImpl(
             startOctoPrint()
         } else {
             startOctoPrint()
-//            if (preferences.enableSSH) {
-            log { "CORN12" }
+            if (preferences.enableSSH) {
+                log { "CORN12" }
                 startSSH()
-            //}
+            }
         }
     }
 
@@ -148,11 +147,6 @@ class OctoPrintHandlerRepositoryImpl(
             return
         }
         bootstrapRepository.run {
-//            runBashCommand("mkdir -p $octoPrintStoragePath")
-//            runBashCommand("mkdir -p $externalStorageSymlinkPath/timelapse").waitAndPrintOutput()
-//            runBashCommand("mkdir -p $externalStorageSymlinkPath/uploads").waitAndPrintOutput()
-//            runBashCommand("ln -s $externalStorageSymlinkPath/uploads $octoPrintStoragePath/uploads").waitAndPrintOutput()
-//            runBashCommand("ln -s $externalStorageSymlinkPath/timelapse $octoPrintStoragePath/timelapse").waitAndPrintOutput()
             runCommand("mkfifo /home/octoprint/eventPipe").waitAndPrintOutput()
         }
         _serverState.value = ServerStatus.BootingUp
@@ -200,12 +194,13 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startSSH() {
         stopSSH()
-        bootstrapRepository.runCommand("/usr/sbin/sshd -p 2137").waitAndPrintOutput()
+        bootstrapRepository.runCommand("/usr/sbin/sshd -p 2137")
     }
 
     override fun stopSSH() {
         // Kills ssh demon
         bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput()
+        log { "killed sshd" }
     }
 
     override fun usbAttached(port: String) {
@@ -260,4 +255,7 @@ class OctoPrintHandlerRepositoryImpl(
         backupFile.delete()
 //        bootstrapRepository.runCommand("cp $octoPrintStoragePath/config.yaml $octoPrintStoragePath/config.backup")
     }
+
+    override val isSSHConfigured: Boolean
+        get() = bootstrapRepository.isSSHConfigured
 }

@@ -16,7 +16,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
 import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.ServerStatus
-import com.octo4a.service.CameraService
+import com.octo4a.camera.CameraService
 import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel

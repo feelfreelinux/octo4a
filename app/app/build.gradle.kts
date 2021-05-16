@@ -71,28 +71,28 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-service:$lifecycleVersion")
 
-//    // CameraX apis
-//    implementation("androidx.camera:camera-core") {
-//        version {
-//            strictly(cameraXVersion)
-//        }
-//        because("Umidigi S2 Lite")
-//    }
-//
-//    implementation("androidx.camera:camera-camera2") {
-//        version {
-//            strictly(cameraXVersion)
-//        }
-//        because("Umidigi S2 Lite")
-//    }
-//    implementation ("androidx.camera:camera-lifecycle") {
-//        version {
-//            strictly(cameraXVersion)
-//        }
-//        because("Umidigi S2 Lite")
-//    }
-//    implementation("androidx.camera:camera-view:1.0.0-alpha22")
-//    implementation("androidx.camera:camera-extensions:1.0.0-alpha22")
+    // CameraX apis
+    implementation("androidx.camera:camera-core") {
+        version {
+            strictly(cameraXVersion)
+        }
+        because("Umidigi S2 Lite")
+    }
+
+    implementation("androidx.camera:camera-camera2") {
+        version {
+            strictly(cameraXVersion)
+        }
+        because("Umidigi S2 Lite")
+    }
+    implementation ("androidx.camera:camera-lifecycle") {
+        version {
+            strictly(cameraXVersion)
+        }
+        because("Umidigi S2 Lite")
+    }
+    implementation("androidx.camera:camera-view:1.0.0-alpha22")
+    implementation("androidx.camera:camera-extensions:1.0.0-alpha22")
 
     // Android-specific dependencies
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.30")
