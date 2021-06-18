@@ -15,8 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-sdk android:minSdkVersion="17"
-            android:targetSdkVersion="28"
+    <uses-sdk
             tools:overrideLibrary="androidx.camera.view, androidx.camera.extensions, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.core"/>
     <application
             android:allowBackup="false"
