@@ -6,9 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -17,8 +15,8 @@ import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.camera.CameraService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 
@@ -26,6 +24,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val prefs: MainPreferences by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
+    private val logger: LoggerRepository by inject()
 
     // Camera permission request
     private val hasCameraPermission: Boolean
@@ -79,10 +78,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 _, newValue ->
             if (newValue as Boolean) {
                 if (octoprintHandler.isSSHConfigured) {
-                    log { "ok lets go" }
-
                     octoprintHandler.startSSH()
-                    log { "Start czas" }
                 } else {
                     enableSSH?.isChecked = false
                     preferenceManager.showDialog(sshPasswordPref)

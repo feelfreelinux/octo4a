@@ -36,6 +36,7 @@
     </string>
     <string name="action_download">Download</string>
     <string name="action_later">Later</string>
+    <string name="action_show_logs">Show logs</string>
 
 
 </resources>

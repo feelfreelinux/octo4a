@@ -13,8 +13,6 @@ import androidx.camera.core.CameraSelector
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
-
 
 data class CameraSize(val width: Int, val height: Int)
 
@@ -51,7 +49,6 @@ class CameraEnumerationRepository(val context: Context) {
     }
 
     fun enumerateCameras() {
-        log { "ENTERING MOCZ ZONE" }
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             return
         }
@@ -60,7 +57,6 @@ class CameraEnumerationRepository(val context: Context) {
             var cams = mutableListOf<CameraDescription>()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-                log { "moczos" }
                 cams = manager.cameraIdList.map {
                     val characteristics = manager.getCameraCharacteristics(it)
                     val sensorInfoPixelArraySize =
@@ -86,8 +82,6 @@ class CameraEnumerationRepository(val context: Context) {
                 for (i in 0 until cameras) {
                     val cameraInfo = Camera.CameraInfo()
                     Camera.getCameraInfo(i, cameraInfo)
-
-                    log { "Got camera info" }
 
                     val cam = Camera.open(i)
 

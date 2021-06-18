@@ -13,5 +13,7 @@
     <color name="separatorColor">#1FFFFFFF</color>
     <color name="cardHeaderColor">#000000</color>
     <color name="iconGreen">#ff4CAF50</color>
+    <color name="terminalBackground">#1D1F21</color>
+    <color name="terminalText">#C5C8C6</color>
 
 </resources>

@@ -2,12 +2,10 @@ package com.octo4a.service
 
 import android.app.*
 import android.content.*
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -19,7 +17,6 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.ui.MainActivity
-import com.octo4a.utils.log
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 

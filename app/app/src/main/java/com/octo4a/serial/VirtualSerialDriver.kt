@@ -3,23 +3,18 @@ package com.octo4a.serial
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
-import android.util.Log
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
-import java.nio.charset.Charset
 import com.hoho.android.usbserial.util.SerialInputOutputManager
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.utils.log
-import kotlinx.coroutines.selects.select
 import java.lang.Exception
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintHandlerRepository): VSPListener, SerialInputOutputManager.Listener {
+class VirtualSerialDriver(val context: Context, private val octoPrintHandler: OctoPrintHandlerRepository, private val logger: LoggerRepository): VSPListener, SerialInputOutputManager.Listener {
     val pty by lazy { VSPPty() }
 
     private val usbManager by lazy {
@@ -64,7 +59,7 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
             val mPendingIntent =
                 PendingIntent.getBroadcast(context, usbPermissionRequestCode, Intent(intent), 0)
             usbManager.requestPermission(device.device, mPendingIntent)
-            log { "REQUESTED DEVICE"}
+            logger.log(this) { "REQUESTED DEVICE"}
             null
         } else {
             selectedDevice = device
@@ -76,7 +71,7 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
     override fun onDataReceived(data: SerialData?) {
         try {
             data?.apply {
-                log { pty.getBaudrate(baudrate).toString() }
+                logger.log(this) { pty.getBaudrate(baudrate).toString() }
                 val newConnectionRequired = ((isStartPacket || currentBaudrate != baudrate) && selectedDevice != null)
                 if (newConnectionRequired || port?.isOpen != true) {
                     if (selectedDevice == null) {
@@ -117,7 +112,7 @@ class VirtualSerialDriver(val context: Context, val octoPrintHandler: OctoPrintH
                 }
             }
         } catch (e: Exception) {
-            log { "Exception during write ${e.message}" }
+            logger.log(this) { "Exception during write ${e.message}" }
         }
     }
 

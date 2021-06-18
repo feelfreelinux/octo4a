@@ -19,8 +19,8 @@ import com.octo4a.camera.CameraService
 import com.octo4a.service.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
 import com.octo4a.camera.LegacyCameraService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
@@ -30,6 +30,7 @@ class InitialActivity: AppCompatActivity() {
     private val prefs: MainPreferences by inject()
     private val pm  by lazy { getSystemService(LifecycleService.POWER_SERVICE) as PowerManager }
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
+    private val logger: LoggerRepository by inject()
 
     // Storage permission request
     private val hasStoragePermission: Boolean
@@ -63,7 +64,7 @@ class InitialActivity: AppCompatActivity() {
                 try {
                     startActivity(whitelist)
                 } catch (e: ActivityNotFoundException) {
-                    log { "failed to open battery optimization dialog" }
+                    logger.log(this) { "failed to open battery optimization dialog" }
                 }
             } else {
                 checkWritePermissionAndRun()

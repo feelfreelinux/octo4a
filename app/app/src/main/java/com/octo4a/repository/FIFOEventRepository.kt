@@ -2,11 +2,8 @@ package com.octo4a.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
-import com.octo4a.utils.log
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 import java.lang.Exception
 
@@ -17,7 +14,7 @@ interface FIFOEventRepository {
     fun handleFifoEvents()
 }
 
-class FIFOEventRepositoryImpl : FIFOEventRepository {
+class FIFOEventRepositoryImpl(val logger: LoggerRepository) : FIFOEventRepository {
     private var _eventState = MutableLiveData<FIFOEvent>()
     override val eventState = _eventState
 
@@ -32,17 +29,17 @@ class FIFOEventRepositoryImpl : FIFOEventRepository {
             val fifoFile = File(eventFifoPath)
             while (true) {
                 fifoFile.inputStream().bufferedReader().forEachLine {
-                    log { "Got event $it" }
+                    logger.log(this) { "Got event $it" }
                     try {
                         val event = gson.fromJson(it.replace("\n", ""), FIFOEvent::class.java)
                         _eventState.postValue(event)
                     } catch (e: Exception) {
-                        log { "Error occured when parsing fifo event " + e.message }
+                        logger.log(this) { "Error occured when parsing fifo event " + e.message }
                     }
                 }
             }
         } catch (e: Exception) {
-            log { "FIFO Handler error " + e.message }
+            logger.log(this) { "FIFO Handler error " + e.message }
         }
     }
 

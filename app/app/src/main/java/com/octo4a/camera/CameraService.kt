@@ -14,11 +14,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
+import com.octo4a.repository.LoggerRepository
 //import com.octo4a.camera.cameraWithId
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.YUV420toNV21
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.util.concurrent.Executors
@@ -31,6 +31,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private var listenerCount = 0
 
     private val cameraSettings: MainPreferences by inject()
+    private val logger: LoggerRepository by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
@@ -89,7 +90,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
-                    log { "Single capture error: $exception" }
+                    logger.log(this) { "Single capture error: $exception" }
                     it.resume(ByteArray(0))
                 }
             })
@@ -100,14 +101,14 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         synchronized(listenerCount) {
             listenerCount++
         }
-        log { "REGISTER" }
+        logger.log(this) { "Camera server register listener" }
     }
 
     override fun unregisterListener() {
         synchronized(listenerCount) {
             listenerCount--
         }
-        log { "UNREGISTER" }
+        logger.log(this) { "Camera server unregister listener" }
     }
 
     private val mjpegServer by lazy { MJpegServer(5001, this) }

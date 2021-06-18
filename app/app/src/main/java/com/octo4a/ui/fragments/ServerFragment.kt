@@ -17,7 +17,7 @@ import com.octo4a.R
 import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.ServerStatus
 import com.octo4a.camera.CameraService
-import com.octo4a.utils.log
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
@@ -30,6 +30,7 @@ class ServerFragment : Fragment() {
     private lateinit var cameraService: CameraService
     private var boundToCameraService = false
     private val mainPreferences: MainPreferences by inject()
+    private val logger: LoggerRepository by inject()
 
     private val cameraServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -67,7 +68,7 @@ class ServerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
-            log { "Update available" }
+            logger.log(this) { "Update available" }
             showUpdateDialog(it)
         }
 

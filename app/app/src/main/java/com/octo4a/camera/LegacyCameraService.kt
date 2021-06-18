@@ -1,7 +1,5 @@
 package com.octo4a.camera
 
-//import com.octo4a.camera.cameraWithId
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -19,8 +17,8 @@ import android.view.SurfaceView
 import android.view.WindowManager
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
@@ -39,6 +37,7 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
     }
     private val cameraSettings: MainPreferences by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
+    private val logger: LoggerRepository by inject()
 
 
     override val newestFrame: ByteArray
@@ -80,14 +79,14 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
         synchronized(listenerCount) {
             listenerCount++
         }
-        log { "REGISTER" }
+        logger.log(this) { "Legacy camera register listener" }
     }
 
     override fun unregisterListener() {
         synchronized(listenerCount) {
             listenerCount--
         }
-        log { "UNREGISTER" }
+        logger.log(this) { "Legacy camera unregister listener" }
     }
 
     private val mjpegServer by lazy { MJpegServer(5001, this) }

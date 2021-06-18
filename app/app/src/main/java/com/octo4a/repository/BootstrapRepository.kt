@@ -7,6 +7,8 @@ import android.util.Pair
 import com.octo4a.BuildConfig
 import com.octo4a.utils.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -18,6 +20,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 
 interface BootstrapRepository {
+    val commandsFlow: SharedFlow<String>
     suspend fun setupBootstrap()
     fun runCommand(command: String, prooted: Boolean = true, root: Boolean = true): Process
     fun ensureHomeDirectory()
@@ -26,12 +29,16 @@ interface BootstrapRepository {
     val isSSHConfigured: Boolean
 }
 
-class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
+class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/bootstrap"
         val HOME_PATH = "$FILES_PATH/home"
     }
+
+    private var _commandsFlow = MutableSharedFlow<String>(100)
+    override val commandsFlow: SharedFlow<String>
+        get() = _commandsFlow
 
     private fun shouldUsePre5Bootstrap(): Boolean {
         if (getArchString() != "arm" && getArchString() != "i686") {
@@ -58,7 +65,7 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
 
                 val asset = release?.assets?.first { asset -> asset.name.contains(arch)  }
 
-                log { "Downloading bootstrap ${release?.tagName}" }
+                logger.log(this) { "Downloading bootstrap ${release?.tagName}" }
 
                 val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
                 val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
@@ -105,21 +112,21 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
                 if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
                     throw RuntimeException("Unable to rename staging folder")
                 }
-                log { "Bootstrap extracted, setting it up..." }
-                runCommand("ls", prooted = false).waitAndPrintOutput()
-                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput()
+                logger.log(this) { "Bootstrap extracted, setting it up..." }
+                runCommand("ls", prooted = false).waitAndPrintOutput(logger)
+                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
                 if (shouldUsePre5Bootstrap()) {
-                    runCommand("rm -r root && mv root-pre5 root", prooted = false).waitAndPrintOutput()
+                    runCommand("rm -r root && mv root-pre5 root", prooted = false).waitAndPrintOutput(logger)
                 }
 
-                runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput()
-                runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput()
-                runCommand("cat /etc/motd").waitAndPrintOutput()
+                runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput(logger)
+                runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(logger)
+                runCommand("cat /etc/motd").waitAndPrintOutput(logger)
 
                 // Setup ssh
-                runCommand("apk add openssh-server").waitAndPrintOutput()
-                runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput()
-                runCommand("ssh-keygen -A").waitAndPrintOutput()
+                runCommand("apk add openssh-server").waitAndPrintOutput(logger)
+                runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
+                runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
 
                 // Turn ssh on for easier debug
                 if (BuildConfig.DEBUG) {
@@ -128,7 +135,7 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
 //                    runCommand("/usr/sbin/sshd -p 2137")
                 }
 
-                log { "Bootstrap installation done" }
+                logger.log(this) { "Bootstrap installation done" }
 
                 return@withContext
             } catch (e: Exception) {
@@ -176,7 +183,7 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         if (!root) user = "octoprint"
         if (prooted) {
             // run inside proot
-            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", "$command")
+            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", command)
         } else {
             pb.command("sh", "-c", command)
         }
@@ -195,8 +202,8 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         }
 
     override fun resetSSHPassword(newPassword: String) {
-        log { "Deleting password just in case" }
-        runCommand("passwd -d octoprint").waitAndPrintOutput()
+        logger.log(this) { "Deleting password just in case" }
+        runCommand("passwd -d octoprint").waitAndPrintOutput(logger)
         runCommand("passwd octoprint").setPassword(newPassword)
         runCommand("touch .ssh_configured", root = false)
     }

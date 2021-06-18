@@ -1,6 +1,5 @@
 package com.octo4a.repository
 
-import com.octo4a.utils.log
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*

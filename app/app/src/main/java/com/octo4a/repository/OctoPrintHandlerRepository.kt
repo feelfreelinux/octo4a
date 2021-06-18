@@ -56,6 +56,7 @@ interface OctoPrintHandlerRepository {
 class OctoPrintHandlerRepositoryImpl(
     val context: Context,
     private val preferences: MainPreferences,
+    private val logger: LoggerRepository,
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
@@ -70,7 +71,7 @@ class OctoPrintHandlerRepositoryImpl(
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
     private var _cameraServerStatus = MutableStateFlow(false)
-    private var wakeLock = Octo4aWakeLock(context)
+    private var wakeLock = Octo4aWakeLock(context, logger)
 
     private var octoPrintProcess: Process? = null
     private var fifoThread: Thread? = null
@@ -92,31 +93,30 @@ class OctoPrintHandlerRepositoryImpl(
             val octoPrintRelease = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
             _octoPrintVersion.emit(octoPrintRelease.tagName)
 
-            log { "No bootstrap detected, proceeding with installation" }
+            logger.log { "No bootstrap detected, proceeding with installation" }
             _serverState.emit(ServerStatus.InstallingBootstrap)
             bootstrapRepository.apply {
                 setupBootstrap()
-//                ensureHomeDirectory()
             }
-            log { "Bootstrap installed" }
+            logger.log { "Bootstrap installed" }
             _serverState.emit(ServerStatus.DownloadingOctoPrint)
             bootstrapRepository.apply {
-                runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput()
-                runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput()
-                runCommand("unzip octoprint.zip").waitAndPrintOutput()
+                runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput(logger)
+                runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
+                runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
             }
             _serverState.emit(ServerStatus.InstallingDependencies)
             bootstrapRepository.apply {
-                runCommand("cd Octo* && pip3 install .").waitAndPrintOutput()
+                runCommand("cd Octo* && pip3 install .").waitAndPrintOutput(logger)
             }
-            log { "Dependencies installed" }
+            logger.log { "Dependencies installed" }
             _serverState.emit(ServerStatus.BootingUp)
             insertInitialConfig()
             startOctoPrint()
         } else {
             startOctoPrint()
             if (preferences.enableSSH) {
-                log { "CORN12" }
+                logger.log { "Enabling ssh" }
                 startSSH()
             }
         }
@@ -143,11 +143,11 @@ class OctoPrintHandlerRepositoryImpl(
     override fun startOctoPrint() {
         wakeLock.acquire()
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
-            log { "Octo print running" }
+            logger.log { "Failed to start. OctoPrint already running." }
             return
         }
         bootstrapRepository.run {
-            runCommand("mkfifo /home/octoprint/eventPipe").waitAndPrintOutput()
+            runCommand("mkfifo /home/octoprint/eventPipe").waitAndPrintOutput(logger)
         }
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint", root = false)
@@ -155,7 +155,7 @@ class OctoPrintHandlerRepositoryImpl(
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
                     Bugsnag.leaveBreadcrumb(it)
-                    log { "octoprint: $it"}
+                    logger.log(this, LogType.OCTOPRINT) { it }
 
                     // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
                     if (it.contains("Listening on")) {
@@ -199,8 +199,8 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun stopSSH() {
         // Kills ssh demon
-        bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput()
-        log { "killed sshd" }
+        bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
+        logger.log(this) { "killed sshd" }
     }
 
     override fun usbAttached(port: String) {
