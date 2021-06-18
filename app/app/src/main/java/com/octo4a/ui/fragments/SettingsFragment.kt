@@ -1,29 +1,30 @@
 package com.octo4a.ui.fragments
 
 import android.Manifest
-import android.content.Context.CAMERA_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.hardware.camera2.CameraManager
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
 import androidx.core.content.ContextCompat
 import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.service.CameraService
+import com.octo4a.camera.CameraService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 
 class SettingsFragment : PreferenceFragmentCompat() {
-    private val manager by lazy { context?.getSystemService(CAMERA_SERVICE) as CameraManager }
+    private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val prefs: MainPreferences by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
+    private val logger: LoggerRepository by inject()
 
     // Camera permission request
     private val hasCameraPermission: Boolean
@@ -40,13 +41,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             enableCameraPref?.isChecked = isGranted
             if (isGranted) {
+                cameraEnumerationRepository.enumerateCameras()
                 octoprintHandler.isCameraServerRunning = true
-                initCameraConfig()
             }
         }
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
-        setupCameraSettings()
 
         findPreference<EditTextPreference>("serverPort")?.apply {
             setOnBindEditTextListener {
@@ -56,6 +56,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         setupSSHSettings()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if (!hasCameraPermission) {
+            enableCameraPref?.isChecked = false
+            requestCameraPermission.launch(Manifest.permission.CAMERA)
+        }
+
+        cameraEnumerationRepository.enumeratedCameras.observe(viewLifecycleOwner) {
+            setupCameraSettings(it)
+//            preferenceScreen = null
+//            addPreferencesFromResource(R.xml.main_preferences)
+        }
     }
 
     private fun setupSSHSettings() {
@@ -93,17 +108,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun setupCameraSettings() {
+    private fun setupCameraSettings(cameras: List<CameraDescription>) {
         val enableCameraPref = findPreference<SwitchPreferenceCompat>("enableCameraServer")
         if (!hasCameraPermission) {
             prefs.enableCameraServer = false
             enableCameraPref?.isChecked = false
         } else {
-            initCameraConfig()
+            initCameraConfig(cameras)
         }
 
         enableCameraPref?.setOnPreferenceChangeListener { _, newValue ->
-            if (manager.enumerateDevices().isEmpty()) {
+            if (cameras.isEmpty()) {
                 enableCameraPref.isChecked = false
                 Toast.makeText(requireContext(), "No cameras available", Toast.LENGTH_LONG).show()
             } else {
@@ -111,7 +126,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     enableCameraPref.isChecked = false
                     requestCameraPermission.launch(Manifest.permission.CAMERA)
                 } else {
-                    initCameraConfig()
+                    initCameraConfig(cameras)
                     if (newValue as Boolean) {
                         startCameraServer()
                     } else {
@@ -124,15 +139,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     // Injects proper camera resolution configs
-    private fun initCameraConfig() {
-        val cameras = manager.enumerateDevices()
+    private fun initCameraConfig(cameras: List<CameraDescription>) {
         if (cameras.isEmpty()) {
             return
         }
         if (prefs.selectedCamera == null) {
             // Select first back camera or use whatever camera's available
             val selectedCamera =
-                cameras.firstOrNull { it.lensFacing == CameraSelector.LENS_FACING_BACK } ?: cameras.firstOrNull()
+                cameras.firstOrNull { it.isBackFacing } ?: cameras.firstOrNull()
 
             // First resolution that's wider than 1000px
             val selectedResolution = selectedCamera?.sizes?.sortedBy { it.width }?.firstOrNull { it.width >= 1000 } ?: selectedCamera?.sizes?.first()
@@ -147,7 +161,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
             // When camera changes, reset to default resolution
             setOnPreferenceChangeListener { _, newValue ->
-                val selectedCam = manager.cameraWithId(newValue as String)
+                val selectedCam = cameraEnumerationRepository.cameraWithId(newValue as String)
                 prefs.selectedResolution = selectedCam?.getRecommendedSize()?.readableString()
                 setCameraResolutions(newValue)
                 selectedCameraResolution?.value = prefs.selectedResolution
@@ -162,7 +176,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun setCameraResolutions(selectedCam: String) {
-        val camera = manager.cameraWithId(selectedCam)
+        val camera = cameraEnumerationRepository.cameraWithId(selectedCam)
         selectedCameraResolution?.apply {
             entries = camera?.sizes?.map { it.readableString() }?.toTypedArray()
             entryValues = entries
@@ -176,20 +190,38 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     private fun startCameraServer() {
         val activityContext = requireActivity()
-        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
 
-        if (activityContext.isServiceRunning(CameraService::class.java)) {
-            activityContext.stopService(cameraServiceIntent)
+            if (activityContext.isServiceRunning(CameraService::class.java)) {
+                activityContext.stopService(cameraServiceIntent)
+            }
+            activityContext.startService(cameraServiceIntent)
+        } else {
+            val cameraServiceIntent = Intent(activityContext, LegacyCameraService::class.java)
+
+            if (activityContext.isServiceRunning(LegacyCameraService::class.java)) {
+                activityContext.stopService(cameraServiceIntent)
+            }
+            activityContext.startService(cameraServiceIntent)
         }
-        activityContext.startService(cameraServiceIntent)
     }
 
     private fun stopCameraServer() {
         val activityContext = requireActivity()
-        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
 
-        if (activityContext.isServiceRunning(CameraService::class.java)) {
-            activityContext.stopService(cameraServiceIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
+
+            if (activityContext.isServiceRunning(CameraService::class.java)) {
+                activityContext.stopService(cameraServiceIntent)
+            }
+        } else {
+            val cameraServiceIntent = Intent(activityContext, LegacyCameraService::class.java)
+
+            if (activityContext.isServiceRunning(LegacyCameraService::class.java)) {
+                activityContext.stopService(cameraServiceIntent)
+            }
         }
     }
 }

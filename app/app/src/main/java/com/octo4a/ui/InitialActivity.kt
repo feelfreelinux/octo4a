@@ -14,11 +14,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import com.octo4a.R
-import com.octo4a.service.CameraService
+import com.octo4a.camera.CameraEnumerationRepository
+import com.octo4a.camera.CameraService
 import com.octo4a.service.OctoPrintService
 import com.octo4a.repository.BootstrapRepository
+import com.octo4a.camera.LegacyCameraService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
@@ -27,6 +29,9 @@ class InitialActivity: AppCompatActivity() {
     private val bootstrapRepository: BootstrapRepository by inject()
     private val prefs: MainPreferences by inject()
     private val pm  by lazy { getSystemService(LifecycleService.POWER_SERVICE) as PowerManager }
+    private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
+    private val logger: LoggerRepository by inject()
+
     // Storage permission request
     private val hasStoragePermission: Boolean
         get() = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
@@ -48,6 +53,7 @@ class InitialActivity: AppCompatActivity() {
             checkWritePermissionAndRun()
         }
 
+        cameraEnumerationRepository.enumerateCameras()
         installButton.setOnClickListener {
             // Required for acquiring wakelock
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
@@ -58,7 +64,7 @@ class InitialActivity: AppCompatActivity() {
                 try {
                     startActivity(whitelist)
                 } catch (e: ActivityNotFoundException) {
-                    log { "failed to open battery optimization dialog" }
+                    logger.log(this) { "failed to open battery optimization dialog" }
                 }
             } else {
                 checkWritePermissionAndRun()
@@ -87,15 +93,26 @@ class InitialActivity: AppCompatActivity() {
         }
     }
 
+    private val cameraServerRunning by lazy {
+        isServiceRunning(CameraService::class.java) || isServiceRunning(
+            LegacyCameraService::class.java
+        )
+    }
+
     private fun startOctoService() {
         if (!isServiceRunning(OctoPrintService::class.java)) {
             val intent = Intent(this, OctoPrintService::class.java)
             startService(intent)
         }
 
-        if (!isServiceRunning(CameraService::class.java) && prefs.enableCameraServer) {
-            val intent = Intent(this, CameraService::class.java)
-            startService(intent)
+        if (!cameraServerRunning && prefs.enableCameraServer) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val intent = Intent(this, CameraService::class.java)
+                startService(intent)
+            } else {
+                val intent = Intent(this, LegacyCameraService::class.java)
+                startService(intent)
+            }
         }
     }
 }

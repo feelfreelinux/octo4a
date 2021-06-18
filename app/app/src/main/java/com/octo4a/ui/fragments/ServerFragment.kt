@@ -10,15 +10,14 @@ import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
 import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.ServerStatus
-import com.octo4a.service.CameraService
-import com.octo4a.utils.log
+import com.octo4a.camera.CameraService
+import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
@@ -31,6 +30,7 @@ class ServerFragment : Fragment() {
     private lateinit var cameraService: CameraService
     private var boundToCameraService = false
     private val mainPreferences: MainPreferences by inject()
+    private val logger: LoggerRepository by inject()
 
     private val cameraServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -68,7 +68,7 @@ class ServerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
-            log { "Update available" }
+            logger.log(this) { "Update available" }
             showUpdateDialog(it)
         }
 
@@ -152,14 +152,14 @@ class ServerFragment : Fragment() {
     }
 
     private fun showPreviewDialog() {
-        val dialog = MaterialAlertDialogBuilder(requireActivity())
-            .setTitle(R.string.camera_preview)
-            .setView(R.layout.dialog_camera_preview)
-            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
-            .show()
-        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
-        if (boundToCameraService) {
-            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
-        }
+//        val dialog = MaterialAlertDialogBuilder(requireActivity())
+//            .setTitle(R.string.camera_preview)
+//            .setView(R.layout.dialog_camera_preview)
+//            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
+//            .show()
+//        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
+//        if (boundToCameraService) {
+//            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
+//        }
     }
 }

@@ -5,18 +5,16 @@ import android.app.ActivityManager
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
-
 import android.graphics.YuvImage
-import android.media.Image
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.text.format.Formatter
 import android.util.TypedValue
-import android.view.View
+import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageProxy
-import com.octo4a.Octo4aApplication
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -35,7 +33,7 @@ fun Context.getColorFromAttr(
     return typedValue.data
 }
 
-fun Activity.isServiceRunning(service: Class<*>): Boolean {
+fun Context.isServiceRunning(service: Class<*>): Boolean {
     val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     manager.getRunningServices(Integer.MAX_VALUE).forEach {
         if (service.name.equals(it.service.className)) {
@@ -54,6 +52,8 @@ fun ByteArray.NV21toJPEG( width: Int, height: Int, quality: Int): ByteArray? {
     return out.toByteArray()
 }
 
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun ImageProxy.YUV420toNV21(): ByteArray {
     val width: Int = cropRect.width()
     val height: Int = cropRect.height()
@@ -106,7 +106,11 @@ fun ImageProxy.YUV420toNV21(): ByteArray {
 }
 
 private fun is64Bit(): Boolean {
-    return (Build.SUPPORTED_64_BIT_ABIS!= null && Build.SUPPORTED_64_BIT_ABIS.isNotEmpty())
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        (Build.SUPPORTED_64_BIT_ABIS != null && Build.SUPPORTED_64_BIT_ABIS.isNotEmpty())
+    } else {
+        !(Build.CPU_ABI != "x86" && Build.CPU_ABI2 != "x86")
+    }
 }
 
 fun getArchString(): String {

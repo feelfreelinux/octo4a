@@ -11,9 +11,10 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.lifecycle.LifecycleService
 import com.octo4a.R
+import com.octo4a.repository.LoggerRepository
 import java.time.Duration
 
-class Octo4aWakeLock(val context: Context) {
+class Octo4aWakeLock(val context: Context, val logger: LoggerRepository) {
     var wakeLock: PowerManager.WakeLock? = null
     var wifiLock: WifiManager.WifiLock? = null
 
@@ -42,7 +43,7 @@ class Octo4aWakeLock(val context: Context) {
             try {
                 context.startActivity(whitelist)
             } catch (e: ActivityNotFoundException) {
-                log { "failed to open battery optimization dialog" }
+                logger.log(this) { "failed to open battery optimization dialog" }
             }
         }
     }

@@ -1,5 +1,17 @@
 <resources>
-    <!-- Base application theme. -->
+    <style name="AppBottomSheetDialogTheme"
+           parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle"
+           parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/rounded_dialog</item>
+    </style>
+    <style name="ActionBarStyle">
+        <item name="android:background">@color/primaryDarkColor</item>
+    </style>
+
     <style name="AppTheme" parent="@style/Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>
@@ -7,10 +19,10 @@
         <item name="android:actionBarStyle">@style/ActionBarStyle</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
     </style>
-    <style name="ActionBarStyle">
-        <item name="android:background">@color/primaryDarkColor</item>
-    </style>
+
+
     <style name="Divider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>

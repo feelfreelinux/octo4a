@@ -4,12 +4,12 @@
         android:layout_width="match_parent"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
-    <androidx.camera.view.PreviewView
-            android:layout_marginHorizontal="0dp"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent"
-            app:scaleType="fillCenter"
-            app:implementationMode="compatible"
-            android:layout_height="280dp"
-            android:id="@+id/previewView"/>
+<!--    <androidx.camera.view.PreviewView-->
+<!--            android:layout_marginHorizontal="0dp"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            android:layout_width="match_parent"-->
+<!--            app:scaleType="fillCenter"-->
+<!--            app:implementationMode="compatible"-->
+<!--            android:layout_height="280dp"-->
+<!--            android:id="@+id/previewView"/>-->
 </FrameLayout>

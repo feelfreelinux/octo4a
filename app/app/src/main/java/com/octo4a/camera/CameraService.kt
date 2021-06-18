@@ -1,38 +1,39 @@
-package com.octo4a.service
+package com.octo4a.camera
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Size
+import androidx.annotation.RequiresApi
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
-import com.octo4a.camera.MJpegFrameProvider
-import com.octo4a.camera.MJpegServer
-import com.octo4a.camera.cameraWithId
+import com.octo4a.repository.LoggerRepository
+//import com.octo4a.camera.cameraWithId
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.NV21toJPEG
 import com.octo4a.utils.YUV420toNV21
-import com.octo4a.utils.log
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
-import java.io.IOException
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
 
     private val cameraSettings: MainPreferences by inject()
+    private val logger: LoggerRepository by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
+    private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val manager: CameraManager by lazy { getSystemService(CAMERA_SERVICE) as CameraManager }
     private val captureExecutor by lazy { Executors.newCachedThreadPool() }
 
@@ -41,7 +42,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val cameraSelector by lazy {
         CameraSelector.Builder().apply {
             requireLensFacing(
-                manager.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT
+                cameraEnumerationRepository.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing ?: CameraSelector.LENS_FACING_FRONT
             )
         }.build()
     }
@@ -89,7 +90,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
-                    log { "Single capture error: $exception" }
+                    logger.log(this) { "Single capture error: $exception" }
                     it.resume(ByteArray(0))
                 }
             })
@@ -100,14 +101,14 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         synchronized(listenerCount) {
             listenerCount++
         }
-        log { "REGISTER" }
+        logger.log(this) { "Camera server register listener" }
     }
 
     override fun unregisterListener() {
         synchronized(listenerCount) {
             listenerCount--
         }
-        log { "UNREGISTER" }
+        logger.log(this) { "Camera server unregister listener" }
     }
 
     private val mjpegServer by lazy { MJpegServer(5001, this) }
@@ -156,7 +157,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         return START_STICKY
     }
 
-    @SuppressLint("UnsafeExperimentalUsageError")
+    @SuppressWarnings("UnsafeExperimentalUsageError")
     private fun readyCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             return

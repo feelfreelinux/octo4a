@@ -2,12 +2,15 @@ package com.octo4a.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
 import com.octo4a.service.OctoPrintService
 import com.octo4a.repository.ServerStatus
 import com.octo4a.repository.getInstallationProgress
+import com.octo4a.ui.fragments.TerminalSheetDialog
 import com.octo4a.ui.views.InstallationProgressItem
 import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_installation_progress.*
@@ -37,6 +40,11 @@ class InstallationActivity : AppCompatActivity() {
             stopService(Intent(this, OctoPrintService::class.java))
             val intent = Intent(this, InitialActivity::class.java)
             startActivity(intent)
+        }
+
+        logsButton.setOnClickListener {
+            val logsFragment = TerminalSheetDialog()
+            logsFragment.show(supportFragmentManager, logsFragment.tag)
         }
     }
 

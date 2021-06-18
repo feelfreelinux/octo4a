@@ -1,25 +1,13 @@
 package com.octo4a.camera
 
-import com.octo4a.utils.log
 import fi.iki.elonen.NanoHTTPD
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.BufferedOutputStream
-import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.lang.Exception
-import java.net.SocketException
-import kotlin.coroutines.suspendCoroutine
 
 interface MJpegFrameProvider {
     val newestFrame: ByteArray
@@ -41,7 +29,6 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
     }
 
     override fun serve(session: IHTTPSession?): Response {
-        log { session?.uri.toString() }
         when (session?.uri) {
             "/snapshot" -> {
                 val output = PipedOutputStream()

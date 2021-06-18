@@ -1,32 +1,51 @@
 package com.octo4a.repository
 
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import android.util.Pair
-import com.octo4a.utils.getArchString
-import com.octo4a.utils.log
-import com.octo4a.utils.setPassword
+import com.octo4a.BuildConfig
+import com.octo4a.utils.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.net.URL
-import java.util.ArrayList
 import java.util.zip.ZipInputStream
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 
 interface BootstrapRepository {
+    val commandsFlow: SharedFlow<String>
     suspend fun setupBootstrap()
-    fun runBashCommand(command: String): Process
+    fun runCommand(command: String, prooted: Boolean = true, root: Boolean = true): Process
     fun ensureHomeDirectory()
     fun resetSSHPassword(newPassword: String)
     val isBootstrapInstalled: Boolean
     val isSSHConfigured: Boolean
 }
 
-class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
+class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
-        val PREFIX_PATH = "$FILES_PATH/usr"
+        val PREFIX_PATH = "$FILES_PATH/bootstrap"
         val HOME_PATH = "$FILES_PATH/home"
+    }
+
+    private var _commandsFlow = MutableSharedFlow<String>(100)
+    override val commandsFlow: SharedFlow<String>
+        get() = _commandsFlow
+
+    private fun shouldUsePre5Bootstrap(): Boolean {
+        if (getArchString() != "arm" && getArchString() != "i686") {
+            return false
+        }
+
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
     }
 
     override suspend fun setupBootstrap() {
@@ -37,7 +56,7 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
             }
 
             try {
-                val bootstrapReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a")
+                val bootstrapReleases = githubRepository.getNewestReleases("feelfreelinux/android-linux-bootstrap")
                 val arch = getArchString()
 
                 val release = bootstrapReleases.firstOrNull {
@@ -46,9 +65,9 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
 
                 val asset = release?.assets?.first { asset -> asset.name.contains(arch)  }
 
-                log { "Downloading bootstrap ${release?.tagName}" }
+                logger.log(this) { "Downloading bootstrap ${release?.tagName}" }
 
-                val STAGING_PREFIX_PATH = "${FILES_PATH}/usr-staging"
+                val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
                 val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
 
                 if (STAGING_PREFIX_FILE.exists()) {
@@ -58,27 +77,19 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
                 val buffer = ByteArray(8096)
                 val symlinks = ArrayList<Pair<String, String>>(50)
 
-                val urlPrefix = asset?.browserDownloadUrl
+                val urlPrefix = asset!!.browserDownloadUrl
+                val sslcontext = SSLContext.getInstance("TLSv1")
+                sslcontext.init(null, null, null)
+                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
 
-                ZipInputStream(URL(urlPrefix).openStream()).use { zipInput ->
+                HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
+                val connection: HttpsURLConnection = URL(urlPrefix).openConnection() as HttpsURLConnection
+                connection.sslSocketFactory = noSSLv3Factory
+
+                ZipInputStream(connection.inputStream).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
-                        if (zipEntry.name == "SYMLINKS.txt") {
-                            val symlinksReader = BufferedReader(InputStreamReader(zipInput))
-                            var line = symlinksReader.readLine()
-                            while (line != null) {
-                                val parts = line.split("←".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                                if (parts.size != 2)
-                                    throw RuntimeException("Malformed symlink line: $line")
-                                val oldPath = parts[0]
-                                var newPath = STAGING_PREFIX_PATH + "/" + parts[1]
-                                newPath = newPath.replace("./", "")
-                                symlinks.add(Pair.create(oldPath, newPath))
 
-                                ensureDirectoryExists(File(newPath).parentFile)
-                                line = symlinksReader.readLine()
-                            }
-                        } else {
                             val zipEntryName = zipEntry.name
                             val targetFile = File(STAGING_PREFIX_PATH, zipEntryName)
                             val isDirectory = zipEntry.isDirectory
@@ -93,28 +104,38 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
                                         readBytes = zipInput.read(buffer)
                                     }
                                 }
-                                if (zipEntryName.startsWith("bin/") || zipEntryName.startsWith("libexec") || zipEntryName.startsWith(
-                                        "lib/apt/methods"
-                                    )
-                                ) {
-                                    Os.chmod(targetFile.absolutePath, 448)
-                                }
-                            }
                         }
                         zipEntry = zipInput.nextEntry
                     }
                 }
 
-                if (symlinks.isEmpty())
-                    throw RuntimeException("No SYMLINKS.txt encountered")
-                for (symlink in symlinks) {
-                    Os.symlink(symlink.first, symlink.second)
-                }
-
                 if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
                     throw RuntimeException("Unable to rename staging folder")
                 }
-                log { "Bootstrap installation done" }
+                logger.log(this) { "Bootstrap extracted, setting it up..." }
+                runCommand("ls", prooted = false).waitAndPrintOutput(logger)
+                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
+                if (shouldUsePre5Bootstrap()) {
+                    runCommand("rm -r root && mv root-pre5 root", prooted = false).waitAndPrintOutput(logger)
+                }
+
+                runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput(logger)
+                runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(logger)
+                runCommand("cat /etc/motd").waitAndPrintOutput(logger)
+
+                // Setup ssh
+                runCommand("apk add openssh-server").waitAndPrintOutput(logger)
+                runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
+                runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
+
+                // Turn ssh on for easier debug
+                if (BuildConfig.DEBUG) {
+//                    runCommand("passwd").setPassword("octoprint")
+//                    runCommand("passwd octoprint").setPassword("octoprint")
+//                    runCommand("/usr/sbin/sshd -p 2137")
+                }
+
+                logger.log(this) { "Bootstrap installation done" }
 
                 return@withContext
             } catch (e: Exception) {
@@ -148,45 +169,45 @@ class BootstrapRepositoryImpl(private val githubRepository: GithubRepository, va
         }
     }
 
-    // Runs bash command with correct env
-    override fun runBashCommand(command: String): Process {
+    override fun runCommand(command: String, prooted: Boolean, root: Boolean): Process {
         val FILES = "/data/data/com.octo4a/files"
-
         val pb = ProcessBuilder()
         pb.redirectErrorStream(true)
-        pb.environment()["PREFIX"] = "$FILES/usr"
-        pb.environment()["HOME"] = "$FILES/home"
-        pb.environment()["LD_LIBRARY_PATH"] = "$FILES/usr/lib"
-        pb.environment()["LD_PRELOAD"] = context.applicationInfo.nativeLibraryDir + "/libioctlHook.so"
-        pb.environment()["PWD"] = "$FILES/home"
-        pb.environment()["PATH"] =
-            "$FILES/usr/bin:$FILES/usr/bin/applets:$FILES/usr/bin:$FILES/usr/bin/applets:/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
+        pb.environment()["HOME"] = "$FILES/bootstrap"
         pb.environment()["LANG"] = "'en_US.UTF-8'"
-        pb.redirectErrorStream(true)
-
-        pb.command("$FILES/usr/bin/bash", "-c", "cd $FILES/home && $command")
+        pb.environment()["PWD"] = "$FILES/bootstrap"
+        pb.environment()["EXTRA_BIND"] = "-b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
+        pb.environment()["PATH"] = "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
+        pb.directory(File("$FILES/bootstrap"))
+        var user = "root"
+        if (!root) user = "octoprint"
+        if (prooted) {
+            // run inside proot
+            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", command)
+        } else {
+            pb.command("sh", "-c", command)
+        }
         return pb.start()
     }
 
     override fun ensureHomeDirectory() {
-        val homeFile = File(HOME_PATH)
-        if (!homeFile.exists()) {
-            homeFile.mkdir()
-        }
+//        val homeFile = File(HOME_PATH)
+//        if (!homeFile.exists()) {
+//            homeFile.mkdir()
+//        }
     }
-
     override val isSSHConfigured: Boolean
         get() {
-            return File("${HOME_PATH}/.termux_authinfo").exists()
+            return File("/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.ssh_configured").exists()
         }
 
     override fun resetSSHPassword(newPassword: String) {
-        if (isSSHConfigured) {
-            File("${HOME_PATH}/.termux_authinfo").delete()
-        }
-        runBashCommand("passwd").setPassword(newPassword)
+        logger.log(this) { "Deleting password just in case" }
+        runCommand("passwd -d octoprint").waitAndPrintOutput(logger)
+        runCommand("passwd octoprint").setPassword(newPassword)
+        runCommand("touch .ssh_configured", root = false)
     }
 
     override val isBootstrapInstalled: Boolean
-        get() = File(PREFIX_PATH).isDirectory
+        get() = File("$FILES_PATH/bootstrap/bootstrap").exists()
 }
