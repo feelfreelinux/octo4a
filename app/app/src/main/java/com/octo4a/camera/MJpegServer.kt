@@ -49,7 +49,6 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
                 val bufferedOutput = BufferedOutputStream(output, OUTPUT_BUFFERED_SIZE)
                 scope.launch {
                     kotlin.runCatching {
-                        delay(500)
                         frameProvider.registerListener()
                         while (true) {
                             val frameData = frameProvider.newestFrame
@@ -60,6 +59,7 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
                                 it.write(frameData + CRLF)
                                 it.flush()
                             }
+                            delay(10)
                         }
                     }.onFailure {
                         frameProvider.unregisterListener()

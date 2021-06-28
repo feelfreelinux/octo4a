@@ -5,8 +5,10 @@ import android.os.Environment
 import com.bugsnag.android.Bugsnag
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
@@ -89,35 +91,40 @@ class OctoPrintHandlerRepositoryImpl(
         }
 
     override suspend fun beginInstallation() {
-        if (!bootstrapRepository.isBootstrapInstalled) {
-            val octoPrintRelease = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
-            _octoPrintVersion.emit(octoPrintRelease.tagName)
+        withContext(Dispatchers.IO) {
 
-            logger.log { "No bootstrap detected, proceeding with installation" }
-            _serverState.emit(ServerStatus.InstallingBootstrap)
-            bootstrapRepository.apply {
-                setupBootstrap()
-            }
-            logger.log { "Bootstrap installed" }
-            _serverState.emit(ServerStatus.DownloadingOctoPrint)
-            bootstrapRepository.apply {
-                runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput(logger)
-                runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
-                runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
-            }
-            _serverState.emit(ServerStatus.InstallingDependencies)
-            bootstrapRepository.apply {
-                runCommand("cd Octo* && pip3 install .").waitAndPrintOutput(logger)
-            }
-            logger.log { "Dependencies installed" }
-            _serverState.emit(ServerStatus.BootingUp)
-            insertInitialConfig()
-            startOctoPrint()
-        } else {
-            startOctoPrint()
-            if (preferences.enableSSH) {
-                logger.log { "Enabling ssh" }
-                startSSH()
+            if (!bootstrapRepository.isBootstrapInstalled) {
+                val octoPrintRelease = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
+                _octoPrintVersion.emit(octoPrintRelease.tagName)
+
+                logger.log { "No bootstrap detected, proceeding with installation" }
+                _serverState.emit(ServerStatus.InstallingBootstrap)
+                bootstrapRepository.apply {
+                    setupBootstrap()
+                }
+                logger.log { "Bootstrap installed" }
+                _serverState.emit(ServerStatus.DownloadingOctoPrint)
+                bootstrapRepository.apply {
+                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput(
+                        logger
+                    )
+                    runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
+                    runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
+                }
+                _serverState.emit(ServerStatus.InstallingDependencies)
+                bootstrapRepository.apply {
+                    runCommand("cd Octo* && pip3 install .").waitAndPrintOutput(logger)
+                }
+                logger.log { "Dependencies installed" }
+                _serverState.emit(ServerStatus.BootingUp)
+                insertInitialConfig()
+                startOctoPrint()
+            } else {
+                startOctoPrint()
+                if (preferences.enableSSH) {
+                    logger.log { "Enabling ssh" }
+                    startSSH()
+                }
             }
         }
     }

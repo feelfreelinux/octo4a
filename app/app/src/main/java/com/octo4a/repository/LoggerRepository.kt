@@ -1,5 +1,6 @@
 package com.octo4a.repository
 
+import android.os.Looper
 import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,7 +35,9 @@ class LoggerRepositoryImpl: LoggerRepository {
         Log.d(tag, getMessage())
 
         runBlocking {
-            _logHistoryFlow.emit(LogEntry(getMessage(), type))
+            Looper.getMainLooper().run {
+                _logHistoryFlow.emit(LogEntry(getMessage(), type))
+            }
         }
     }
 }

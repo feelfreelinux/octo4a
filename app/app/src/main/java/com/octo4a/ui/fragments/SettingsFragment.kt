@@ -33,6 +33,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     // Preferences
     private val enableCameraPref by lazy { findPreference<SwitchPreferenceCompat>("enableCameraServer") }
     private val enableSSH by lazy { findPreference<SwitchPreferenceCompat>("enableSSH") }
+    private val sshPortPref by lazy { findPreference<EditTextPreference>("sshPort") }
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
@@ -48,11 +49,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
 
-        findPreference<EditTextPreference>("serverPort")?.apply {
+        sshPortPref?.apply {
             setOnBindEditTextListener {
                 it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
             }
-            setDefaultValue("5000")
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val value = (newValue as String).toIntOrNull()
+                if (value == null) false
+                else value in 1025..65534
+            }
+            setDefaultValue("8022")
         }
 
         setupSSHSettings()

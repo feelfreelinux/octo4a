@@ -2,7 +2,6 @@
 <LinearLayout
         android:orientation="vertical"
         xmlns:android="http://schemas.android.com/apk/res/android"
-                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
                                                    xmlns:tools="http://schemas.android.com/tools"
                                                    android:layout_width="match_parent"
                                                    android:layout_height="match_parent">
@@ -37,7 +36,6 @@
 
     </LinearLayout>
 
-
     <androidx.core.widget.NestedScrollView
             android:id="@+id/scrollView"
             android:paddingHorizontal="16dp"
@@ -55,7 +53,7 @@
                 android:fontFamily="monospace"
                 tools:text="Kocz\nkocz"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
         />
     </androidx.core.widget.NestedScrollView>
     <CheckBox
