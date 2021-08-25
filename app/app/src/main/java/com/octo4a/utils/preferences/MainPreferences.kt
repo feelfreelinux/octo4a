@@ -8,6 +8,7 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var selectedResolution by stringPref()
     var enableSSH by booleanPref(defaultValue = false)
     var changeSSHPassword by stringPref()
+    var sshPort by stringPref(defaultValue = "8022")
     var flashWhenObserved by booleanPref()
     var updateDismissed by stringPref()
 }

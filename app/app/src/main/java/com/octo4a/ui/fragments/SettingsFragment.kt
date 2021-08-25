@@ -53,11 +53,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setOnBindEditTextListener {
                 it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
             }
+            summary = prefs.sshPort
 
             setOnPreferenceChangeListener { _, newValue ->
                 val value = (newValue as String).toIntOrNull()
-                if (value == null) false
-                else value in 1025..65534
+                if (value != null && value in 1025..65534) {
+                    summary = newValue
+
+                    // Restart SSH
+                    prefs.sshPort = newValue
+                    octoprintHandler.startSSH()
+
+                    true
+                } else { false }
             }
             setDefaultValue("8022")
         }

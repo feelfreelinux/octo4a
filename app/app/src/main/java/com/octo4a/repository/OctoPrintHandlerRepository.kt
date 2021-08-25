@@ -201,7 +201,7 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startSSH() {
         stopSSH()
-        bootstrapRepository.runCommand("/usr/sbin/sshd -p 2137")
+        bootstrapRepository.runCommand("/usr/sbin/sshd -p ${preferences.sshPort}")
     }
 
     override fun stopSSH() {
@@ -260,7 +260,6 @@ class OctoPrintHandlerRepositoryImpl(
 
         val backupFile = File("$octoPrintStoragePath/config.backup")
         backupFile.delete()
-//        bootstrapRepository.runCommand("cp $octoPrintStoragePath/config.yaml $octoPrintStoragePath/config.backup")
     }
 
     override val isSSHConfigured: Boolean
