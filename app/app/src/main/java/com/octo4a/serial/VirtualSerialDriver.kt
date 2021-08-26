@@ -3,6 +3,7 @@ package com.octo4a.serial
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import com.hoho.android.usbserial.driver.UsbSerialDriver
@@ -11,8 +12,11 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.Exception
 import java.util.concurrent.Executors
+
+data class ConnectedUsbDevice(val deviceName: String, val productId: Int, val vendorId: Int, val device: UsbDevice)
 
 class VirtualSerialDriver(val context: Context, private val octoPrintHandler: OctoPrintHandlerRepository, private val logger: LoggerRepository): VSPListener, SerialInputOutputManager.Listener {
     val pty by lazy { VSPPty() }
@@ -27,6 +31,8 @@ class VirtualSerialDriver(val context: Context, private val octoPrintHandler: Oc
     var serialInputManager: SerialInputOutputManager? = null
     var currentBaudrate = -1
     var ptyThread: Thread? = null
+    var connectedDevices = MutableStateFlow(listOf<ConnectedUsbDevice>())
+
     companion object {
         val usbPermissionRequestCode = 2212
     }
@@ -49,6 +55,7 @@ class VirtualSerialDriver(val context: Context, private val octoPrintHandler: Oc
     private val printerProber by lazy { UsbSerialProber(getCustomPrinterProber()) }
 
     fun updateDevicesList(intent: String): String? {
+        updateDevicesList()
         val availableDrivers = printerProber.findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
             return null
@@ -66,6 +73,12 @@ class VirtualSerialDriver(val context: Context, private val octoPrintHandler: Oc
             octoPrintHandler.usbAttached(device.device.deviceName)
             device.device.deviceName
         }
+    }
+
+    fun updateDevicesList() {
+//        connectedDevices.value = usbManager.deviceList.map {
+//            ConnectedUsbDevice(it.value.deviceName, it.value.productId, it.value.vendorId, it.value)
+//        }
     }
 
     override fun onDataReceived(data: SerialData?) {

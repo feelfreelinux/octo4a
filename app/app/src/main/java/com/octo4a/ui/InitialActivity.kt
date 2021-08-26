@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -64,7 +65,9 @@ class InitialActivity: AppCompatActivity() {
                 try {
                     startActivity(whitelist)
                 } catch (e: ActivityNotFoundException) {
+                    checkWritePermissionAndRun()
                     logger.log(this) { "failed to open battery optimization dialog" }
+                    Toast.makeText(this, "Failed to open battery optimization settings", Toast.LENGTH_LONG).show()
                 }
             } else {
                 checkWritePermissionAndRun()
@@ -73,7 +76,10 @@ class InitialActivity: AppCompatActivity() {
     }
 
     private fun checkWritePermissionAndRun() {
-        if (!hasStoragePermission) requestStoragePermission.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE))
+        if (!hasStoragePermission) {
+            requestStoragePermission.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE))
+            Toast.makeText(this, "Missing storage permissions...", Toast.LENGTH_LONG).show()
+        }
         else {
             startApp()
         }

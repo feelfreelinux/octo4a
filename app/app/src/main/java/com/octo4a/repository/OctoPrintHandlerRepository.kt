@@ -92,7 +92,6 @@ class OctoPrintHandlerRepositoryImpl(
 
     override suspend fun beginInstallation() {
         withContext(Dispatchers.IO) {
-
             if (!bootstrapRepository.isBootstrapInstalled) {
                 val octoPrintRelease = githubRepository.getNewestRelease("OctoPrint/OctoPrint")
                 _octoPrintVersion.emit(octoPrintRelease.tagName)

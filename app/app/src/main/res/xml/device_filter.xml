@@ -27,8 +27,8 @@
     <!-- Maple board (?) - CDC drivers -->
     <usb-device product-id="4" vendor-id="7855"/>
     <usb-device product-id="41" vendor-id="7855"/>
-    <!-- NXP Armbed (?) - CDC drivers -->
-    <usb-device product-id="516" vendor-id="3368"/>
-    <!-- Marlin firmware - CDC drivers -->
-    <usb-device product-id="24617" vendor-id="7504"/>
+<!--    &lt;!&ndash; NXP Armbed (?) - CDC drivers &ndash;&gt;-->
+<!--    <usb-device product-id="516" vendor-id="3368"/>-->
+<!--    &lt;!&ndash; Marlin firmware - CDC drivers &ndash;&gt;-->
+<!--    <usb-device product-id="24617" vendor-id="7504"/>-->
 </resources>
