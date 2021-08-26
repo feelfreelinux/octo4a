@@ -124,7 +124,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
                 runCommand("cat /etc/motd").waitAndPrintOutput(logger)
 
                 // Setup ssh
-                runCommand("apk add openssh-server").waitAndPrintOutput(logger)
+                runCommand("apk add openssh-server", root = false).waitAndPrintOutput(logger)
                 runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
                 runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
 

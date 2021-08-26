@@ -63,7 +63,7 @@ class OctoPrintHandlerRepositoryImpl(
     private val githubRepository: GithubRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
     private val externalStorageSymlinkPath = Environment.getExternalStorageDirectory().path + "/OctoPrint"
-    private val octoPrintStoragePath = "/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.octoprint"
+    private val octoPrintStoragePath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/.octoprint"
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
@@ -105,7 +105,7 @@ class OctoPrintHandlerRepositoryImpl(
                 logger.log { "Bootstrap installed" }
                 _serverState.emit(ServerStatus.DownloadingOctoPrint)
                 bootstrapRepository.apply {
-                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip").waitAndPrintOutput(
+                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow").waitAndPrintOutput(
                         logger
                     )
                     runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
@@ -154,10 +154,10 @@ class OctoPrintHandlerRepositoryImpl(
             return
         }
         bootstrapRepository.run {
-            runCommand("mkfifo /home/octoprint/eventPipe").waitAndPrintOutput(logger)
+            runCommand("mkfifo /root/eventPipe").waitAndPrintOutput(logger)
         }
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint", root = false)
+        octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint --iknowwhatimdoing")
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
