@@ -17,12 +17,13 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.math.roundToInt
 
-enum class ServerStatus(val value: Int) {
+enum class ServerStatus(val value: Int, val progress: Boolean=false) {
     InstallingBootstrap(0),
     DownloadingOctoPrint(1),
     InstallingDependencies(2),
-    BootingUp(3),
+    BootingUp(3, true),
     Running(4),
+    ShuttingDown(3, true),
     Stopped(5)
 }
 
@@ -156,7 +157,7 @@ class OctoPrintHandlerRepositoryImpl(
             runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/root/eventPipe", prooted = false).waitAndPrintOutput(logger)
         }
         _serverState.value = ServerStatus.BootingUp
-        octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint --iknowwhatimdoing")
+        octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -169,7 +170,7 @@ class OctoPrintHandlerRepositoryImpl(
                     }
                 }
             } catch (e: Throwable) {
-                _serverState.value = ServerStatus.Stopped
+                stopOctoPrint()
             }
         }.start()
         if (fifoThread?.isAlive != true) {
@@ -191,7 +192,17 @@ class OctoPrintHandlerRepositoryImpl(
         wakeLock.remove()
         bootstrapRepository.runCommand("kill `pidof octoprint`")
         octoPrintProcess?.destroy()
-        _serverState.value = ServerStatus.Stopped
+        _serverState.value = ServerStatus.ShuttingDown
+        Thread {
+            while(!Thread.interrupted()) {
+                Thread.sleep(500)
+
+                if (octoPrintProcess?.isRunning() == false) {
+                    _serverState.value = ServerStatus.Stopped
+                    break;
+                }
+            }
+        }.start()
     }
 
     override fun resetSSHPassword(password: String) {

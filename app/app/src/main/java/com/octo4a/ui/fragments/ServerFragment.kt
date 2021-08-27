@@ -129,6 +129,11 @@ class ServerFragment : Fragment() {
                     serverStatus.subtitle = resources.getString(R.string.status_starting_subtitle)
                 }
 
+                ServerStatus.ShuttingDown -> {
+                    serverStatus.title = resources.getString(R.string.status_shutting_down)
+                    serverStatus.subtitle = resources.getString(R.string.status_shutting_down_subtitle)
+                }
+
                 ServerStatus.Stopped -> {
                     serverStatus.setDrawableAndColor(R.drawable.ic_play_arrow_24px, R.color.iconGreen)
                     serverStatus.title = resources.getString(R.string.status_stopped)
@@ -139,8 +144,8 @@ class ServerFragment : Fragment() {
                 }
                 else -> {}
             }
-            serverStatus.actionProgressbar.isGone = it != ServerStatus.BootingUp
-            serverStatus.actionButton.isGone = it == ServerStatus.BootingUp
+            serverStatus.actionProgressbar.isGone = !it.progress
+            serverStatus.actionButton.isGone = it.progress
         }
 
         // Fetch autoupdater
