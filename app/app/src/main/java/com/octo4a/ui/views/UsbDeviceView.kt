@@ -40,9 +40,9 @@ constructor(private val ctx: Context, private val vsp: VirtualSerialDriver, priv
             SerialDriverClass.UNKNOWN -> "Unknown"
         }
 
-        serialDriverText.text = "$driverText serial driver"
+        serialDriverText.text = driverText + context.getString(R.string.serial_driver)
         if (!usbDevice.autoDetect) {
-            serialDriverText.text = serialDriverText.text.toString() + " (tap to select)"
+            serialDriverText.text = serialDriverText.text.toString() + context.getString(R.string.tap_to_select)
         }
     }
 
@@ -60,7 +60,7 @@ constructor(private val ctx: Context, private val vsp: VirtualSerialDriver, priv
                     vsp.tryToSelectDevice(usbDevice)
                 } else {
                     selectCheckbox.isChecked = false
-                    Toast.makeText(context, "No driver selected...", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.requesting_usb_permission), Toast.LENGTH_LONG).show()
                 }
             } else {
                 selectCheckbox.isChecked = true

@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.*
 import com.hoho.android.usbserial.util.SerialInputOutputManager
+import com.octo4a.R
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.service.OctoPrintService
@@ -94,7 +95,7 @@ class VirtualSerialDriver(val context: Context, private val prefs: MainPreferenc
                     PendingIntent.getBroadcast(context, usbPermissionRequestCode, intent, 0)
                 usbManager.requestPermission(device.device, mPendingIntent)
                 logger.log(this) { "REQUESTED DEVICE" }
-                Toast.makeText(context, "Requesting permission to device...", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.requesting_usb_permission), Toast.LENGTH_LONG).show()
             } else {
                 selectedDevice = device.createDriver()
                 prefs.defaultPrinterCustomDriver = device.driverClass.name
@@ -111,7 +112,7 @@ class VirtualSerialDriver(val context: Context, private val prefs: MainPreferenc
                 device.device.deviceName
             }
         } else {
-            Toast.makeText(context, "No driver selected...", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.no_driver_selected), Toast.LENGTH_LONG).show()
         }
     }
 

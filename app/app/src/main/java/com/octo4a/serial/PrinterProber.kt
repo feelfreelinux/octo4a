@@ -45,7 +45,10 @@ val cdcDevices = listOf(
     UsbDeviceId(3368, 516),
 
     // Marlin CDC driver
-    UsbDeviceId(7504, 24617)
+    UsbDeviceId(7504, 24617),
+
+    // Duet 2 WiFi
+    UsbDeviceId(7504, 24812)
 )
 
 val ftdiDevices = listOf(
@@ -58,10 +61,10 @@ val ftdiDevices = listOf(
 )
 
 val ch341Devices = listOf(
-    UsbDeviceId(6790, 29987)
+    UsbDeviceId(6790, 29987),// CH341
 )
 
-val cp21xxDevices = listOf (
+val cp21xxDevices = listOf<UsbDeviceId>(
     UsbDeviceId(4292, 60000),
     UsbDeviceId(4292, 60016),
     UsbDeviceId(4292, 60017),

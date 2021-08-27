@@ -5,12 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
@@ -172,14 +176,18 @@ class ServerFragment : Fragment() {
     }
 
     private fun showPreviewDialog() {
-//        val dialog = MaterialAlertDialogBuilder(requireActivity())
-//            .setTitle(R.string.camera_preview)
-//            .setView(R.layout.dialog_camera_preview)
-//            .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
-//            .show()
-//        val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
-//        if (boundToCameraService) {
-//            cameraService.getPreview().setSurfaceProvider(surfaceProvider)
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val dialog = MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(R.string.camera_preview)
+                .setView(R.layout.dialog_camera_preview)
+                .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
+                .show()
+            val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
+            if (boundToCameraService) {
+                cameraService.getPreview().setSurfaceProvider(surfaceProvider)
+            }
+        } else {
+            Toast.makeText(context, getString(R.string.api_too_low), Toast.LENGTH_LONG).show()
+        }
     }
 }

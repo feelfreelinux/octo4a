@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                             startActivity(whitelist)
                         } catch (e: ActivityNotFoundException) {
                             logger.log(this) { "failed to open battery optimization dialog" }
-                            Toast.makeText(this@MainActivity, "Failed to open battery optimization settings", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@MainActivity, getString(R.string.optimization_settings_error), Toast.LENGTH_LONG).show()
                         }
                     }
                 }
