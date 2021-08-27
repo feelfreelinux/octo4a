@@ -41,6 +41,8 @@
     <string name="action_open_settings">Open Settings</string>
     <string name="disable_battery_optimization">Disable battery optimization</string>
     <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
+    <string name="status_shutting_down">OctoPrint is shutting down…</string>
+    <string name="status_shutting_down_subtitle">this could take a couple of seconds</string>
 
 
 </resources>
