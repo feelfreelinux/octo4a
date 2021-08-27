@@ -14,4 +14,5 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var defaultPrinterVid by intPref()
     var defaultPrinterCustomDriver by stringPref()
     var updateDismissed by stringPref()
+    var warnDisableBatteryOptimization by booleanPref(defaultValue = true)
 }

@@ -37,6 +37,10 @@
     <string name="action_download">Download</string>
     <string name="action_later">Later</string>
     <string name="action_show_logs">Show logs</string>
+    <string name="action_never_ask_again">Never ask again</string>
+    <string name="action_open_settings">Open Settings</string>
+    <string name="disable_battery_optimization">Disable battery optimization</string>
+    <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
 
 
 </resources>
