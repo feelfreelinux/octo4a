@@ -18,7 +18,7 @@ class FIFOEventRepositoryImpl(val logger: LoggerRepository) : FIFOEventRepositor
     private var _eventState = MutableLiveData<FIFOEvent>()
     override val eventState = _eventState
 
-    private val eventFifoPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/eventPipe"
+    private val eventFifoPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/eventPipe"
     private val gson by lazy {
         GsonBuilder()
             .create()

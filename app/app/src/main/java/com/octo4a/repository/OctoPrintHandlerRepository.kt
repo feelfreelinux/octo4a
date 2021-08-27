@@ -153,7 +153,7 @@ class OctoPrintHandlerRepositoryImpl(
             return
         }
         bootstrapRepository.run {
-            runCommand("mkfifo /root/eventPipe").waitAndPrintOutput(logger)
+            runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/root/eventPipe", prooted = false).waitAndPrintOutput(logger)
         }
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint --iknowwhatimdoing")
@@ -227,8 +227,7 @@ class OctoPrintHandlerRepositoryImpl(
         )
         map["serial"] = mapOf(
             "exclusive" to false,
-            "additionalPorts" to listOf("/dev/ttyOcto4a"),
-            "blacklistedPorts" to listOf("/dev/*")
+            "additionalPorts" to listOf("/dev/ttyOcto4a")
             )
         map["server"] = mapOf("commands" to mapOf(
             "serverRestartCommand" to "echo \"{\\\"eventType\\\": \\\"restartServer\\\"}\" > eventPipe",

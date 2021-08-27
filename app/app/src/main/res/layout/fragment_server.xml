@@ -65,8 +65,7 @@
               android:id="@id/dividerView"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                       android:id="@+id/usbDevicesList" android:orientation="vertical"/>
-    <View style="@style/Divider"
-          android:id="@id/dividerView"/>
+
     <com.octo4a.ui.views.StatusView
             android:layout_width="match_parent"
             android:layout_margin="8dp"
