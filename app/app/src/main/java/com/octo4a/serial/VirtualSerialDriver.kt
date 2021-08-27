@@ -6,19 +6,47 @@ import android.content.Intent
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
-import com.hoho.android.usbserial.driver.UsbSerialDriver
-import com.hoho.android.usbserial.driver.UsbSerialPort
-import com.hoho.android.usbserial.driver.UsbSerialProber
+import android.util.Log
+import android.widget.Toast
+import com.hoho.android.usbserial.driver.*
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
+import com.octo4a.service.OctoPrintService
+import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.forEach
 import java.lang.Exception
 import java.util.concurrent.Executors
 
-data class ConnectedUsbDevice(val deviceName: String, val productId: Int, val vendorId: Int, val device: UsbDevice)
+enum class SerialDriverClass {
+    PROLIFIC,
+    CDC,
+    FTDI,
+    CH341,
+    CP21XX,
+    UNKNOWN
+}
 
-class VirtualSerialDriver(val context: Context, private val octoPrintHandler: OctoPrintHandlerRepository, private val logger: LoggerRepository): VSPListener, SerialInputOutputManager.Listener {
+data class ConnectedUsbDevice(val deviceName: String, val productId: Int, val vendorId: Int, var driverClass: SerialDriverClass, var isSelected: Boolean, val autoDetect: Boolean, val device: UsbDevice)
+
+fun ConnectedUsbDevice.createDriver(): UsbSerialDriver? {
+    return when (driverClass) {
+        SerialDriverClass.CP21XX -> Cp21xxSerialDriver(device)
+        SerialDriverClass.FTDI -> FtdiSerialDriver(device)
+        SerialDriverClass.PROLIFIC -> ProlificSerialDriver(device)
+        SerialDriverClass.CH341 -> Ch34xSerialDriver(device)
+        SerialDriverClass.CDC -> CdcAcmSerialDriver(device)
+        SerialDriverClass.UNKNOWN -> return null
+    }
+}
+
+fun ConnectedUsbDevice.id(): String {
+    return vendorId.toString() + productId.toString()
+}
+
+class VirtualSerialDriver(val context: Context, private val prefs: MainPreferences, private val octoPrintHandler: OctoPrintHandlerRepository, private val logger: LoggerRepository): VSPListener, SerialInputOutputManager.Listener {
     val pty by lazy { VSPPty() }
 
     private val usbManager by lazy {
@@ -31,6 +59,7 @@ class VirtualSerialDriver(val context: Context, private val octoPrintHandler: Oc
     var serialInputManager: SerialInputOutputManager? = null
     var currentBaudrate = -1
     var ptyThread: Thread? = null
+    var requestedDevice: ConnectedUsbDevice? = null
     var connectedDevices = MutableStateFlow(listOf<ConnectedUsbDevice>())
 
     companion object {
@@ -54,31 +83,76 @@ class VirtualSerialDriver(val context: Context, private val octoPrintHandler: Oc
 
     private val printerProber by lazy { UsbSerialProber(getCustomPrinterProber()) }
 
-    fun updateDevicesList(intent: String): String? {
-        updateDevicesList()
-        val availableDrivers = printerProber.findAllDrivers(usbManager)
-        if (availableDrivers.isEmpty()) {
-            return null
-        }
 
-        val device = availableDrivers.first()
-        return if (!usbManager.hasPermission(device!!.device)) {
-            val mPendingIntent =
-                PendingIntent.getBroadcast(context, usbPermissionRequestCode, Intent(intent), 0)
-            usbManager.requestPermission(device.device, mPendingIntent)
-            logger.log(this) { "REQUESTED DEVICE"}
-            null
+    fun tryToSelectDevice(device: ConnectedUsbDevice) {
+        val devices = connectedDevices.value
+        if (device.driverClass != SerialDriverClass.UNKNOWN) {
+            if (!usbManager.hasPermission(device.device)) {
+                val intent = Intent(OctoPrintService.BROADCAST_SERVICE_USB_GOT_ACCESS)
+                requestedDevice = device
+                val mPendingIntent =
+                    PendingIntent.getBroadcast(context, usbPermissionRequestCode, intent, 0)
+                usbManager.requestPermission(device.device, mPendingIntent)
+                logger.log(this) { "REQUESTED DEVICE" }
+                Toast.makeText(context, "Requesting permission to device...", Toast.LENGTH_LONG).show()
+            } else {
+                selectedDevice = device.createDriver()
+                prefs.defaultPrinterCustomDriver = device.driverClass.name
+                prefs.defaultPrinterPid = device.productId
+                prefs.defaultPrinterVid = device.vendorId
+                devices.forEach {
+                    it.isSelected = it.vendorId == device.vendorId && it.productId == device.productId
+                }
+
+                connectedDevices.value = listOf()
+                connectedDevices.value = devices
+
+                octoPrintHandler.usbAttached(device.device.deviceName)
+                device.device.deviceName
+            }
         } else {
-            selectedDevice = device
-            octoPrintHandler.usbAttached(device.device.deviceName)
-            device.device.deviceName
+            Toast.makeText(context, "No driver selected...", Toast.LENGTH_LONG).show()
         }
     }
 
-    fun updateDevicesList() {
-//        connectedDevices.value = usbManager.deviceList.map {
-//            ConnectedUsbDevice(it.value.deviceName, it.value.productId, it.value.vendorId, it.value)
-//        }
+    fun updateDevicesList(intent: String): String? {
+        connectedDevices.value = usbManager.deviceList.map {
+            // Try to autodetect driver
+            var driverClass = when (printerProber.probeDevice(it.value)) {
+                is Cp21xxSerialDriver -> SerialDriverClass.CP21XX
+                is FtdiSerialDriver -> SerialDriverClass.FTDI
+                is ProlificSerialDriver -> SerialDriverClass.PROLIFIC
+                is Ch34xSerialDriver -> SerialDriverClass.CH341
+                is CdcAcmSerialDriver -> SerialDriverClass.CDC
+                else -> SerialDriverClass.UNKNOWN
+            }
+
+            val autoDetected = driverClass != SerialDriverClass.UNKNOWN
+
+            if (it.value.productId == prefs.defaultPrinterPid && it.value.vendorId == prefs.defaultPrinterVid) {
+                if (!prefs.defaultPrinterCustomDriver.isNullOrBlank()) {
+                    driverClass = SerialDriverClass.valueOf(prefs.defaultPrinterCustomDriver!!)
+                }
+            }
+
+            ConnectedUsbDevice(it.value.deviceName, it.value.productId, it.value.vendorId, driverClass, false, autoDetected, it.value)
+        }
+
+        // prefer last device over autodetected one
+        connectedDevices.value.forEach {
+            if (it.productId == prefs.defaultPrinterPid && it.vendorId == prefs.defaultPrinterVid && it.driverClass != SerialDriverClass.UNKNOWN) {
+                tryToSelectDevice(it)
+            }
+        }
+
+        // Use automatically detected one as second choice
+        if (selectedDevice == null) {
+            connectedDevices.value.firstOrNull { it.driverClass != SerialDriverClass.UNKNOWN }?.apply {
+                tryToSelectDevice(this)
+            }
+        }
+
+        return ""
     }
 
     override fun onDataReceived(data: SerialData?) {

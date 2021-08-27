@@ -7,17 +7,21 @@ import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.asLiveData
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.R
-import com.octo4a.repository.GithubRelease
-import com.octo4a.repository.ServerStatus
 import com.octo4a.camera.CameraService
+import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.LoggerRepository
+import com.octo4a.repository.ServerStatus
+import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
@@ -25,10 +29,12 @@ import kotlinx.android.synthetic.main.view_status_card.view.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
+
 class ServerFragment : Fragment() {
     private val statusViewModel: StatusViewModel by sharedViewModel()
     private lateinit var cameraService: CameraService
     private var boundToCameraService = false
+    private val vspDriver: VirtualSerialDriver by inject()
     private val mainPreferences: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
 
@@ -70,6 +76,15 @@ class ServerFragment : Fragment() {
         statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
             logger.log(this) { "Update available" }
             showUpdateDialog(it)
+        }
+
+        vspDriver.connectedDevices.asLiveData().observe(viewLifecycleOwner) { devices ->
+            usbDevicesList.removeAllViews()
+            devices.forEach {
+                val usbDeviceView = UsbDeviceView(requireContext(), vspDriver)
+                usbDevicesList.addView(usbDeviceView)
+                usbDeviceView.setUsbDevice(it)
+            }
         }
 
         statusViewModel.usbStatus.observe(viewLifecycleOwner) {

@@ -61,7 +61,7 @@ val ch341Devices = listOf(
     UsbDeviceId(6790, 29987)
 )
 
-val cp21xxDevices = listOf<UsbDeviceId> (
+val cp21xxDevices = listOf (
     UsbDeviceId(4292, 60000),
     UsbDeviceId(4292, 60016),
     UsbDeviceId(4292, 60017),

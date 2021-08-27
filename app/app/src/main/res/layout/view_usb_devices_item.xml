@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+
+    <TextView
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:text="CDC COC MARLIN DEVICE"
+            android:id="@+id/titleText"
+            android:layout_marginStart="72dp"
+            android:paddingTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iconCircle"
+            app:layout_constraintEnd_toStartOf="@id/selectCheckbox"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textStyle="bold"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="14sp"
+    />
+
+    <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="VID 0x0483 / PID 0xdf11"
+            android:id="@+id/vidPidText"
+            app:layout_constraintTop_toBottomOf="@id/titleText"
+            app:layout_constraintStart_toStartOf="@id/titleText"
+            android:textStyle="normal"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="14sp"
+    />
+
+    <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="tap to select driver"
+            app:layout_constraintTop_toBottomOf="@id/vidPidText"
+            android:id="@+id/serialDriverText"
+            app:layout_constraintStart_toStartOf="@id/vidPidText"
+            android:paddingBottom="12dp"
+
+            android:textStyle="normal"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="14sp"
+    />
+
+    <CheckBox
+        android:id="@+id/selectCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+
+</merge>

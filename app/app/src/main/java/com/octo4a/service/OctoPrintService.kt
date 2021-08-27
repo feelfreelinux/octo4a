@@ -16,6 +16,7 @@ import com.octo4a.repository.FIFOEventRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.serial.id
 import com.octo4a.ui.MainActivity
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
@@ -80,19 +81,19 @@ class OctoPrintService() : LifecycleService() {
         override fun onReceive(context: Context, intent: Intent?) {
             when (intent?.action) {
                 EVENT_USB_ATTACHED -> {
-                    Log.v(LOG_TAG, "USB Device attached :)")
-                        virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
+                    virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
                         handlerRepository.usbAttached(this)
                     }
                 }
 
                 EVENT_USB_DETACHED -> {
+                    virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)
                     handlerRepository.usbDetached()
                 }
 
                 BROADCAST_SERVICE_USB_GOT_ACCESS -> {
-                    virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
-                        handlerRepository.usbAttached(this)
+                    virtualSerialDriver.requestedDevice?.apply {
+                        virtualSerialDriver.tryToSelectDevice(this)
                     }
                 }
             }

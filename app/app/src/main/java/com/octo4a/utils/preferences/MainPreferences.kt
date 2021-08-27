@@ -10,5 +10,8 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var changeSSHPassword by stringPref()
     var sshPort by stringPref(defaultValue = "8022")
     var flashWhenObserved by booleanPref()
+    var defaultPrinterPid by intPref()
+    var defaultPrinterVid by intPref()
+    var defaultPrinterCustomDriver by stringPref()
     var updateDismissed by stringPref()
 }

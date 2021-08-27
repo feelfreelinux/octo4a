@@ -2,6 +2,7 @@ package com.octo4a.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.octo4a.R
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.serial.id
 import com.octo4a.service.OctoPrintService
 import com.octo4a.ui.fragments.TerminalSheetDialog
 import kotlinx.android.synthetic.main.activity_main.*
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VirtualSerialDriver.usbPermissionRequestCode) {
             vsp.updateDevicesList(OctoPrintService.BROADCAST_SERVICE_USB_GOT_ACCESS)
+            vsp.connectedDevices.value.firstOrNull { it.id() == data.toString() }
         }
     }
 
