@@ -1,9 +1,11 @@
 package com.octo4a.ui
 
 import android.Manifest
+import android.app.UiModeManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -29,9 +31,7 @@ import org.koin.android.ext.android.inject
 class InitialActivity: AppCompatActivity() {
     private val bootstrapRepository: BootstrapRepository by inject()
     private val prefs: MainPreferences by inject()
-    private val pm  by lazy { getSystemService(LifecycleService.POWER_SERVICE) as PowerManager }
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
-    private val logger: LoggerRepository by inject()
 
     // Storage permission request
     private val hasStoragePermission: Boolean
@@ -56,22 +56,7 @@ class InitialActivity: AppCompatActivity() {
 
         cameraEnumerationRepository.enumerateCameras()
         installButton.setOnClickListener {
-            // Required for acquiring wakelock
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
-                val whitelist = Intent()
-                whitelist.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                whitelist.data = Uri.parse("package:$packageName")
-                whitelist.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                try {
-                    startActivity(whitelist)
-                } catch (e: ActivityNotFoundException) {
-                    checkWritePermissionAndRun()
-                    logger.log(this) { "failed to open battery optimization dialog" }
-                    Toast.makeText(this, "Failed to open battery optimization settings", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                checkWritePermissionAndRun()
-            }
+            checkWritePermissionAndRun()
         }
     }
 

@@ -11,4 +11,5 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var sshPort by stringPref(defaultValue = "8022")
     var flashWhenObserved by booleanPref()
     var updateDismissed by stringPref()
+    var warnDisableBatteryOptimization by booleanPref(defaultValue = true)
 }
