@@ -22,6 +22,13 @@
                 app:defaultValue="8022"
                 app:singleLineTitle="false"
                 app:title="SSH port"/>
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:singleLineTitle="false"
+                app:key="startOnBoot"
+                app:title="Start on boot"
+                app:defaultValue="false"
+                app:summary="Automatically starts octo4a on boot"/>
     </PreferenceCategory>
     <PreferenceCategory
             app:title="Camera settings"

@@ -3,7 +3,6 @@ package com.octo4a.ui
 import android.app.AlertDialog
 import android.app.UiModeManager
 import android.content.ActivityNotFoundException
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -27,6 +26,7 @@ import com.octo4a.ui.fragments.TerminalSheetDialog
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
+
 
 class MainActivity : AppCompatActivity() {
     private val logger: LoggerRepository by inject()

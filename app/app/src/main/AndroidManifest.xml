@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-sdk
             tools:overrideLibrary="androidx.camera.view, androidx.camera.extensions, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.core"/>
     <application
@@ -63,7 +64,19 @@
         <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true"/>
         <meta-data android:name="com.bugsnag.android.API_KEY"
                    android:value="002d1ae9fff3a791929cce6ad91da47e"/>
-
+        <receiver
+                android:name=".BootReceiver"
+                android:label="Octo4aBootReceiver">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
