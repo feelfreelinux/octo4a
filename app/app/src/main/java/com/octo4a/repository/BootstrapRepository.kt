@@ -124,7 +124,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
                 runCommand("cat /etc/motd").waitAndPrintOutput(logger)
 
                 // Setup ssh
-                runCommand("apk add openssh-server", root = false).waitAndPrintOutput(logger)
+                runCommand("apk add openssh-server bash").waitAndPrintOutput(logger)
                 runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
                 runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
 
@@ -205,7 +205,10 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         logger.log(this) { "Deleting password just in case" }
         runCommand("passwd -d octoprint").waitAndPrintOutput(logger)
         runCommand("passwd octoprint").setPassword(newPassword)
+        runCommand("passwd -d root").waitAndPrintOutput(logger)
+        runCommand("passwd root").setPassword(newPassword)
         runCommand("touch .ssh_configured", root = false)
+        runCommand("touch .ssh_configured", root = true)
     }
 
     override val isBootstrapInstalled: Boolean

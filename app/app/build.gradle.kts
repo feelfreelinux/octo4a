@@ -61,7 +61,7 @@ dependencies {
     implementation("com.android.support:multidex:1.0.3")
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
-    val koinVersion = "3.0.1-beta-1"
+    val koinVersion = "3.1.2"
     val cameraXVersion = "1.0.0-rc03"
 
     // Android lifecycle components

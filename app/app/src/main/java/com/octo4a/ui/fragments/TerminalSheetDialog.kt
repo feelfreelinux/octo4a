@@ -50,6 +50,7 @@ class TerminalSheetDialog: BottomSheetDialogFragment() {
             while(shouldUpdateTermUi) {
                 if (logCache.isNotEmpty()) {
                     withContext(Dispatchers.Main) {
+                        if (terminalView == null) return@withContext
                         var textToDisplay: CharSequence? = terminalView.text
 
                         logCache.forEach {
@@ -81,7 +82,7 @@ class TerminalSheetDialog: BottomSheetDialogFragment() {
                             textToDisplay = TextUtils.concat(textToDisplay, fullText)
                         }
 
-                        terminalView.setText(textToDisplay, TextView.BufferType.SPANNABLE)
+                        terminalView?.setText(textToDisplay, TextView.BufferType.SPANNABLE)
 
                         // Auto scroll if enabled
                         if (enableAutoScroll.isChecked) {

@@ -27,7 +27,6 @@ import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 
-
 class MainActivity : AppCompatActivity() {
     private val logger: LoggerRepository by inject()
     private val vsp: VirtualSerialDriver by inject()

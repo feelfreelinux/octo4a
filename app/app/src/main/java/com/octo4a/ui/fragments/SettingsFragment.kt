@@ -37,6 +37,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
+    private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
+    private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
+    private val enableTtyd by lazy { findPreference<SwitchPreferenceCompat>("enableTtyd") }
 
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -68,6 +71,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 } else { false }
             }
             setDefaultValue("8022")
+        }
+
+        enableTtyd?.setOnPreferenceChangeListener { _, newValue ->
+            if (newValue as Boolean) {
+                octoprintHandler.startTtyd()
+            } else {
+                octoprintHandler.stopTtyd()
+            }
+            true
         }
 
         setupSSHSettings()
@@ -117,10 +129,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 octoprintHandler.stopSSH()
                 octoprintHandler.resetSSHPassword(newValue as String)
                 octoprintHandler.startSSH()
+                prefs.sshPasword = newValue
                 enableSSH?.isChecked = true
                 true
             }
         }
+
+
     }
 
     private fun setupCameraSettings(cameras: List<CameraDescription>) {
@@ -130,6 +145,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
             enableCameraPref?.isChecked = false
         } else {
             initCameraConfig(cameras)
+        }
+
+        imageRotation?.setOnPreferenceChangeListener { _, value ->
+            prefs.imageRotation = value as String
+            stopCameraServer()
+            startCameraServer()
+            true
+        }
+
+        fpsLimit?.setOnPreferenceChangeListener { _, value ->
+            prefs.fpsLimit = value as String
+            stopCameraServer()
+            startCameraServer()
+            true
         }
 
         enableCameraPref?.setOnPreferenceChangeListener { _, newValue ->

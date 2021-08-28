@@ -5,13 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.ImageFormat
-import android.graphics.PixelFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
+import android.graphics.*
 import android.hardware.Camera
 import android.os.Binder
 import android.os.IBinder
+import android.renderscript.*
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.WindowManager
@@ -148,9 +146,9 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
         }
         val params = WindowManager.LayoutParams(
             1, 1,
-            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-            0,
-            PixelFormat.UNKNOWN
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+        PixelFormat.TRANSLUCENT
         )
 
         windowManager.addView(preview, params)
@@ -191,7 +189,28 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
 //        }, ContextCompat.getMainExecutor(applicationContext))
 //        octoprintHandler.isCameraServerRunning = true
     }
+    val renderScript by lazy { RenderScript.create(applicationContext) }
 
+    private fun nv21ToBitmap(yuvByteArray: ByteArray, width: Int, height: Int): Bitmap {
+
+        val yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(renderScript, Element.U8_4(renderScript))
+
+        val yuvType = Type.Builder(renderScript, Element.U8(renderScript)).setX(yuvByteArray.size)
+        val allocationIn = Allocation.createTyped(renderScript, yuvType.create(), Allocation.USAGE_SCRIPT)
+
+        val rgbaType = Type.Builder(renderScript, Element.RGBA_8888(renderScript)).setX(width).setY(height)
+        val allocationOut = Allocation.createTyped(renderScript, rgbaType.create(), Allocation.USAGE_SCRIPT)
+
+        allocationIn.copyFrom(yuvByteArray)
+
+        yuvToRgbIntrinsic.setInput(allocationIn)
+        yuvToRgbIntrinsic.forEach(allocationOut)
+
+        val bmpout = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        allocationOut.copyTo(bmpout)
+
+        return bmpout
+    }
     override fun surfaceCreated(holder: SurfaceHolder?) {
         try {
             camera.setPreviewDisplay(holder)
@@ -199,16 +218,18 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
             val rect = Rect(0, 0, camera.parameters.previewSize.width, camera.parameters.previewSize.height)
             val out = ByteArrayOutputStream()
             camera.setPreviewCallback { bytes, cam ->
-                YuvImage(
-                    bytes,
-                    ImageFormat.NV21,
-                    cam.parameters.previewSize.width,
-                    cam.parameters.previewSize.height, null
-                ).compressToJpeg(rect, 100, out)
-
+//                YuvImage(
+//                    bytes,
+//                    ImageFormat.NV21,
+//                    cam.parameters.previewSize.width,
+//                    cam.parameters.previewSize.height, null
+//                ).compressToJpeg(rect, 100, out)
+                val bitmap = nv21ToBitmap(bytes, cam.parameters.previewSize.width, cam.parameters.previewSize.height)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
                 synchronized(latestFrame) {
                     latestFrame = out.toByteArray()
                 }
+                bitmap.recycle()
                 out.reset()
             }
             camera.startPreview()

@@ -1,32 +1,27 @@
 package com.octo4a.ui
 
 import android.Manifest
-import android.app.UiModeManager
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LifecycleService
 import com.octo4a.R
 import com.octo4a.camera.CameraEnumerationRepository
 import com.octo4a.camera.CameraService
-import com.octo4a.service.OctoPrintService
-import com.octo4a.repository.BootstrapRepository
 import com.octo4a.camera.LegacyCameraService
-import com.octo4a.repository.LoggerRepository
+import com.octo4a.repository.BootstrapRepository
+import com.octo4a.service.OctoPrintService
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
+
 
 class InitialActivity: AppCompatActivity() {
     private val bootstrapRepository: BootstrapRepository by inject()

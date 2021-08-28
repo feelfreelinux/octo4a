@@ -184,6 +184,7 @@ class ServerFragment : Fragment() {
                 .show()
             val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
             if (boundToCameraService) {
+                Log.v("DD", " I DO BE BOUND ")
                 cameraService.getPreview().setSurfaceProvider(surfaceProvider)
             }
         } else {

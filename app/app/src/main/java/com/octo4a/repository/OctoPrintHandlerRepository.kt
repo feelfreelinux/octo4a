@@ -48,6 +48,8 @@ interface OctoPrintHandlerRepository {
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
+    fun startTtyd()
+    fun stopTtyd()
     fun usbAttached(port: String)
     fun usbDetached()
     fun resetSSHPassword(password: String)
@@ -105,7 +107,7 @@ class OctoPrintHandlerRepositoryImpl(
                 logger.log { "Bootstrap installed" }
                 _serverState.emit(ServerStatus.DownloadingOctoPrint)
                 bootstrapRepository.apply {
-                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow").waitAndPrintOutput(
+                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow ttyd").waitAndPrintOutput(
                         logger
                     )
                     runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
@@ -149,6 +151,9 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startOctoPrint() {
         wakeLock.acquire()
+        if (preferences.enableTtyd) {
+            startTtyd()
+        }
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             logger.log { "Failed to start. OctoPrint already running." }
             return
@@ -219,6 +224,18 @@ class OctoPrintHandlerRepositoryImpl(
         bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
         logger.log(this) { "killed sshd" }
     }
+
+    override fun startTtyd() {
+        stopTtyd()
+        bootstrapRepository.runCommand("ttyd -p 5002 --credential octo4a:${preferences.sshPasword} bash & disown")
+    }
+
+    override fun stopTtyd() {
+        // Kills ssh demon
+        bootstrapRepository.runCommand("pkill ttyd").waitAndPrintOutput(logger)
+        logger.log(this) { "killed sshd" }
+    }
+
 
     override fun usbAttached(port: String) {
         _usbDeviceStatus.value = UsbDeviceStatus(true, port)

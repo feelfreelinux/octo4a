@@ -17,11 +17,20 @@
                 app:singleLineTitle="false"
                 app:title="Change SSH password"/>
         <EditTextPreference
+                app:dependency="enableSSH"
                 app:key="sshPort"
                 app:iconSpaceReserved="false"
                 app:defaultValue="8022"
                 app:singleLineTitle="false"
                 app:title="SSH port"/>
+        <SwitchPreferenceCompat
+                app:dependency="enableSSH"
+                app:key="enableTtyd"
+                app:iconSpaceReserved="false"
+                app:singleLineTitle="false"
+                app:title="Enable remote web terminal (ttyd)"
+                app:defaultValue="false"
+                app:summary="Runs under port 5002. User: octo4a"/>
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
@@ -51,6 +60,25 @@
                 app:dependency="enableCameraServer"
                 app:title="Camera resolution"
                 app:summary="%s"/>
+
+        <ListPreference
+                app:iconSpaceReserved="false"
+                app:key="imageRotation"
+                app:entries="@array/rotation_settings"
+                app:entryValues="@array/rotation_settings_values"
+                app:dependency="enableCameraServer"
+                app:defaultValue="0"
+                app:title="Image rotation"
+                app:summary="%s"/>
+        <ListPreference
+                app:iconSpaceReserved="false"
+                app:key="fpsLimit"
+                app:entries="@array/limit_fps"
+                app:entryValues="@array/limit_fps_values"
+                app:dependency="enableCameraServer"
+                app:defaultValue="-1"
+                app:title="Camera FPS limit"
+                app:summary="Lower FPS reduces CPU usage"/>
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
                 app:key="flashWhenObserved"

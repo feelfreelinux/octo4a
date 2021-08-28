@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="rotation_settings">
+        <item>90 degree</item>
+        <item>180 degree</item>
+        <item>270 degree</item>
+        <item>Do not rotate</item>
+    </string-array>
+    <string-array name="rotation_settings_values">
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+        <item>0</item>
+    </string-array>
+
+    <string-array name="limit_fps">
+        <item>5 FPS</item>
+        <item>15 FPS</item>
+        <item>20 FPS</item>
+        <item>30 FPS</item>
+        <item>Do not limit</item>
+    </string-array>
+    <string-array name="limit_fps_values">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>-1</item>
+    </string-array>
+</resources>
