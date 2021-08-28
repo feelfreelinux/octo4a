@@ -24,7 +24,8 @@ enum class ServerStatus(val value: Int, val progress: Boolean=false) {
     BootingUp(3, true),
     Running(4),
     ShuttingDown(3, true),
-    Stopped(5)
+    Stopped(5),
+    Corrupted(6)
 }
 
 data class UsbDeviceStatus(val isAttached: Boolean, val port: String = "")
@@ -117,10 +118,10 @@ class OctoPrintHandlerRepositoryImpl(
                 bootstrapRepository.apply {
                     runCommand("cd Octo* && pip3 install .").waitAndPrintOutput(logger)
                 }
-                logger.log { "Dependencies installed" }
                 _serverState.emit(ServerStatus.BootingUp)
                 insertInitialConfig()
                 startOctoPrint()
+                logger.log { "Dependencies installed" }
             } else {
                 startOctoPrint()
                 if (preferences.enableSSH) {
@@ -150,13 +151,17 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun startOctoPrint() {
+        if (!isInstalledProperly) {
+            _serverState.value = ServerStatus.Corrupted
+            return
+        }
+
         wakeLock.acquire()
         if (preferences.enableTtyd) {
             startTtyd()
         }
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             logger.log { "Failed to start. OctoPrint already running." }
-            return
         }
         bootstrapRepository.run {
             runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/root/eventPipe", prooted = false).waitAndPrintOutput(logger)
@@ -166,7 +171,6 @@ class OctoPrintHandlerRepositoryImpl(
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
-                    Bugsnag.leaveBreadcrumb(it)
                     logger.log(this, LogType.OCTOPRINT) { it }
 
                     // TODO: Perhaps find a better way to handle it. Maybe some through plugin?
@@ -290,4 +294,8 @@ class OctoPrintHandlerRepositoryImpl(
 
     override val isSSHConfigured: Boolean
         get() = bootstrapRepository.isSSHConfigured
+
+    // Validate installation
+    val isInstalledProperly: Boolean
+        get() = bootstrapRepository.runCommand("command -v octoprint").getOutputAsString().contains("/usr/bin/octoprint")
 }

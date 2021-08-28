@@ -1,8 +1,11 @@
 package com.octo4a.ui.fragments
 
+import android.app.Activity
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Build
@@ -13,7 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
@@ -25,6 +27,7 @@ import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
+import com.octo4a.ui.InitialActivity
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
@@ -146,6 +149,15 @@ class ServerFragment : Fragment() {
                         statusViewModel.startServer()
                     }
                 }
+
+                ServerStatus.Corrupted -> {
+                    serverStatus.setDrawableAndColor(R.drawable.ic_baseline_heart_broken_24, android.R.color.holo_red_light)
+                    serverStatus.title = getString(R.string.installation_corrupt)
+                    serverStatus.subtitle = getString(R.string.tap_to_reinstall)
+                    serverStatus.onActionClicked = {
+                        clearDataAndRestartApp()
+                    }
+                }
                 else -> {}
             }
             serverStatus.actionProgressbar.isGone = !it.progress
@@ -189,6 +201,29 @@ class ServerFragment : Fragment() {
             }
         } else {
             Toast.makeText(context, getString(R.string.api_too_low), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun clearDataAndRestartApp() {
+        try {
+            val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            // clearing app data
+            if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
+                activityManager.clearApplicationUserData()
+            } else {
+                val packageName = requireActivity().applicationContext.packageName
+                val runtime = Runtime.getRuntime();
+                runtime.exec("pm clear $packageName");
+            }
+
+            // restart the app
+            val intent = Intent(context, InitialActivity::class.java)
+            intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+            requireActivity().startActivity(intent)
+
+            Runtime.getRuntime().exit(0)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

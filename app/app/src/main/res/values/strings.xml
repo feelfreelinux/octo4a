@@ -49,6 +49,8 @@
     <string name="optimization_settings_error">Failed to open battery optimization settings</string>
     <string name="serial_driver"> serial driver</string>
     <string name="tap_to_select"> (tap to select)</string>
+    <string name="installation_corrupt">Installation corrupted</string>
+    <string name="tap_to_reinstall">tap to reinstall the app</string>
 
 
 </resources>
