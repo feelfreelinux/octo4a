@@ -21,3 +21,5 @@ cat << EOF > /root/extensions/ttyd/kill.sh
 #!/bin/sh
 pkill ttyd
 EOF
+chmod +x /root/extensions/ttyd/start.sh
+chmod +x /root/extensions/ttyd/kill.sh
