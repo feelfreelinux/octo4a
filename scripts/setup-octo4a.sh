@@ -23,3 +23,5 @@ pkill ttyd
 EOF
 chmod +x /root/extensions/ttyd/start.sh
 chmod +x /root/extensions/ttyd/kill.sh
+chmod 777 /root/extensions/ttyd/start.sh
+chmod 777 /root/extensions/ttyd/kill.sh
