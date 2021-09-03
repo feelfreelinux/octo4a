@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Klipper support"
+            android:id="@+id/titleText"
+            android:paddingTop="8dp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iconCircle"
+            android:textStyle="bold"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="18sp"
+            />
+
+    <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Requires OctoKlipper plugin"
+            android:id="@+id/subtitleText"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginStart="12dp"
+            android:paddingTop="2dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleText"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="14sp"
+            />
+
+    <View style="@style/Divider"
+            app:layout_constraintTop_toBottomOf="@id/subtitleText"
+            android:layout_marginTop="12dp"
+            android:id="@id/dividerView"/>
+    <androidx.appcompat.widget.SwitchCompat
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginRight="12dp"
+            android:id="@+id/extensionEnabled"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+</merge>

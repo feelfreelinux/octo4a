@@ -39,8 +39,9 @@ val appModule = module {
 
     single<FIFOEventRepository> { FIFOEventRepositoryImpl(get()) }
     single<VirtualSerialDriver> { VirtualSerialDriver(androidContext(), get(), get(), get()) }
+    single<ExtensionsRepository> { ExtensionsRepositoryImpl(androidContext(), get(), get(), get()) }
     single<LoggerRepository> { LoggerRepositoryImpl() }
-    single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get(), get()) }
+    single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get(), get(), get()) }
     single { CameraEnumerationRepository(androidApplication()) }
 
     viewModel { InstallationViewModel(get()) }

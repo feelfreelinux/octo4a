@@ -22,7 +22,7 @@ import javax.net.ssl.SSLSocketFactory
 interface BootstrapRepository {
     val commandsFlow: SharedFlow<String>
     suspend fun setupBootstrap()
-    fun runCommand(command: String, prooted: Boolean = true, root: Boolean = true): Process
+    fun runCommand(command: String, prooted: Boolean = true, root: Boolean = true, bash: Boolean = false): Process
     fun ensureHomeDirectory()
     fun resetSSHPassword(newPassword: String)
     val isBootstrapInstalled: Boolean
@@ -124,7 +124,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
                 runCommand("cat /etc/motd").waitAndPrintOutput(logger)
 
                 // Setup ssh
-                runCommand("apk add openssh-server bash").waitAndPrintOutput(logger)
+                runCommand("apk add openssh-server curl bash", bash = false).waitAndPrintOutput(logger)
                 runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
                 runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
 
@@ -169,7 +169,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         }
     }
 
-    override fun runCommand(command: String, prooted: Boolean, root: Boolean): Process {
+    override fun runCommand(command: String, prooted: Boolean, root: Boolean, bash: Boolean): Process {
         val FILES = "/data/data/com.octo4a/files"
         val pb = ProcessBuilder()
         pb.redirectErrorStream(true)
@@ -183,7 +183,8 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         if (!root) user = "octoprint"
         if (prooted) {
             // run inside proot
-            pb.command("sh", "run-bootstrap.sh", user,  "/bin/sh", "-c", command)
+            val shell = if (bash) "/bin/bash" else "/bin/sh"
+            pb.command("sh", "run-bootstrap.sh", user,  shell, "-c", command)
         } else {
             pb.command("sh", "-c", command)
         }

@@ -1,21 +1,27 @@
 package com.octo4a.repository
 
+import android.R.attr.path
+import android.R.attr.start
 import android.content.Context
 import android.os.Environment
-import com.bugsnag.android.Bugsnag
+import android.util.Log
+import com.google.gson.JsonParser
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
+import java.lang.Exception
 import java.lang.reflect.Field
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.math.roundToInt
+
 
 enum class ServerStatus(val value: Int, val progress: Boolean=false) {
     InstallingBootstrap(0),
@@ -42,6 +48,7 @@ interface OctoPrintHandlerRepository {
     val serverState: StateFlow<ServerStatus>
     val octoPrintVersion: StateFlow<String>
     val usbDeviceStatus: StateFlow<UsbDeviceStatus>
+    val registeredExtensions: StateFlow<List<RegisteredExtension>>
     val cameraServerStatus: StateFlow<Boolean>
 
     suspend fun beginInstallation()
@@ -49,8 +56,6 @@ interface OctoPrintHandlerRepository {
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
-    fun startTtyd()
-    fun stopTtyd()
     fun usbAttached(port: String)
     fun usbDetached()
     fun resetSSHPassword(password: String)
@@ -65,15 +70,18 @@ class OctoPrintHandlerRepositoryImpl(
     private val logger: LoggerRepository,
     private val bootstrapRepository: BootstrapRepository,
     private val githubRepository: GithubRepository,
+    private val extensionsRepository: ExtensionsRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
     private val externalStorageSymlinkPath = Environment.getExternalStorageDirectory().path + "/OctoPrint"
     private val octoPrintStoragePath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/.octoprint"
+    private val extensionsPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/extensions"
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
     private val yaml by lazy { Yaml() }
 
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
+    private var _extensionsState = MutableStateFlow(listOf<RegisteredExtension>())
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
     private var _cameraServerStatus = MutableStateFlow(false)
@@ -82,8 +90,8 @@ class OctoPrintHandlerRepositoryImpl(
     private var octoPrintProcess: Process? = null
     private var fifoThread: Thread? = null
 
-
     override val serverState: StateFlow<ServerStatus> = _serverState
+    override val registeredExtensions: StateFlow<List<RegisteredExtension>> = _extensionsState
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
     override val usbDeviceStatus: StateFlow<UsbDeviceStatus> = _usbDeviceStatus
     override val cameraServerStatus: StateFlow<Boolean> = _cameraServerStatus
@@ -108,7 +116,7 @@ class OctoPrintHandlerRepositoryImpl(
                 logger.log { "Bootstrap installed" }
                 _serverState.emit(ServerStatus.DownloadingOctoPrint)
                 bootstrapRepository.apply {
-                    runCommand("apk add curl py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow ttyd").waitAndPrintOutput(
+                    runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-octo4a.sh | bash -s").waitAndPrintOutput(
                         logger
                     )
                     runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(logger)
@@ -128,6 +136,7 @@ class OctoPrintHandlerRepositoryImpl(
                     logger.log { "Enabling ssh" }
                     startSSH()
                 }
+                extensionsRepository.startUpNecessaryExtensions()
             }
         }
     }
@@ -155,11 +164,8 @@ class OctoPrintHandlerRepositoryImpl(
             _serverState.value = ServerStatus.Corrupted
             return
         }
-
         wakeLock.acquire()
-        if (preferences.enableTtyd) {
-            startTtyd()
-        }
+
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
             logger.log { "Failed to start. OctoPrint already running." }
         }
@@ -215,6 +221,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun resetSSHPassword(password: String) {
+        bootstrapRepository.runCommand("echo \"$password\" > /root/.octoCredentials")
         bootstrapRepository.resetSSHPassword(password)
     }
 
@@ -228,18 +235,6 @@ class OctoPrintHandlerRepositoryImpl(
         bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
         logger.log(this) { "killed sshd" }
     }
-
-    override fun startTtyd() {
-        stopTtyd()
-        bootstrapRepository.runCommand("ttyd -p 5002 --credential octo4a:${preferences.sshPasword} bash & disown")
-    }
-
-    override fun stopTtyd() {
-        // Kills ssh demon
-        bootstrapRepository.runCommand("pkill ttyd").waitAndPrintOutput(logger)
-        logger.log(this) { "killed sshd" }
-    }
-
 
     override fun usbAttached(port: String) {
         _usbDeviceStatus.value = UsbDeviceStatus(true, port)

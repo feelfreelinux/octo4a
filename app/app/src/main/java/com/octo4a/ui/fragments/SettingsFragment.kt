@@ -73,15 +73,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setDefaultValue("8022")
         }
 
-        enableTtyd?.setOnPreferenceChangeListener { _, newValue ->
-            if (newValue as Boolean) {
-                octoprintHandler.startTtyd()
-            } else {
-                octoprintHandler.stopTtyd()
-            }
-            true
-        }
-
         setupSSHSettings()
     }
 

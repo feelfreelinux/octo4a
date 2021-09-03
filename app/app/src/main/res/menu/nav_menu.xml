@@ -12,6 +12,11 @@
             android:title="Settings" />
 
     <item
+        android:id="@+id/extensionsNav"
+        android:icon="@drawable/ic_baseline_extension_24"
+        android:title="Extensions"/>
+
+    <item
             android:id="@+id/aboutNav"
             android:icon="@drawable/ic_info_24px"
             android:title="About"/>

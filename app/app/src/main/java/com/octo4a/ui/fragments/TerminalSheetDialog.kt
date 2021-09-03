@@ -27,6 +27,7 @@ import com.octo4a.R
 import com.octo4a.repository.LogEntry
 import com.octo4a.repository.LogType
 import com.octo4a.repository.LoggerRepository
+import com.octo4a.repository.getTypeEmoji
 import kotlinx.android.synthetic.main.fragment_terminal_sheet.*
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
@@ -55,31 +56,9 @@ class TerminalSheetDialog: BottomSheetDialogFragment() {
 
                         logCache.forEach {
                             // Display logs
-                            var prefix = ""
-                            var color = 0
-                            when (it.type) {
-                                LogType.BOOTSTRAP -> {
-                                    color = Color.MAGENTA
-                                    prefix = "B"
-                                }
-                                LogType.OCTOPRINT -> {
-                                    color = Color.GREEN
-                                    prefix = "O"
-                                }
-                                LogType.SYSTEM -> {
-                                    color = Color.RED
-                                    prefix = "S"
-                                }
-                                LogType.OTHER -> {
-                                    color = Color.GRAY
-                                    prefix = "?"
-                                }
-                            }
+                            val prefix = it.type.getTypeEmoji()
 
-                            // Set prefix color via lovely span api
-                            val fullText = SpannableString("$prefix: ${it.entry}\n")
-                            fullText.setSpan(ForegroundColorSpan(color), 0, 3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                            textToDisplay = TextUtils.concat(textToDisplay, fullText)
+                            textToDisplay = textToDisplay.toString() + "$prefix ${it.entry}\n"
                         }
 
                         terminalView?.setText(textToDisplay, TextView.BufferType.SPANNABLE)

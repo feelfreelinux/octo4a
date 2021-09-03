@@ -1,5 +1,6 @@
 package com.octo4a.repository
 
+import android.graphics.Color
 import android.os.Looper
 import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -10,10 +11,29 @@ enum class LogType {
     SYSTEM,
     BOOTSTRAP,
     OCTOPRINT,
+    EXTENSION,
     OTHER
 }
 
 data class LogEntry(val entry: String, val type: LogType = LogType.SYSTEM)
+
+fun LogType.getTypeEmoji(): String {
+    return when (this) {
+        LogType.BOOTSTRAP -> {
+            "\uD83D\uDC38"
+        }
+        LogType.OCTOPRINT -> {
+            "\uD83D\uDC19"
+        }
+        LogType.EXTENSION -> {
+            "\uD83D\uDD0C"
+        }
+        LogType.SYSTEM -> {
+            "\uD83D\uDCBB"
+        }
+        else ->"❓"
+    }
+}
 
 interface LoggerRepository {
     val logHistoryFlow: SharedFlow<LogEntry>
@@ -32,7 +52,7 @@ class LoggerRepositoryImpl: LoggerRepository {
             tag = obj::class.java.simpleName + ": "
         }
 
-        Log.d(tag, getMessage())
+        Log.d(type.getTypeEmoji(), getMessage())
 
         runBlocking {
             Looper.getMainLooper().run {

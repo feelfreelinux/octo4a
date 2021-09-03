@@ -7,28 +7,31 @@ plugins {
 }
 
 android {
-    compileSdkVersion(28)
-    buildToolsVersion("30.0.3")
 
+    compileSdk = 28
+    buildToolsVersion = "30.0.3"
     defaultConfig {
         applicationId = "com.octo4a"
-        minSdkVersion(17)
-        targetSdkVersion(28)
+        minSdk = 17
+        targetSdk = 28
         versionName = androidGitVersion.name()
         versionCode = maxOf(androidGitVersion.code(), 1)
         multiDexEnabled = true
 
         //testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
     }
-//    buildFeatures {
+    packagingOptions {
+        jniLibs {
+            pickFirsts += setOf("**/*.so")
+        }
+        resources {
+            pickFirsts += setOf("META-INF/INDEX.LIST", "META-INF/io.netty.versions.properties")
+        }
+    }
+    //    buildFeatures {
 ////        // Enables Jetpack Compose for this module
 ////        compose(true)
 ////    }
-    packagingOptions {
-        pickFirst("META-INF/INDEX.LIST")
-        pickFirst("META-INF/io.netty.versions.properties")
-        pickFirst("**/*.so")
-    }
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -122,7 +125,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-safetynet:17.0.0")
 
     // Bugsnag bug reporting
-    implementation("com.bugsnag:bugsnag-android:5.+")
+    implementation("com.bugsnag:bugsnag-android:5.12.0")
 
     // Test dependencies
     testImplementation("junit:junit:4.13")

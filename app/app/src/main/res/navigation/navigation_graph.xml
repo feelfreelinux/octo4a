@@ -14,10 +14,14 @@
     <fragment
             android:id="@+id/settingsNav"
             android:name="com.octo4a.ui.fragments.SettingsFragment"
-            android:label="Settings"
-            tools:layout="@layout/fragment_settings">
+            android:label="Settings">
     </fragment>
-
+    <fragment
+            android:id="@+id/extensionsNav"
+            android:name="com.octo4a.ui.fragments.ExtensionsFragment"
+            android:label="Extensions"
+            tools:layout="@layout/fragment_extensions">
+    </fragment>
     <fragment
             android:id="@+id/aboutNav"
             android:name="com.octo4a.ui.fragments.AboutFragment"

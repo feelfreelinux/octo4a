@@ -146,7 +146,7 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
         }
         val params = WindowManager.LayoutParams(
             1, 1,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
         PixelFormat.TRANSLUCENT
         )

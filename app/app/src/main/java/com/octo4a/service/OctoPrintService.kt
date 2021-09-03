@@ -134,6 +134,8 @@ class OctoPrintService() : LifecycleService() {
     }
 
     override fun onDestroy() {
+        handlerRepository.stopOctoPrint()
+        handlerRepository.stopSSH()
         unregisterReceiver(broadcastReceiver)
         virtualSerialDriver.stopPtyThread()
         super.onDestroy()

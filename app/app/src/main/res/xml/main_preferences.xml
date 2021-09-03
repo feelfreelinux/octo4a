@@ -24,14 +24,6 @@
                 app:singleLineTitle="false"
                 app:title="SSH port"/>
         <SwitchPreferenceCompat
-                app:dependency="enableSSH"
-                app:key="enableTtyd"
-                app:iconSpaceReserved="false"
-                app:singleLineTitle="false"
-                app:title="Enable remote web terminal (ttyd)"
-                app:defaultValue="false"
-                app:summary="Runs under port 5002. User: octo4a"/>
-        <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
                 app:key="startOnBoot"
