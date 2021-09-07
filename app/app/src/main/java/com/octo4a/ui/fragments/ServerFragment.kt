@@ -194,10 +194,13 @@ class ServerFragment : Fragment() {
                 .setView(R.layout.dialog_camera_preview)
                 .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
                 .show()
-            val surfaceProvider = dialog.findViewById<PreviewView>(R.id.previewView)?.surfaceProvider
-            if (boundToCameraService) {
-                Log.v("DD", " I DO BE BOUND ")
-                cameraService.getPreview().setSurfaceProvider(surfaceProvider)
+
+            dialog.findViewById<PreviewView>(R.id.previewView)?.apply {
+
+
+                if (boundToCameraService) {
+                    cameraService.getPreview().setSurfaceProvider(surfaceProvider)
+                }
             }
         } else {
             Toast.makeText(context, getString(R.string.api_too_low), Toast.LENGTH_LONG).show()

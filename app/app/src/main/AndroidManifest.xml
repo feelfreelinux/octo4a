@@ -22,7 +22,7 @@
             android:allowBackup="false"
             android:name=".Octo4aApplication"
             android:icon="@mipmap/ic_launcher"
-            android:hardwareAccelerated="false"
+            android:hardwareAccelerated="true"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
