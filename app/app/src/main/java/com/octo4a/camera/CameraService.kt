@@ -70,7 +70,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val cameraPreview by lazy {
         Preview.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-//            .setTargetRotation(getCurrentRotation())
+            .setTargetRotation(getCurrentRotation())
             .build()
     }
 
@@ -247,7 +247,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                 synchronized(listenerCount) {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
                         val bitmap = nv21ToBitmap(image.YUV420toNV21(), image.width, image.height)
-
 
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
 

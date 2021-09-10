@@ -1,9 +1,9 @@
 package com.octo4a.camera
 
+import android.util.Log
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.BufferedOutputStream
 import java.io.PipedInputStream
@@ -35,9 +35,13 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
                 val input = PipedInputStream(output)
                 val bufferedOutput = BufferedOutputStream(output, OUTPUT_BUFFERED_SIZE)
                 scope.launch {
-                    val data = frameProvider.takeSnapshot()
-                    bufferedOutput.use {
-                        it.write(data)
+                    kotlin.runCatching {
+                        val data = frameProvider.takeSnapshot()
+                        bufferedOutput.use {
+                            it.write(data)
+                        }
+                    }.onFailure {
+                        Log.v("ASD", it.message)
                     }
                 }
 
@@ -49,17 +53,19 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
                 val bufferedOutput = BufferedOutputStream(output, OUTPUT_BUFFERED_SIZE)
                 scope.launch {
                     kotlin.runCatching {
+                        bufferedOutput.write("--frame\r\n".toByteArray())
+                        bufferedOutput.flush()
                         frameProvider.registerListener()
                         while (true) {
                             val frameData = frameProvider.newestFrame
-                            bufferedOutput.let {
-                                it.write("--frame\r\n".toByteArray())
-                                it.write("Content-type: image/jpeg\r\n".toByteArray())
-                                it.write("Content-Length: ${frameData.size}".toByteArray() + CRLF + CRLF)
-                                it.write(frameData + CRLF)
-                                it.flush()
+                            if(frameData.isNotEmpty()) {
+                                bufferedOutput.let {
+                                    it.write("Content-type: image/jpeg\r\n".toByteArray())
+                                    it.write("Content-Length: ${frameData.size}".toByteArray() + CRLF + CRLF)
+                                    it.write(frameData + CRLF)
+                                    it.write("--frame\r\n".toByteArray())
+                                }
                             }
-                            delay(10)
                         }
                     }.onFailure {
                         frameProvider.unregisterListener()
@@ -69,7 +75,13 @@ class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): Nan
                     }
                 }
 
-                return newChunkedResponse(Response.Status.OK, "multipart/x-mixed-replace; boundary=frame", input)
+                val res =  newChunkedResponse(Response.Status.OK, "multipart/x-mixed-replace; boundary=frame", input)
+                res.addHeader("Cache-Control", "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0")
+                res.addHeader("Max-Age", "0")
+                res.addHeader("Connection", "close")
+                res.addHeader("Expires", "0")
+                res.addHeader("Pragma", "no-cache")
+                return res
             }
             else -> return newFixedLengthResponse(
                 "<html><body>"
