@@ -28,6 +28,7 @@ import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
+import java.lang.annotation.Native
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -42,6 +43,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val captureExecutor by lazy { Executors.newCachedThreadPool() }
+    private val nativeUtils by lazy { NativeCameraUtils() }
 
     var fpsLimit = -1
     var lastImageMilliseconds = System.currentTimeMillis()
@@ -186,10 +188,9 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         return START_STICKY
     }
 
-    val renderScript by lazy { RenderScript.create(applicationContext) }
+    private val renderScript by lazy { RenderScript.create(applicationContext) }
 
     private fun nv21ToBitmap(yuvByteArray: ByteArray, width: Int, height: Int): Bitmap {
-
         val yuvToRgbIntrinsic =
             ScriptIntrinsicYuvToRGB.create(renderScript, Element.U8_4(renderScript))
 
@@ -246,9 +247,11 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
                 synchronized(listenerCount) {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
-                        val bitmap = nv21ToBitmap(image.YUV420toNV21(), image.width, image.height)
+                        val startOp = System.nanoTime()
+                        val bitmap = nv21ToBitmap(nativeUtils.toNv21(image)!!, image.width, image.height)
 
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                        Log.e("Measure", "TASK took : " +  ((System.nanoTime()-startOp)/1000000)+ "mS\n")
 
                         synchronized(latestFrame) {
                             latestFrame = out.toByteArray()

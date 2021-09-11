@@ -52,25 +52,6 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
     private val binder = LocalBinder()
 
     override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
-//        if (!cameraInitialized) {
-//            it.resume(ByteArray(0))
-//        } else {
-//            imageCapture.takePicture(captureExecutor, object : ImageCapture.OnImageCapturedCallback() {
-//                override fun onCaptureSuccess(image: ImageProxy) {
-//                    val buffer = image.planes[0].buffer
-//                    val bytes = ByteArray(buffer.capacity()).also { array -> buffer.get(array) }
-//                    super.onCaptureSuccess(image) //Closes the image
-//                    image.close()
-//                    it.resume(bytes)
-//                }
-//
-//                override fun onError(exception: ImageCaptureException) {
-//                    super.onError(exception)
-//                    log { "Single capture error: $exception" }
-//                    it.resume(ByteArray(0))
-//                }
-//            })
-//        }
     }
 
     override fun registerListener() {
@@ -105,26 +86,6 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
         octoprintHandler.isCameraServerRunning = false
     }
 
-//    fun getPreview(): Preview {
-//        cameraInitialized = false
-//        val turnFlashOn = cameraSettings.flashWhenObserved
-//
-//        cameraProcessProvider?.unbindAll()
-//        val camera = cameraProcessProvider?.bindToLifecycle(
-//            this,
-//            cameraSelector,
-//            imageCapture,
-//            imageAnalysis,
-//            cameraPreview
-//        )
-//
-//        if (turnFlashOn) {
-//            camera?.cameraControl?.enableTorch(true)
-//        }
-//        cameraInitialized = true
-//        return cameraPreview
-//    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         readyCamera()
@@ -147,47 +108,10 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
         val params = WindowManager.LayoutParams(
             1, 1,
             WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-        PixelFormat.TRANSLUCENT
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT
         )
 
         windowManager.addView(preview, params)
-
-//
-//        val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
-//        cameraProviderFuture.addListener({
-//            cameraProcessProvider = cameraProviderFuture.get()
-//
-//            val turnFlashOn = cameraSettings.flashWhenObserved
-//
-//            imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
-//                synchronized(listenerCount) {
-//                    if (listenerCount > 0 || latestFrame.isEmpty()) {
-//                        val buffer = image.YUV420toNV21().NV21toJPEG(image.width, image.height, 100) ?: ByteArray(0)
-//                        if (buffer.isNotEmpty()) {
-//                            synchronized(latestFrame) {
-//                                latestFrame = buffer
-//                            }
-//                        }
-//                    }
-//                }
-//                image.close()
-//            }
-//
-//            cameraProcessProvider?.unbindAll()
-//            val camera = cameraProcessProvider?.bindToLifecycle(
-//                this,
-//                cameraSelector,
-//                imageCapture,
-//                imageAnalysis
-//            )
-//
-//            if (turnFlashOn) {
-//                camera?.cameraControl?.enableTorch(true)
-//            }
-//            cameraInitialized = true
-//        }, ContextCompat.getMainExecutor(applicationContext))
-//        octoprintHandler.isCameraServerRunning = true
     }
     val renderScript by lazy { RenderScript.create(applicationContext) }
 
@@ -218,12 +142,7 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
             val rect = Rect(0, 0, camera.parameters.previewSize.width, camera.parameters.previewSize.height)
             val out = ByteArrayOutputStream()
             camera.setPreviewCallback { bytes, cam ->
-//                YuvImage(
-//                    bytes,
-//                    ImageFormat.NV21,
-//                    cam.parameters.previewSize.width,
-//                    cam.parameters.previewSize.height, null
-//                ).compressToJpeg(rect, 100, out)
+
                 val bitmap = nv21ToBitmap(bytes, cam.parameters.previewSize.width, cam.parameters.previewSize.height)
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
                 synchronized(latestFrame) {

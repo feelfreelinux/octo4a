@@ -26,6 +26,15 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 
+LOCAL_MODULE    := yuv2rgb
+LOCAL_SRC_FILES := yuv2rgb.cpp
+LOCAL_C_INCLUDES += $(LOCAL_PATH)
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
+
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+
 LOCAL_MODULE    := ioctlHook
 LOCAL_SRC_FILES := ioctl-hook.c
 LOCAL_STATIC_LIBRARIES := ioctlHook

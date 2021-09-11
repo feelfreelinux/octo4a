@@ -188,8 +188,6 @@ extern "C"
             __android_log_print(ANDROID_LOG_ERROR, "TAG", "read error");
         else
         {
-            //            buf[nread] = '\0';
-
             if (*buf == TIOCPKT_DATA)
                 __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "TIOCPKT_DATA\n");
 

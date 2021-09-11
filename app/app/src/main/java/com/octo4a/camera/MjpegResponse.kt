@@ -39,7 +39,7 @@ class MjpegResponse(private val frameProvider: MJpegFrameProvider): NanoHTTPD.Re
                         flush()
                     }
 
-                    Thread.sleep(10)
+//                    Thread.sleep(10)
                 }
             }
         }.onFailure {
