@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e
 # install required dependencies
 apk add py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow ttyd
 
