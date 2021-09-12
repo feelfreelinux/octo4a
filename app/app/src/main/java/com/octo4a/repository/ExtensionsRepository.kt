@@ -87,7 +87,7 @@ class ExtensionsRepositoryImpl(
 
                         Thread {
                             val process =
-                                bootstrapRepository.runCommand("/root/extensions/${extension.name}/kill.sh")
+                                bootstrapRepository.runCommand("sh /root/extensions/${extension.name}/kill.sh")
 
                             connectReader(extension, process)
                             process.waitFor()
