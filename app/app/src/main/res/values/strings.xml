@@ -44,12 +44,14 @@
     <string name="status_shutting_down">OctoPrint is shutting down…</string>
     <string name="status_shutting_down_subtitle">this could take a couple of seconds</string>
     <string name="api_too_low">Not supported on older phones</string>
-    <string name="requesting_usb_permission">Requesting permission to device...</string>
+    <string name="requesting_usb_permission">Requesting permission to device…</string>
     <string name="no_driver_selected">No driver selected.</string>
     <string name="optimization_settings_error">Failed to open battery optimization settings</string>
     <string name="serial_driver"> serial driver</string>
     <string name="tap_to_select"> (tap to select)</string>
     <string name="installation_corrupt">Installation corrupted</string>
+    <string name="missing_write_permission">Missing storage permission…</string>
+    <string name="missing_network">No network connection</string>
     <string name="tap_to_reinstall">tap to reinstall the app</string>
 
 

@@ -1,12 +1,12 @@
 package com.octo4a.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -51,14 +51,18 @@ class InitialActivity: AppCompatActivity() {
 
         cameraEnumerationRepository.enumerateCameras()
         installButton.setOnClickListener {
-            checkWritePermissionAndRun()
+            if (!isNetworkConnected()) {
+                Toast.makeText(this, getString(R.string.missing_network), Toast.LENGTH_LONG).show()
+            } else {
+                checkWritePermissionAndRun()
+            }
         }
     }
 
     private fun checkWritePermissionAndRun() {
         if (!hasStoragePermission) {
             requestStoragePermission.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE))
-            Toast.makeText(this, "Missing storage permissions...", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.missing_write_permission), Toast.LENGTH_LONG).show()
         }
         else {
             startApp()
@@ -83,6 +87,11 @@ class InitialActivity: AppCompatActivity() {
         isServiceRunning(CameraService::class.java) || isServiceRunning(
             LegacyCameraService::class.java
         )
+    }
+
+    private fun isNetworkConnected(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetworkInfo != null && cm.activeNetworkInfo.isConnected
     }
 
     private fun startOctoService() {
