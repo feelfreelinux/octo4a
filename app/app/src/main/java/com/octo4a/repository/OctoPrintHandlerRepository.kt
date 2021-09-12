@@ -73,8 +73,7 @@ class OctoPrintHandlerRepositoryImpl(
     private val extensionsRepository: ExtensionsRepository,
     private val fifoEventRepository: FIFOEventRepository) : OctoPrintHandlerRepository {
     private val externalStorageSymlinkPath = Environment.getExternalStorageDirectory().path + "/OctoPrint"
-    private val octoPrintStoragePath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/.octoprint"
-    private val extensionsPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/extensions"
+    private val octoPrintStoragePath = "${context.getExternalFilesDir(null).absolutePath}/.octoprint"
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
@@ -170,7 +169,7 @@ class OctoPrintHandlerRepositoryImpl(
             logger.log { "Failed to start. OctoPrint already running." }
         }
         bootstrapRepository.run {
-            runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/root/eventPipe", prooted = false).waitAndPrintOutput(logger)
+            runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/eventPipe", prooted = false).waitAndPrintOutput(logger)
         }
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
@@ -249,7 +248,7 @@ class OctoPrintHandlerRepositoryImpl(
         val map = getConfig()
         map["webcam"] = mapOf(
             "stream" to "http://${context.ipAddress}:5001/mjpeg",
-            "ffmpeg" to "/data/data/com.octo4a/files/usr/bin/ffmpeg",
+            "ffmpeg" to "/usr/bin/ffmpeg",
             "snapshot" to "http://localhost:5001/snapshot"
         )
         map["serial"] = mapOf(
@@ -257,8 +256,8 @@ class OctoPrintHandlerRepositoryImpl(
             "additionalPorts" to listOf("/dev/ttyOcto4a")
             )
         map["server"] = mapOf("commands" to mapOf(
-            "serverRestartCommand" to "echo \"{\\\"eventType\\\": \\\"restartServer\\\"}\" > eventPipe",
-            "systemShutdownCommand" to "echo \"{\\\"eventType\\\": \\\"stopServer\\\"}\" > eventPipe"
+            "serverRestartCommand" to "echo \"{\\\"eventType\\\": \\\"restartServer\\\"}\" > /eventPipe",
+            "systemShutdownCommand" to "echo \"{\\\"eventType\\\": \\\"stopServer\\\"}\" > /eventPipe"
         ))
 
         saveConfig(map)

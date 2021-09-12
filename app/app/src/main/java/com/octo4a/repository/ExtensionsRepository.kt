@@ -31,6 +31,8 @@ interface ExtensionsRepository {
     fun modifyExtensionSetting(name: String, enabled: Boolean)
     fun getExtensionSettings(name: String): ExtensionSettings?
     fun startExtension(extension: RegisteredExtension)
+    fun stopAllExtensions()
+
 }
 
 class ExtensionsRepositoryImpl(
@@ -61,6 +63,16 @@ class ExtensionsRepositoryImpl(
             }
         }.onFailure {
 
+        }
+    }
+
+    override fun stopAllExtensions() {
+        getExtensionSettings().forEach { extension ->
+            if (extension.enabled) {
+                extensionsState.value.firstOrNull { it.name == extension.name }?.apply {
+                    stopExtension(this)
+                }
+            }
         }
     }
 

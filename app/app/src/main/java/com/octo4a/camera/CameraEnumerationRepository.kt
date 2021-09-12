@@ -62,7 +62,7 @@ class CameraEnumerationRepository(val context: Context) {
                     val sensorInfoPixelArraySize =
                         characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE)
                     val megapixels =
-                        (sensorInfoPixelArraySize.width * sensorInfoPixelArraySize.height) / 1024000
+                        (sensorInfoPixelArraySize.width * sensorInfoPixelArraySize.height) / 1000000
                     val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
                     val configs = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
@@ -86,7 +86,7 @@ class CameraEnumerationRepository(val context: Context) {
                     val cam = Camera.open(i)
 
                     val pictureSize = cam.parameters.pictureSize
-                    val megaPixels = (pictureSize.width * pictureSize.height) / 1024000
+                    val megaPixels = (pictureSize.width * pictureSize.height) / 1000000
                     cams.add(CameraDescription(
                         i.toString(),
                         megaPixels,

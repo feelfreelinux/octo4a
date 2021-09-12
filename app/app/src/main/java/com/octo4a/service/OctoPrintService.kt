@@ -11,10 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.asLiveData
 import com.octo4a.R
-import com.octo4a.repository.BootstrapRepository
-import com.octo4a.repository.FIFOEventRepository
-import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.repository.ServerStatus
+import com.octo4a.repository.*
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.serial.id
 import com.octo4a.ui.MainActivity
@@ -27,6 +24,8 @@ class OctoPrintService() : LifecycleService() {
     private val handlerRepository: OctoPrintHandlerRepository by inject()
     private val bootstrapRepository: BootstrapRepository by inject()
     private val fifoEventRepository: FIFOEventRepository by inject()
+    private val extensionsRepository: ExtensionsRepository by inject()
+
     private val scope = CoroutineScope(Dispatchers.IO)
     private val notificationManager by lazy { getSystemService(NOTIFICATION_SERVICE) as NotificationManager }
     private var wakeLock: PowerManager.WakeLock? = null
@@ -136,6 +135,7 @@ class OctoPrintService() : LifecycleService() {
     override fun onDestroy() {
         handlerRepository.stopOctoPrint()
         handlerRepository.stopSSH()
+        extensionsRepository.stopAllExtensions()
         unregisterReceiver(broadcastReceiver)
         virtualSerialDriver.stopPtyThread()
         super.onDestroy()
