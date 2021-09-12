@@ -1,12 +1,18 @@
 package com.octo4a.ui
 
 import android.Manifest
+import android.app.ActivityManager
+import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +27,7 @@ import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
+import java.io.File
 
 
 class InitialActivity: AppCompatActivity() {
@@ -31,6 +38,9 @@ class InitialActivity: AppCompatActivity() {
     // Storage permission request
     private val hasStoragePermission: Boolean
         get() = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+
+    // Detects legacy (<1.0.0) release bootstrap
+    private val legacyBootstrapInstalled by lazy { File("/data/data/com.octo4a/files/home").exists() }
 
     private val requestStoragePermission =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
@@ -45,13 +55,23 @@ class InitialActivity: AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_landing)
 
+        if (legacyBootstrapInstalled) {
+            showLegacyBootstrapDialog()
+        }
+
         if (bootstrapRepository.isBootstrapInstalled) {
             checkWritePermissionAndRun()
         }
 
+        prepareBootstrap()
+    }
+
+    private fun prepareBootstrap() {
         cameraEnumerationRepository.enumerateCameras()
         installButton.setOnClickListener {
-            if (!isNetworkConnected()) {
+            if (legacyBootstrapInstalled) {
+                showLegacyBootstrapDialog()
+            } else if (!isNetworkConnected()) {
                 Toast.makeText(this, getString(R.string.missing_network), Toast.LENGTH_LONG).show()
             } else {
                 checkWritePermissionAndRun()
@@ -109,5 +129,36 @@ class InitialActivity: AppCompatActivity() {
                 startService(intent)
             }
         }
+    }
+
+    private fun showLegacyBootstrapDialog() {
+        val alertDialog: AlertDialog? = this.let {
+            val builder = AlertDialog.Builder(it)
+            builder.apply {
+                setTitle(R.string.legacy_bootstrap)
+                setMessage(R.string.legacy_bootstrap_msg)
+                setNeutralButton(android.R.string.cancel) { dialog, id ->
+                }
+
+                setPositiveButton(R.string.clear_and_install) { dialog, id ->
+                    val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    // clearing app data
+                    if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
+                        activityManager.clearApplicationUserData()
+                    } else {
+                        val packageName = applicationContext.packageName
+                        val runtime = Runtime.getRuntime();
+                        runtime.exec("pm clear $packageName");
+                    }
+
+                    prepareBootstrap()
+                }
+
+            }
+
+            builder.create()
+        }
+
+        alertDialog?.show()
     }
 }

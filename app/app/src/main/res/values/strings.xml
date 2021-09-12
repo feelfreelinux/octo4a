@@ -41,6 +41,9 @@
     <string name="action_open_settings">Open Settings</string>
     <string name="disable_battery_optimization">Disable battery optimization</string>
     <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
+    <string name="legacy_bootstrap">Legacy installation detected</string>
+    <string name="legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
+    <string name="clear_and_install">Clear data</string>
     <string name="status_shutting_down">OctoPrint is shutting down…</string>
     <string name="status_shutting_down_subtitle">this could take a couple of seconds</string>
     <string name="api_too_low">Not supported on older phones</string>
