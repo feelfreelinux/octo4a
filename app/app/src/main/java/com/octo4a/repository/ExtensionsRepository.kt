@@ -38,7 +38,7 @@ class ExtensionsRepositoryImpl(
     private val preferences: MainPreferences,
     private val logger: LoggerRepository,
     private val bootstrapRepository: BootstrapRepository) : ExtensionsRepository {
-    private val extensionsPath = "/data/data/com.octo4a/files/bootstrap/bootstrap/root/extensions"
+    private val extensionsPath by lazy { context.getExternalFilesDir(null).absolutePath + "/extensions" }
     private val extensionMap = mutableMapOf<String, Thread?>()
     val gson by lazy {
         GsonBuilder().create()
@@ -49,15 +49,18 @@ class ExtensionsRepositoryImpl(
     override val extensionsState = _extensionsState
 
     override fun startUpNecessaryExtensions() {
-        getValidExtensions()
+        kotlin.runCatching {
+            getValidExtensions()
 
-        getExtensionSettings().forEach {
-            extension ->
-            if (extension.enabled) {
-                extensionsState.value.firstOrNull { it.name == extension.name }?.apply {
-                    startExtension(this)
+            getExtensionSettings().forEach { extension ->
+                if (extension.enabled) {
+                    extensionsState.value.firstOrNull { it.name == extension.name }?.apply {
+                        startExtension(this)
+                    }
                 }
             }
+        }.onFailure {
+
         }
     }
 

@@ -2,7 +2,6 @@ package com.octo4a.repository
 
 import android.content.Context
 import android.os.Build
-import android.system.Os
 import android.util.Pair
 import com.octo4a.BuildConfig
 import com.octo4a.utils.*
@@ -35,7 +34,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         val PREFIX_PATH = "$FILES_PATH/bootstrap"
         val HOME_PATH = "$FILES_PATH/home"
     }
-
+    val filesPath: String by lazy { context.getExternalFilesDir(null).absolutePath }
     private var _commandsFlow = MutableSharedFlow<String>(100)
     override val commandsFlow: SharedFlow<String>
         get() = _commandsFlow
@@ -171,12 +170,16 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
 
     override fun runCommand(command: String, prooted: Boolean, root: Boolean, bash: Boolean): Process {
         val FILES = "/data/data/com.octo4a/files"
+        val directory = File(filesPath)
+        if (!directory.exists()) {
+            directory.mkdirs()
+        }
         val pb = ProcessBuilder()
         pb.redirectErrorStream(true)
         pb.environment()["HOME"] = "$FILES/bootstrap"
         pb.environment()["LANG"] = "'en_US.UTF-8'"
         pb.environment()["PWD"] = "$FILES/bootstrap"
-        pb.environment()["EXTRA_BIND"] = "-b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
+        pb.environment()["EXTRA_BIND"] = "-b ${filesPath}:/root -b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
         pb.environment()["PATH"] = "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
         pb.directory(File("$FILES/bootstrap"))
         var user = "root"
