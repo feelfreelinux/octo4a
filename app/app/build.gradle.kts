@@ -18,6 +18,14 @@ android {
         versionCode = maxOf(androidGitVersion.code(), 1)
         multiDexEnabled = true
 
+        ndk {
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
+            abiFilters.add("armeabi")
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+        }
+
         //testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
     }
     packagingOptions {
@@ -65,7 +73,7 @@ dependencies {
     val lifecycleVersion = "2.3.0"
     val ktorVersion = "1.5.2"
     val koinVersion = "3.1.2"
-    val cameraXVersion = "1.0.1"
+    val cameraXVersion = "1.0.0"
 
     // Android lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")

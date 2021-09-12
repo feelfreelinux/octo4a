@@ -62,6 +62,8 @@
                 app:defaultValue="0"
                 app:title="Image rotation"
                 app:summary="%s"/>
+
+
         <ListPreference
                 app:iconSpaceReserved="false"
                 app:key="fpsLimit"
@@ -78,6 +80,13 @@
                 app:defaultValue="false"
                 app:title="Turn on flash"
                 app:summary="Turn on flash when camera is being observed"/>
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:key="disableAF"
+                app:dependency="enableCameraServer"
+                app:defaultValue="false"
+                app:title="Disable autofocus"
+                app:summary="Disables camera autofocus"/>
     </PreferenceCategory>
 
 

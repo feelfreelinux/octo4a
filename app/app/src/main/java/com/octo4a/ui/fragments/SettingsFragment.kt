@@ -39,7 +39,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
-    private val enableTtyd by lazy { findPreference<SwitchPreferenceCompat>("enableTtyd") }
+    private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
 
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -86,8 +86,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         cameraEnumerationRepository.enumeratedCameras.observe(viewLifecycleOwner) {
             setupCameraSettings(it)
-//            preferenceScreen = null
-//            addPreferencesFromResource(R.xml.main_preferences)
         }
     }
 
@@ -187,6 +185,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
             val selectedResolution = selectedCamera?.sizes?.sortedBy { it.width }?.firstOrNull { it.width >= 1000 } ?: selectedCamera?.sizes?.first()
             prefs.selectedCamera = selectedCamera?.id
             prefs.selectedResolution = selectedResolution?.readableString()
+        }
+
+        disableAF?.apply {
+            setOnPreferenceChangeListener { _, newValue ->
+                prefs.disableAF = newValue as Boolean
+                stopCameraServer()
+                startCameraServer()
+                true
+            }
         }
 
         selectedCameraPref?.apply {

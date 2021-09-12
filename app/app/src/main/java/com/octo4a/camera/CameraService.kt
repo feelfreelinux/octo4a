@@ -1,12 +1,16 @@
 package com.octo4a.camera
 
+//import com.octo4a.camera.cameraWithId
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.hardware.camera2.CameraManager
+import android.graphics.ImageFormat
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -15,23 +19,22 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import com.octo4a.repository.LoggerRepository
-//import com.octo4a.camera.cameraWithId
 import com.octo4a.repository.OctoPrintHandlerRepository
-import com.octo4a.utils.NV21toJPEG
-import com.octo4a.utils.YUV420toNV21
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
-import java.lang.annotation.Native
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraService : LifecycleService(), MJpegFrameProvider {
@@ -44,6 +47,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val captureExecutor by lazy { Executors.newCachedThreadPool() }
     private val nativeUtils by lazy { NativeCameraUtils() }
+    var currentCamera: Camera? = null
 
     var fpsLimit = -1
     var lastImageMilliseconds = System.currentTimeMillis()
@@ -80,6 +84,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         ImageCapture.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setTargetRotation(getCurrentRotation())
             .build()
     }
 
@@ -128,6 +133,12 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             listenerCount++
         }
         logger.log(this) { "Camera server register listener" }
+
+        val turnFlashOn = cameraSettings.flashWhenObserved
+
+        if (listenerCount > 0  && turnFlashOn && cameraInitialized) {
+            currentCamera?.cameraControl?.enableTorch(true)
+        }
     }
 
     override fun unregisterListener() {
@@ -135,6 +146,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             listenerCount--
         }
         logger.log(this) { "Camera server unregister listener" }
+
+        if (listenerCount < 1 && cameraInitialized) {
+            currentCamera?.cameraControl?.enableTorch(false)
+        }
     }
 
     private val mjpegServer by lazy { MJpegServer(5001, this) }
@@ -188,34 +203,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         return START_STICKY
     }
 
-    private val renderScript by lazy { RenderScript.create(applicationContext) }
-
-    private fun nv21ToBitmap(yuvByteArray: ByteArray, width: Int, height: Int): Bitmap {
-        val yuvToRgbIntrinsic =
-            ScriptIntrinsicYuvToRGB.create(renderScript, Element.U8_4(renderScript))
-
-        val yuvType = Type.Builder(renderScript, Element.U8(renderScript)).setX(yuvByteArray.size)
-        val allocationIn =
-            Allocation.createTyped(renderScript, yuvType.create(), Allocation.USAGE_SCRIPT)
-
-        val rgbaType =
-            Type.Builder(renderScript, Element.RGBA_8888(renderScript)).setX(width).setY(height)
-        val allocationOut =
-            Allocation.createTyped(renderScript, rgbaType.create(), Allocation.USAGE_SCRIPT)
-
-        allocationIn.copyFrom(yuvByteArray)
-
-        yuvToRgbIntrinsic.setInput(allocationIn)
-        yuvToRgbIntrinsic.forEach(allocationOut)
-
-        val bmpout = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        allocationOut.copyTo(bmpout)
-
-        allocationOut.destroy()
-        allocationIn.destroy()
-        yuvToRgbIntrinsic.destroy()
-        return bmpout
-    }
 
     @SuppressWarnings("UnsafeExperimentalUsageError")
     private fun readyCamera() {
@@ -230,10 +217,11 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
         val out = ByteArrayOutputStream()
 
+        val rotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
+
         cameraProviderFuture.addListener({
             cameraProcessProvider = cameraProviderFuture.get()
 
-            val turnFlashOn = cameraSettings.flashWhenObserved
 
             imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
                 // Roughly limit fps to user's chosen value
@@ -247,16 +235,18 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
                 synchronized(listenerCount) {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
-                        val startOp = System.nanoTime()
-                        val bitmap = nv21ToBitmap(nativeUtils.toNv21(image)!!, image.width, image.height)
+                        var nv21 = nativeUtils.toNv21(image)!!
 
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
-                        Log.e("Measure", "TASK took : " +  ((System.nanoTime()-startOp)/1000000)+ "mS\n")
+                        if (rotation > 0) {
+                            nv21 = RotateUtils.rotateNV21(nv21, image.width, image.height, rotation)!!
+                        }
+
+                        val yuv = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
+                        yuv.compressToJpeg(Rect(0, 0, image.width, image.height), 80, out)
 
                         synchronized(latestFrame) {
                             latestFrame = out.toByteArray()
                             lastImageMilliseconds = System.currentTimeMillis()
-                            bitmap.recycle()
                             out.reset()
                         }
                     }
@@ -265,15 +255,25 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             }
 
             cameraProcessProvider?.unbindAll()
-            val camera = cameraProcessProvider?.bindToLifecycle(
+            currentCamera = cameraProcessProvider?.bindToLifecycle(
                 this,
                 cameraSelector,
                 imageCapture,
                 imageAnalysis
             )
 
-            if (turnFlashOn) {
-                camera?.cameraControl?.enableTorch(true)
+            if (cameraSettings.disableAF) {
+                val cameraControl: CameraControl = currentCamera!!.cameraControl
+                val camera2CameraControl: Camera2CameraControl =
+                    Camera2CameraControl.from(cameraControl)
+
+                val captureRequestOptions = CaptureRequestOptions.Builder()
+                    .setCaptureRequestOption(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CameraMetadata.CONTROL_AF_MODE_OFF
+                    )
+                    .build()
+                camera2CameraControl.captureRequestOptions = captureRequestOptions
             }
             cameraInitialized = true
         }, ContextCompat.getMainExecutor(applicationContext))
