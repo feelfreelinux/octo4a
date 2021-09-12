@@ -41,7 +41,7 @@ interface LoggerRepository {
 }
 
 class LoggerRepositoryImpl: LoggerRepository {
-    private var _logHistoryFlow = MutableSharedFlow<LogEntry>(500)
+    private var _logHistoryFlow = MutableSharedFlow<LogEntry>(1000)
 
     override val logHistoryFlow: SharedFlow<LogEntry>
         get() = _logHistoryFlow
