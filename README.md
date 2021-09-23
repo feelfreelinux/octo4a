@@ -29,40 +29,9 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 - Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buing a separate module. The app also supports  octolapse.
 - SSH support. You can easily log-in via ssh and customize your octoprint installation. 
 
-## FAQ
+## Wiki
 
-### What are the requirements to run this app?
-
-Octo4a should run on Android 5 (Lolipop) and newer, because it uses Termux under the hood. You will also need an USB OTG cable (preferably the Y type) and about 700 MB of free storage on your phone.
-
-### Why cannot I download octo4a from the Play Store?
-
-Unfortunately due to legal and technical limitations the Play Store does not allow apps like octo4a.
-
-### How do I charge my phone and connect to the printer at the same time?
-
-You can use an Y USB cable (search for "usb otg y cable", [example cable on Aliexpress](https://pl.aliexpress.com/item/4000478500211.html)). It splits the data and power cables between your printer and phone charger.
-
-![An image showing an USB Y cable](.github/OTG-connection.png)
-
-Unfortunately not all phones support charging and USB OTG at the same time. Sometimes the issue is on the software side and changing your ROM might enable charging via the Y cable.
-
-Another workaround is to just use wireless charging if the phone supports it, and connect the printer via a normal OTG adapter.
-
-If you don't care about your phone's condition you can also replace the battery inside with a 3.7V power supply, but we do not recommend this approach since it might cause damage to the phone and even start a fire.
-
-### The performance of OctoPrint is poor when the screen is off. What can I do?
-
-Please try disabling any battery optimizations in your phone settings. Also make sure that the phone is plugged in and charging. As a last resort you can prevent the screen from turning off by going to the the developer settings and checking "Stay Awake".
-
-### My printer is not being detected by octo4a. The app says "Printer not connected" even though it is connected via USB.
-
-It is possible that your printer has an uncommon USB vendor id/product id. This happens especially on exotic Chinese 3D printers and mainboards. The app [has a list of VIDs/PIDs](https://github.com/feelfreelinux/octo4a/blob/master/app/app/src/main/res/xml/device_filter.xml) which is used by Android to choose the app to handle the device. Please leave a message on the Telegram channel or create an issue so that we can add your printer.
-
-### I need help with using this app. Is there any way I can get support?
-
-You can join our group on telegram for support [https://t.me/octo4achat](https://t.me/octo4achat) and if you found a bug or a program you can [create an issue](https://github.com/feelfreelinux/octo4a/issues/new).
-
+FAQ and many different topics are described in the [project's wiki](https://github.com/feelfreelinux/octo4a/wiki)
 
 ## Contributing
 
@@ -70,7 +39,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## Donating
 
-If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) and [Termux](https://termux.com/donate.html) projects, so please consider donating to them if you like this app. Thank you for your support :)
+If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) so please consider donating to them if you like this app. Thank you for your support :)
 
 ## Disclaimer
 
