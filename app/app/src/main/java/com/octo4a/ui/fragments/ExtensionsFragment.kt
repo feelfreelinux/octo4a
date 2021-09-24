@@ -1,5 +1,7 @@
 package com.octo4a.ui.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -34,6 +36,12 @@ class ExtensionsFragment : Fragment() {
                 extensionsList.addView(extensionView)
                 extensionView.setExtensionDescription(it)
             }
+        }
+
+        extensionsCard.setOnClickListener {
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse("https://github.com/feelfreelinux/octo4a/wiki/Extensions-system")
+            startActivity(i)
         }
     }
 }

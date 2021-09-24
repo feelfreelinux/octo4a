@@ -34,6 +34,12 @@ enum class ServerStatus(val value: Int, val progress: Boolean=false) {
     Corrupted(6)
 }
 
+enum class ExtrasStatus {
+    NotInstalled,
+    Installing,
+    Installed
+}
+
 data class UsbDeviceStatus(val isAttached: Boolean, val port: String = "")
 
 fun ServerStatus.getInstallationProgress(): Int {
@@ -50,13 +56,16 @@ interface OctoPrintHandlerRepository {
     val usbDeviceStatus: StateFlow<UsbDeviceStatus>
     val registeredExtensions: StateFlow<List<RegisteredExtension>>
     val cameraServerStatus: StateFlow<Boolean>
+    val extrasStatus: StateFlow<ExtrasStatus>
 
     suspend fun beginInstallation()
     fun startOctoPrint()
     fun stopOctoPrint()
     fun startSSH()
     fun stopSSH()
+    fun installExtras()
     fun usbAttached(port: String)
+    fun getExtrasStatus()
     fun usbDetached()
     fun resetSSHPassword(password: String)
     fun getConfigValue(value: String): String
@@ -84,6 +93,7 @@ class OctoPrintHandlerRepositoryImpl(
     private var _octoPrintVersion = MutableStateFlow("...")
     private var _usbDeviceStatus = MutableStateFlow(UsbDeviceStatus(false))
     private var _cameraServerStatus = MutableStateFlow(false)
+    private var _extrasStatus = MutableStateFlow(ExtrasStatus.NotInstalled)
     private var wakeLock = Octo4aWakeLock(context, logger)
 
     private var octoPrintProcess: Process? = null
@@ -94,6 +104,7 @@ class OctoPrintHandlerRepositoryImpl(
     override val octoPrintVersion: StateFlow<String> = _octoPrintVersion
     override val usbDeviceStatus: StateFlow<UsbDeviceStatus> = _usbDeviceStatus
     override val cameraServerStatus: StateFlow<Boolean> = _cameraServerStatus
+    override val extrasStatus: StateFlow<ExtrasStatus> = _extrasStatus
 
     override var isCameraServerRunning: Boolean
         get() = _cameraServerStatus.value
@@ -130,6 +141,7 @@ class OctoPrintHandlerRepositoryImpl(
                 startOctoPrint()
                 logger.log { "Dependencies installed" }
             } else {
+                getExtrasStatus()
                 startOctoPrint()
                 if (preferences.enableSSH) {
                     logger.log { "Enabling ssh" }
@@ -137,6 +149,29 @@ class OctoPrintHandlerRepositoryImpl(
                 }
                 extensionsRepository.startUpNecessaryExtensions()
             }
+        }
+    }
+
+    override fun getExtrasStatus() {
+        val file = File("/data/data/com.octo4a/files/bootstrap/bootstrap/usr/bin/gcc")
+
+        if(file.exists()) {
+            _extrasStatus.value = ExtrasStatus.Installed
+        } else if (_extrasStatus.value != ExtrasStatus.Installing) {
+            _extrasStatus.value = ExtrasStatus.NotInstalled
+        }
+    }
+
+    override fun installExtras() {
+        if (_extrasStatus.value == ExtrasStatus.NotInstalled) {
+            Thread {
+                _extrasStatus.value = ExtrasStatus.Installing
+                bootstrapRepository.runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-plugin-extras.sh | bash -s")
+                    .waitAndPrintOutput(
+                        logger
+                    )
+                _extrasStatus.value = ExtrasStatus.Installed
+            }.start()
         }
     }
 

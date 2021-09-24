@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
         xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+            app:title="Install plugin extras"
+            app:key="installPluginExtras"
+            app:iconSpaceReserved="false"
+            app:summary="Installs extra dependencies for plugins" />
     <PreferenceCategory
             app:title="Server settings"
             app:iconSpaceReserved="false">

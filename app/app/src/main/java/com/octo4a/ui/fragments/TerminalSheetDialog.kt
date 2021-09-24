@@ -65,7 +65,9 @@ class TerminalSheetDialog: BottomSheetDialogFragment() {
 
                         // Auto scroll if enabled
                         if (enableAutoScroll.isChecked) {
-                            scrollView.fullScroll(View.FOCUS_DOWN)
+                            scrollView.post {
+                                scrollView.fullScroll(View.FOCUS_DOWN)
+                            }
                         }
                     }
 

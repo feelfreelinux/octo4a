@@ -10,14 +10,17 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.asLiveData
 import androidx.preference.*
 import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.camera.CameraService
+import com.octo4a.repository.ExtrasStatus
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
+import kotlinx.coroutines.flow.observeOn
 import org.koin.android.ext.android.inject
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -38,6 +41,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
+    private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
     private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
 
@@ -73,6 +77,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setDefaultValue("8022")
         }
 
+
         setupSSHSettings()
     }
 
@@ -87,6 +92,29 @@ class SettingsFragment : PreferenceFragmentCompat() {
         cameraEnumerationRepository.enumeratedCameras.observe(viewLifecycleOwner) {
             setupCameraSettings(it)
         }
+
+        octoprintHandler.extrasStatus.asLiveData().observe(viewLifecycleOwner) {
+            when(it) {
+                ExtrasStatus.Installing -> {
+                    installPluginExtras?.summary = "Installing..."
+                }
+
+                ExtrasStatus.NotInstalled -> {
+                    installPluginExtras?.summary = "Not installed"
+                }
+
+                else -> {
+                    installPluginExtras?.summary = "Installed"
+                }
+            }
+        }
+
+        installPluginExtras?.setOnPreferenceClickListener {
+            octoprintHandler.installExtras()
+            true
+        }
+
+        octoprintHandler.getExtrasStatus()
     }
 
     private fun setupSSHSettings() {
