@@ -52,6 +52,10 @@ class InitialActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (prefs.currentRelease.isNullOrBlank()) {
+            prefs.currentRelease = "1.0.0"
+        }
+
         supportActionBar?.hide()
         setContentView(R.layout.activity_landing)
 
