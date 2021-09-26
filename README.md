@@ -26,7 +26,7 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 
 - Quick and easy octoprint installation.
 - Printer connection via USB OTG. Thanks to our custom USB driver you can use octoprint even on phones without root access.
-- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buing a separate module. The app also supports  octolapse.
+- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buying a separate module. The app also supports  octolapse.
 - SSH support. You can easily log-in via ssh and customize your octoprint installation. 
 
 ## Wiki
