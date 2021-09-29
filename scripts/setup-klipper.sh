@@ -1,11 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 COL='\033[1;32m'
 NC='\033[0m' # No Color
 echo -e "${COL}Setting up klipper"
 
 read -p "Do you have \"Plugin extras\" installed? (y/n): " -n 1 -r
-echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
     echo -e "${COL}Please go to settings and install plugin extras${NC}"
