@@ -1,5 +1,6 @@
 # octo4a - Run OctoPrint on Android
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/feelfreelinux)
+![GitHub Sponsors](https://img.shields.io/github/sponsors/feelfreelinux)
 
 ![A banner visually expaining how the app works](.github/readme-banner.png)
 
@@ -26,7 +27,7 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 
 - Quick and easy octoprint installation.
 - Printer connection via USB OTG. Thanks to our custom USB driver you can use octoprint even on phones without root access.
-- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buing a separate module. The app also supports  octolapse.
+- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buying a separate module. The app also supports  octolapse.
 - SSH support. You can easily log-in via ssh and customize your octoprint installation. 
 
 ## Wiki
@@ -39,7 +40,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## Donating
 
-If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) so please consider donating to them if you like this app. Thank you for your support :)
+If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux) or [sponsor me on GitHub](https://github.com/sponsors/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) so please consider donating to them if you like this app. Thank you for your support :)
 
 ## Disclaimer
 
