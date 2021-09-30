@@ -1,5 +1,6 @@
 # octo4a - Run OctoPrint on Android
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/feelfreelinux)
+![GitHub Sponsors](https://img.shields.io/github/sponsors/feelfreelinux)
 
 ![A banner visually expaining how the app works](.github/readme-banner.png)
 
@@ -39,7 +40,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## Donating
 
-If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) so please consider donating to them if you like this app. Thank you for your support :)
+If you like this project, feel free to [donate on PayPal](https://paypal.me/feelfreelinux) or [sponsor me on GitHub](https://github.com/sponsors/feelfreelinux). This project heavily relies on great work done on [OctoPrint](https://www.patreon.com/foosel) so please consider donating to them if you like this app. Thank you for your support :)
 
 ## Disclaimer
 
