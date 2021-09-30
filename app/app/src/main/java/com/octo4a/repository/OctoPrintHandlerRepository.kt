@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Environment
 import android.util.Log
 import com.google.gson.JsonParser
+import com.octo4a.serial.VSPPty
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +87,7 @@ class OctoPrintHandlerRepositoryImpl(
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
+    private val vspPty by lazy { VSPPty() }
     private val yaml by lazy { Yaml() }
 
     private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
@@ -204,8 +206,9 @@ class OctoPrintHandlerRepositoryImpl(
             logger.log { "Failed to start. OctoPrint already running." }
         }
         bootstrapRepository.run {
-            runCommand("mkfifo /data/data/com.octo4a/files/bootstrap/bootstrap/eventPipe", prooted = false).waitAndPrintOutput(logger)
+            vspPty.createEventPipe()
         }
+
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
         Thread {

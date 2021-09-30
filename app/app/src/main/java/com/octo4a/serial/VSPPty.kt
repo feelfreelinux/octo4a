@@ -9,5 +9,6 @@ class VSPPty {
     external fun writeData(data: ByteArray)
     external fun getBaudrate(data: Int): Int
     external fun runPtyThread()
+    external fun createEventPipe()
 
 }

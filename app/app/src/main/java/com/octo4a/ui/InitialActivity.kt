@@ -53,7 +53,7 @@ class InitialActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         if (prefs.currentRelease.isNullOrBlank()) {
-            prefs.currentRelease = "1.0.0"
+            prefs.currentRelease = "1.0.1"
         }
 
         supportActionBar?.hide()

@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <thread>
 
 #define BUFSIZE 512
@@ -154,11 +155,11 @@ extern "C"
 {
 
     int slave;
-    __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "OK GETTIN READY");
+    __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "PtyThread getting ready");
 
     char name[256];
     openpty(&master, &slave, name, nullptr, nullptr);
-    __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "CORN");
+    __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "PtyThread called openpty");
 
     unlink("/data/data/com.octo4a/files/serialpipe");
     symlink(name, "/data/data/com.octo4a/files/serialpipe");
@@ -277,6 +278,15 @@ extern "C"
     {
         if (ptyThreadHandle == 0) {
             pthread_create(&ptyThreadHandle, nullptr, &ptyThread, nullptr);
+        }
+    }
+
+    JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_createEventPipe(JNIEnv *env, jobject instance)
+    {
+        int res = mkfifo("/data/data/com.octo4a/files/bootstrap/bootstrap/eventPipe", S_IRWXO | S_IRWXU);
+        if (res != 0)
+        {
+            __android_log_print(ANDROID_LOG_VERBOSE, "MkFifo:", " Can't create event pipe\n");
         }
     }
 }
