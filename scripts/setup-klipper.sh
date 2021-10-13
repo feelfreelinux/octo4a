@@ -13,7 +13,7 @@ fi
 
 echo -e "${COL}Installing dependencies...${NC}"
 # install required dependencies
-apk add py3-cffi py3-greenlet linux-headers can-utils
+apk add py3-cffi py3-greenlet linux-headers can-utils avr-libc gcc-arm-none-eabi newlib-arm-none-eabi
 pip3 install python-can
 
 echo -e "${COL}Downloading klipper (python3 branch)${NC}"
@@ -46,5 +46,8 @@ chmod +x /root/extensions/klipper/start.sh
 chmod +x /root/extensions/klipper/kill.sh
 chmod 777 /root/extensions/klipper/start.sh
 chmod 777 /root/extensions/klipper/kill.sh
+
+chmod -R 777 /klipper/lib
+chmod -R 777 /klipper/scripts
 
 echo -e "${COL}Klipper installed! Please kill the app and restart it again to see it in extension settings${NC}"
