@@ -26,17 +26,17 @@ class NativeCameraUtils {
     ): Boolean
 
     fun toNv21(image: ImageProxy): ByteArray? {
-        val nv21 = ByteArray((image.getWidth() * image.getHeight() * 1.5f).toInt())
+        val nv21 = ByteArray((image.width * image.height * 1.5f).toInt())
         return if (!yuv420toNv21(
-                image.getWidth(),
-                image.getHeight(),
-                image.getPlanes().get(0).getBuffer(),  // Y buffer
-                image.getPlanes().get(1).getBuffer(),  // U buffer
-                image.getPlanes().get(2).getBuffer(),  // V buffer
-                image.getPlanes().get(0).getPixelStride(),  // Y pixel stride
-                image.getPlanes().get(1).getPixelStride(),  // U/V pixel stride
-                image.getPlanes().get(0).getRowStride(),  // Y row stride
-                image.getPlanes().get(1).getRowStride(),  // U/V row stride
+                image.width,
+                image.height,
+                image.planes[0].buffer,  // Y buffer
+                image.planes[1].buffer,  // U buffer
+                image.planes[2].buffer,  // V buffer
+                image.planes[0].pixelStride,  // Y pixel stride
+                image.planes[1].pixelStride,  // U/V pixel stride
+                image.planes[0].rowStride,  // Y row stride
+                image.planes[1].rowStride,  // U/V row stride
                 nv21
             )
         ) {
@@ -45,7 +45,7 @@ class NativeCameraUtils {
     }
 
 
-    fun YUV_420_888toNV21(image: ImageProxy): ByteArray? {
+    fun yuvToNv21Slow(image: ImageProxy): ByteArray {
         val width = image.width
         val height = image.height
         val ySize = width * height

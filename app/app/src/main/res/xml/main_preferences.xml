@@ -6,6 +6,12 @@
             app:key="installPluginExtras"
             app:iconSpaceReserved="false"
             app:summary="Installs extra dependencies for plugins" />
+    <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="enableBugReporting"
+            app:defaultValue="false"
+            app:title="Enable bug reporting"
+            app:summary="Enables anonymous bug reporting"/>
     <PreferenceCategory
             app:title="Server settings"
             app:iconSpaceReserved="false">

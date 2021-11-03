@@ -61,16 +61,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         }
     }
 
-    fun getRotateMode(rotation: Int): RotateMode {
-        return when (rotation) {
-            90 -> RotateMode.ROTATE_90
-            180 -> RotateMode.ROTATE_180
-            270 -> RotateMode.ROTATE_270
-            else -> RotateMode.ROTATE_0
-        }
-    }
-
-
     private val cameraSelector by lazy {
         CameraSelector.Builder().apply {
             requireLensFacing(
@@ -244,7 +234,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
                         val isI420 = (image.planes[1].pixelStride == 1)
 
-                        var nv21: ByteArray = if (isI420) nativeUtils.YUV_420_888toNV21(image)!! else nativeUtils.toNv21(image)!!
+                        var nv21: ByteArray = if (isI420) nativeUtils.yuvToNv21Slow(image)!! else nativeUtils.toNv21(image)!!
 
                         var realWidth = image.width
                         var realHeight = image.height

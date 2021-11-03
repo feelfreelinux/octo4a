@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.asLiveData
 import androidx.preference.*
+import com.octo4a.Octo4aApplication
 import com.octo4a.R
 import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
@@ -44,6 +45,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
     private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
+    private val enableBugReporting by lazy { findPreference<SwitchPreferenceCompat>("enableBugReporting") }
 
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -56,27 +58,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
 
-        sshPortPref?.apply {
-            setOnBindEditTextListener {
-                it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
+        enableBugReporting?.setOnPreferenceChangeListener { _, newValue ->
+            if (newValue as Boolean) {
+                (activity?.application as Octo4aApplication).startBugsnag()
             }
-            summary = prefs.sshPort
-
-            setOnPreferenceChangeListener { _, newValue ->
-                val value = (newValue as String).toIntOrNull()
-                if (value != null && value in 1025..65534) {
-                    summary = newValue
-
-                    // Restart SSH
-                    prefs.sshPort = newValue
-                    octoprintHandler.startSSH()
-
-                    true
-                } else { false }
-            }
-            setDefaultValue("8022")
+            true
         }
-
 
         setupSSHSettings()
     }
@@ -118,6 +105,26 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun setupSSHSettings() {
+        sshPortPref?.apply {
+            setOnBindEditTextListener {
+                it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
+            }
+            summary = prefs.sshPort
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val value = (newValue as String).toIntOrNull()
+                if (value != null && value in 1025..65534) {
+                    summary = newValue
+
+                    // Restart SSH
+                    prefs.sshPort = newValue
+                    octoprintHandler.startSSH()
+
+                    true
+                } else { false }
+            }
+            setDefaultValue("8022")
+        }
         enableSSH?.setOnPreferenceChangeListener {
                 _, newValue ->
             if (newValue as Boolean) {
@@ -151,8 +158,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 true
             }
         }
-
-
     }
 
     private fun setupCameraSettings(cameras: List<CameraDescription>) {

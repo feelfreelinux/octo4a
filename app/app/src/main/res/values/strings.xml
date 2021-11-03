@@ -56,6 +56,10 @@
     <string name="missing_write_permission">Missing storage permission…</string>
     <string name="missing_network">No network connection</string>
     <string name="tap_to_reinstall">tap to reinstall the app</string>
+    <string name="bugreport_dialog_title">Enable anonymous bug reporting</string>
+    <string name="bugreport_dialog_msg">Octo4a is currently under rapid development. Enabling anonymous bug reporting makes it easier for developers to see what caused the app to malfunction and improve it. You can always change this setting later in the app\'s preferences.</string>
+    <string name="bugreport_dialog_dismiss">No</string>
+    <string name="bugreport_dialog_enable">Yes, enable reporting</string>
 
 
 </resources>

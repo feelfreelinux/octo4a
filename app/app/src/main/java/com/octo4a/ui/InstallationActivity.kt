@@ -12,6 +12,7 @@ import com.octo4a.repository.ServerStatus
 import com.octo4a.repository.getInstallationProgress
 import com.octo4a.ui.fragments.TerminalSheetDialog
 import com.octo4a.ui.views.InstallationProgressItem
+import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_installation_progress.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -29,6 +30,8 @@ class InstallationActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+
+        showBugReportingDialog(MainPreferences(this))
 
         installationViewModel.serverStatus.observe(this) {
             progressTextView.text = "${it.getInstallationProgress()}%"
