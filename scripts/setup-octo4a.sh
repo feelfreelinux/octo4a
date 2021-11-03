@@ -8,7 +8,7 @@ mkdir -p /root/extensions/ttyd
 cat << EOF > /root/extensions/ttyd/manifest.json
 {
         "title": "Remote web terminal (ttyd)",
-        "description": "Uses port 5002; User octo4a / ssh password"
+        "description": "Uses port 5002; User root / ssh password"
 }
 EOF
 
