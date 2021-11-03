@@ -13,7 +13,7 @@ android {
         applicationId = "com.octo4a"
         minSdk = 17
         targetSdk = 28
-        versionName = androidGitVersion.name()
+        versionName = "1.0.2"
         versionCode = maxOf(androidGitVersion.code(), 1)
         multiDexEnabled = true
 
