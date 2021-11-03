@@ -18,6 +18,7 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var imageRotation by stringPref(defaultValue = "0")
     var fpsLimit by stringPref(defaultValue = "-1")
     var sshPasword by stringPref()
+    var enableFastYuv by booleanPref(defaultValue = false)
     var extensionSettings by stringPref(defaultValue = "[]")
     var updateDismissed by stringPref()
     var startOnBoot by booleanPref(defaultValue = false)

@@ -1,7 +1,5 @@
 package com.octo4a.camera
 
-//import com.octo4a.camera.cameraWithId
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -14,8 +12,6 @@ import android.hardware.camera2.CaptureRequest
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.renderscript.*
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
@@ -29,6 +25,7 @@ import androidx.lifecycle.LifecycleService
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.preferences.MainPreferences
+import io.github.crow_misia.libyuv.*
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
@@ -64,6 +61,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             else -> Surface.ROTATION_0
         }
     }
+
+    fun getRotateMode(rotation: Int): RotateMode {
+        return when (rotation) {
+            90 -> RotateMode.ROTATE_90
+            180 -> RotateMode.ROTATE_180
+            270 -> RotateMode.ROTATE_270
+            else -> RotateMode.ROTATE_0
+        }
+    }
+
 
     private val cameraSelector by lazy {
         CameraSelector.Builder().apply {
@@ -233,17 +240,26 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     }
                 }
 
+
                 synchronized(listenerCount) {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
-                        var nv21 = nativeUtils.toNv21(image)!!
+                        val isI420 = (image.planes[1].pixelStride == 1)
+
+                        var nv21: ByteArray = if (isI420) nativeUtils.YUV_420_888toNV21(image)!! else nativeUtils.toNv21(image)!!
+
+                        var realWidth = image.width
+                        var realHeight = image.height
 
                         if (rotation > 0) {
-                            nv21 = RotateUtils.rotateNV21(nv21, image.width, image.height, rotation)!!
+                            nv21 = RotateUtils.rotate(nv21, realWidth, realHeight, rotation)!!
+                            if (rotation != 180) {
+                                realWidth = image.height
+                                realHeight = image.width
+                            }
                         }
 
-                        val yuv = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
-                        yuv.compressToJpeg(Rect(0, 0, image.width, image.height), 80, out)
-
+                        val yuv = YuvImage(nv21, ImageFormat.NV21, realWidth, realHeight, null)
+                        yuv.compressToJpeg(Rect(0, 0, realWidth, realHeight), 80, out)
                         synchronized(latestFrame) {
                             latestFrame = out.toByteArray()
                             lastImageMilliseconds = System.currentTimeMillis()
