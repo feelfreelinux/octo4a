@@ -12,7 +12,6 @@ jobs:
           ndk-version: r21d
       - name: Build the app
         run: |
-          ndk-build NDK_PROJECT_PATH=app/src/main NDK_LIBS_OUT=app/src/main/jniLibs
           ./gradlew assembleRelease
         working-directory: ./app
       - uses: r0adkll/sign-android-release@v1

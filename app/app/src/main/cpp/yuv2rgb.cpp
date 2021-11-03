@@ -1,7 +1,6 @@
 #include <string.h>
 #include <jni.h>
 #include <string>
-#include <android/log.h>
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/types.h>

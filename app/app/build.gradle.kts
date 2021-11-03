@@ -20,7 +20,6 @@ android {
         ndk {
             abiFilters.add("x86")
             abiFilters.add("x86_64")
-            abiFilters.add("armeabi")
             abiFilters.add("armeabi-v7a")
             abiFilters.add("arm64-v8a")
         }
@@ -54,14 +53,12 @@ android {
         }
     }
 
-    // Only enable NDK build on archs other than aarch64 (M1 Mac workaround)
-    if (System.getProperty("os.arch") != "aarch64") {
-//        externalNativeBuild {
-//            ndkBuild {
-//                path = file("src/main/jni/Android.mk")
-//            }
-//        }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
     }
+
 }
 
 dependencies {
