@@ -126,7 +126,6 @@ dependencies {
     implementation("io.ktor:ktor-client-android:$ktorVersion")
     implementation("io.ktor:ktor-client-gson:$ktorVersion")
     implementation("org.nanohttpd:nanohttpd:2.3.1")
-    implementation("com.google.android.gms:play-services-safetynet:17.0.0")
 
     // Bugsnag bug reporting
     implementation("com.bugsnag:bugsnag-android:5.12.0")
