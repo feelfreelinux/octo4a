@@ -14,7 +14,7 @@ add_library(yuv2rgb SHARED
 target_link_libraries(yuv2rgb
                       android)
 
-add_library(ioctl-hook STATIC
+add_library(ioctl-hook SHARED
             ioctl-hook.c)
 
 target_link_libraries(ioctl-hook
