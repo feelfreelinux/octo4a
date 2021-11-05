@@ -7,6 +7,7 @@ import android.os.Environment
 import android.util.Log
 import com.google.gson.JsonParser
 import com.octo4a.serial.VSPPty
+import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
@@ -140,6 +141,9 @@ class OctoPrintHandlerRepositoryImpl(
                 }
                 _serverState.emit(ServerStatus.BootingUp)
                 insertInitialConfig()
+                vspPty.cancelPtyThread()
+                Thread.sleep(10)
+                vspPty.runPtyThread()
                 startOctoPrint()
                 logger.log { "Dependencies installed" }
             } else {

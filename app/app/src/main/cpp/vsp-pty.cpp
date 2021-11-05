@@ -281,6 +281,13 @@ extern "C"
         }
     }
 
+    JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_cancelPtyThread(JNIEnv *env, jobject instance)
+    {
+        if (ptyThreadHandle != 0) {
+            pthread_kill(ptyThreadHandle, 15);
+        }
+    }
+
     JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_createEventPipe(JNIEnv *env, jobject instance)
     {
         int res = mkfifo("/data/data/com.octo4a/files/bootstrap/bootstrap/eventPipe", S_IRWXO | S_IRWXU);

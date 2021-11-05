@@ -70,7 +70,6 @@ class VirtualSerialDriver(val context: Context, private val prefs: MainPreferenc
     }
 
     fun handlePtyThread() {
-        Log.v("ASD", "Starting pty thread")
         ptyThread = Thread {
             pty.runPtyThread()
         }
