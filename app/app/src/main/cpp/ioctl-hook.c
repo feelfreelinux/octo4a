@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <stdlib.h>
 #include <signal.h>
 
@@ -18,6 +19,8 @@ int g_obvio=0;
 #endif
 
 #define REAL_LIBC RTLD_NEXT
+#define request_t int
+#define TIOCMBIS 0x5416
 
 static char fifoPath[] = "/home/octoprint/eventPipe";
 static char eventJsonStart[] = "{\"eventType\": \"";
@@ -46,15 +49,20 @@ int ioctl(int fd, int request, ...)
 
     if (request == TIOCMBIS)
     {
-        //writeEventToPipe("rtsDts", 6);
+        writeEventToPipe("rtsDts", 6);
         return 0;
     }
 
     if (request == 0x802c542a || request == 0x402C542B)
     {
-        //writeEventToPipe("customBaud", 10);
+        writeEventToPipe("customBaud", 10);
         return 0;
     }
-//    DPRINTF ("HOOK: ioctl (fd=%d, request=%p, argp=%p [%02X])\n", fd, request, argp);
+    //DPRINTF ("HOOK: ioctl (fd=%d, request=%p, argp=%p [%02X])\n", fd, request, argp);
     return funcIoctl(fd, request, argp);
+}
+
+int flock(int fd, int operation) {
+    // DPRINTF ("HOOK: flock (fd=%d, operation=%p)\n", fd, operation);
+    return 0;
 }

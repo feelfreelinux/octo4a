@@ -6,6 +6,7 @@ import android.content.Intent
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
+import android.util.Log
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.*
 import com.hoho.android.usbserial.util.SerialInputOutputManager
@@ -69,6 +70,7 @@ class VirtualSerialDriver(val context: Context, private val prefs: MainPreferenc
     }
 
     fun handlePtyThread() {
+        Log.v("ASD", "Starting pty thread")
         ptyThread = Thread {
             pty.runPtyThread()
         }

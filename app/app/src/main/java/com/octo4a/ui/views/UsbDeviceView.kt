@@ -38,7 +38,7 @@ constructor(private val ctx: Context, private val vsp: VirtualSerialDriver, priv
             SerialDriverClass.UNKNOWN -> "Unknown"
         }
 
-        serialDriverText.text = driverText + context.getString(R.string.serial_driver)
+        serialDriverText.text = driverText + " " + context.getString(R.string.serial_driver)
         if (!usbDevice.autoDetect) {
             serialDriverText.text = serialDriverText.text.toString() + context.getString(R.string.tap_to_select)
         }
