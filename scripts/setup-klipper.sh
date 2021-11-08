@@ -16,8 +16,8 @@ echo -e "${COL}Installing dependencies...\n${NC}"
 apk add py3-cffi py3-greenlet linux-headers can-utils
 pip3 install python-can
 
-echo -e "${COL}Downloading klipper (python3 branch)\n${NC}"
-curl -o klipper.zip -L https://github.com/Doridian/klipper/archive/refs/heads/python3.zip
+echo -e "${COL}Downloading klipper\n${NC}"
+curl -o klipper.zip -L https://github.com/Klipper3d/klipper/archive/refs/heads/master.zip
 
 echo -e "${COL}Extracting klipper\n${NC}"
 unzip klipper.zip
