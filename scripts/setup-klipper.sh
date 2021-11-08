@@ -22,7 +22,7 @@ curl -o klipper.zip -L https://github.com/Klipper3d/klipper/archive/refs/heads/m
 echo -e "${COL}Extracting klipper\n${NC}"
 unzip klipper.zip
 rm -rf klipper.zip
-mv klipper-python3 /klipper
+mv klipper-master /klipper
 echo "# replace with your config" >> /root/printer.cfg
 
 mkdir -p /root/extensions/klipper
