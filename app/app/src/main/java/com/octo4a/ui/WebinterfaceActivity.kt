@@ -1,6 +1,7 @@
 package com.octo4a.ui
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -13,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
 import kotlinx.android.synthetic.main.activity_webinterface.*
 
+const val WEBINTERFACE_ADDRESS = "127.0.0.1:5000"
+
 class WebinterfaceActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -22,13 +25,42 @@ class WebinterfaceActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN)
         webview.visibility = View.GONE
-        webview.webViewClient = WebinterfaceClient(this, intent.data.authority)
+        webview.webViewClient = WebinterfaceClient(this)
         webview.settings.loadsImagesAutomatically = true
         webview.settings.javaScriptEnabled = true
-        webview.settings.domStorageEnabled = true;
+        webview.settings.domStorageEnabled = true
         webview.settings.userAgentString = "TouchUI"
         webview.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
-        webview.loadUrl(intent.data.toString())
+        webview.loadUrl("http://$WEBINTERFACE_ADDRESS")
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun onResume() {
+        if (!isPinned()) {
+            startLockTask()
+        }
+        super.onResume()
+    }
+
+    @Suppress("DEPRECATION")
+    fun isPinned(): Boolean {
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            (activityManager.lockTaskModeState
+                    != ActivityManager.LOCK_TASK_MODE_NONE)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            activityManager.isInLockTaskMode
+        } else {
+            false
+        }
+    }
+
+    override fun onBackPressed() {
+        if (webview.canGoBack()) {
+            webview.goBack()
+        } else if (!isPinned()){
+            super.onBackPressed()
+        }
     }
 
     private fun webviewFinished() {
@@ -36,7 +68,7 @@ class WebinterfaceActivity : AppCompatActivity() {
         loadingIndicator.visibility = View.GONE
     }
 
-    private class WebinterfaceClient(val activity: WebinterfaceActivity, val startAuthority: String): WebViewClient() {
+    private class WebinterfaceClient(val activity: WebinterfaceActivity): WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
             activity.webviewFinished()
             super.onPageFinished(view, url)
@@ -47,7 +79,7 @@ class WebinterfaceActivity : AppCompatActivity() {
             view: WebView?,
             request: WebResourceRequest?
         ): Boolean {
-            return request?.url?.authority != startAuthority
+            return request?.url?.authority != WEBINTERFACE_ADDRESS
         }
     }
 
