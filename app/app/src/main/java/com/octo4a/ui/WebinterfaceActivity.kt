@@ -56,10 +56,10 @@ class WebinterfaceActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (webview.canGoBack()) {
-            webview.goBack()
-        } else if (!isPinned()){
+        if (!isPinned()){
             super.onBackPressed()
+        } else if (webview.canGoBack()) {
+            webview.goBack()
         }
     }
 
