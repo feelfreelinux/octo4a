@@ -1,12 +1,14 @@
 package com.octo4a.ui
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
 import kotlinx.android.synthetic.main.activity_webinterface.*
@@ -23,6 +25,8 @@ class WebinterfaceActivity : AppCompatActivity() {
         webview.webViewClient = WebinterfaceClient(this, intent.data.authority)
         webview.settings.loadsImagesAutomatically = true
         webview.settings.javaScriptEnabled = true
+        webview.settings.domStorageEnabled = true;
+        webview.settings.userAgentString = "TouchUI"
         webview.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
         webview.loadUrl(intent.data.toString())
     }
@@ -38,6 +42,7 @@ class WebinterfaceActivity : AppCompatActivity() {
             super.onPageFinished(view, url)
         }
 
+        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
         override fun shouldOverrideUrlLoading(
             view: WebView?,
             request: WebResourceRequest?
