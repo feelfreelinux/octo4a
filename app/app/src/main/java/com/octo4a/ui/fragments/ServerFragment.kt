@@ -28,6 +28,7 @@ import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.ui.InitialActivity
+import com.octo4a.ui.WebinterfaceActivity
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
@@ -110,6 +111,11 @@ class ServerFragment : Fragment() {
             }
         }
 
+        serverStatus.setOnClickListener {
+            if (statusViewModel.serverStatus.value == ServerStatus.Running) {
+                openWebInterface()
+            }
+        }
         statusViewModel.cameraStatus.observe(viewLifecycleOwner) {
             if (it) {
                 camServerStatus.title = getString(R.string.camserver_running)
@@ -185,6 +191,12 @@ class ServerFragment : Fragment() {
                 }
                 .show()
         }
+    }
+
+    private fun openWebInterface() {
+        val intent = Intent(context, WebinterfaceActivity::class.java)
+        intent.data = Uri.parse("http://127.0.0.1:5000/#touch")
+        startActivity(intent)
     }
 
     private fun showPreviewDialog() {
