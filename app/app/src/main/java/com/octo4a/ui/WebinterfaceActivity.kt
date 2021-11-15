@@ -89,6 +89,4 @@ class WebinterfaceActivity : AppCompatActivity() {
             }
         }
     }
-
-
 }
