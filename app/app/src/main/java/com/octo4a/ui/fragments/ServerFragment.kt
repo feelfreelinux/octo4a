@@ -202,9 +202,7 @@ class ServerFragment : Fragment() {
     }
 
     private fun openWebInterface() {
-        val intent = Intent(context, WebinterfaceActivity::class.java)
-        intent.data = Uri.parse("http://127.0.0.1:5000/")
-        startActivity(intent)
+        startActivity(Intent(context, WebinterfaceActivity::class.java))
     }
 
     private fun showPreviewDialog() {
