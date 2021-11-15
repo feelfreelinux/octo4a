@@ -23,7 +23,6 @@ class WebinterfaceActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webinterface)
-        webview.visibility = View.GONE
         webview.webViewClient = WebinterfaceClient(this)
         webview.settings.loadsImagesAutomatically = true
         webview.settings.javaScriptEnabled = true
