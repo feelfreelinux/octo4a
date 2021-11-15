@@ -2,6 +2,7 @@ package com.octo4a.ui
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -22,8 +23,6 @@ class WebinterfaceActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webinterface)
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN)
         webview.visibility = View.GONE
         webview.webViewClient = WebinterfaceClient(this)
         webview.settings.loadsImagesAutomatically = true
@@ -34,9 +33,10 @@ class WebinterfaceActivity : AppCompatActivity() {
         webview.loadUrl("http://$WEBINTERFACE_ADDRESS")
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onResume() {
-        if (!isPinned()) {
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !isPinned()) {
             startLockTask()
         }
         super.onResume()
@@ -63,14 +63,14 @@ class WebinterfaceActivity : AppCompatActivity() {
         }
     }
 
-    private fun webviewFinished() {
+    private fun webViewLoadingFinished() {
         webview.visibility = View.VISIBLE
         loadingIndicator.visibility = View.GONE
     }
 
     private class WebinterfaceClient(val activity: WebinterfaceActivity): WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
-            activity.webviewFinished()
+            activity.webViewLoadingFinished()
             super.onPageFinished(view, url)
         }
 
@@ -79,7 +79,14 @@ class WebinterfaceActivity : AppCompatActivity() {
             view: WebView?,
             request: WebResourceRequest?
         ): Boolean {
-            return request?.url?.authority != WEBINTERFACE_ADDRESS
+            return if (request?.url?.authority == WEBINTERFACE_ADDRESS) {
+                false
+            } else {
+                activity.stopLockTask()
+                val intent = Intent(Intent.ACTION_VIEW, request?.url)
+                activity.startActivity(intent)
+                true
+            }
         }
     }
 
