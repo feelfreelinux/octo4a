@@ -13,7 +13,7 @@ fi
 
 echo -e "${COL}Installing dependencies...${NC}"
 # install required dependencies
-apk add py3-cffi py3-greenlet linux-headers can-utils avr-libc gcc-arm-none-eabi newlib-arm-none-eabi
+apk add py3-cffi py3-greenlet linux-headers can-utils avr-libc gcc-arm-none-eabi newlib-arm-none-eabi python2
 pip3 install python-can
 
 echo -e "${COL}Downloading klipper (python3 branch)${NC}"
