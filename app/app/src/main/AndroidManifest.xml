@@ -52,6 +52,8 @@
 
         <activity android:name=".ui.MainActivity">
         </activity>
+        <activity android:name=".ui.WebinterfaceActivity">
+        </activity>
         <activity android:name=".ui.InstallationActivity"/>
         <service android:name=".service.OctoPrintService">
 

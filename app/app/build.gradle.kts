@@ -7,21 +7,19 @@ plugins {
 }
 
 android {
-
     compileSdk = 28
     buildToolsVersion = "30.0.3"
     defaultConfig {
         applicationId = "com.octo4a"
         minSdk = 17
         targetSdk = 28
-        versionName = androidGitVersion.name()
-        versionCode = maxOf(androidGitVersion.code(), 1)
+        versionName = "1.0.4"
+        versionCode = 1000004
         multiDexEnabled = true
 
         ndk {
             abiFilters.add("x86")
             abiFilters.add("x86_64")
-            abiFilters.add("armeabi")
             abiFilters.add("armeabi-v7a")
             abiFilters.add("arm64-v8a")
         }
@@ -55,14 +53,12 @@ android {
         }
     }
 
-    // Only enable NDK build on archs other than aarch64 (M1 Mac workaround)
-    if (System.getProperty("os.arch") != "aarch64") {
-//        externalNativeBuild {
-//            ndkBuild {
-//                path = file("src/main/jni/Android.mk")
-//            }
-//        }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
     }
+
 }
 
 dependencies {
@@ -130,7 +126,6 @@ dependencies {
     implementation("io.ktor:ktor-client-android:$ktorVersion")
     implementation("io.ktor:ktor-client-gson:$ktorVersion")
     implementation("org.nanohttpd:nanohttpd:2.3.1")
-    implementation("com.google.android.gms:play-services-safetynet:17.0.0")
 
     // Bugsnag bug reporting
     implementation("com.bugsnag:bugsnag-android:5.12.0")

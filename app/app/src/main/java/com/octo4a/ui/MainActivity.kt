@@ -44,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName) && mainPreferences.warnDisableBatteryOptimization) {
             showBatteryOptimizationDialog()
         }
+
+        showBugReportingDialog(mainPreferences)
     }
 
     private fun showBatteryOptimizationDialog() {

@@ -29,6 +29,7 @@ class ExtensionsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        extensionsRepository.getValidExtensions()
         extensionsRepository.extensionsState.asLiveData().observe(viewLifecycleOwner) {
             extensionsList.removeAllViews()
             it.forEach {

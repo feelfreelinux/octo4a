@@ -3,7 +3,7 @@
 #include <string>
 #include <android/log.h>
 #include <stdio.h>
-#include <pty.h>
+#include "real_pty.h"
 #include <pthread.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -11,7 +11,7 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <stddef.h>
-#include <sys/wait.h>
+#include <sys/wait.h>ś
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -278,6 +278,13 @@ extern "C"
     {
         if (ptyThreadHandle == 0) {
             pthread_create(&ptyThreadHandle, nullptr, &ptyThread, nullptr);
+        }
+    }
+
+    JNIEXPORT void JNICALL Java_com_octo4a_serial_VSPPty_cancelPtyThread(JNIEnv *env, jobject instance)
+    {
+        if (ptyThreadHandle != 0) {
+            pthread_kill(ptyThreadHandle, 15);
         }
     }
 

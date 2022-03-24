@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -16,7 +15,6 @@ import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.serial.getCustomPrinterProber
 import kotlinx.android.synthetic.main.select_driver_bottom_sheet.*
 import kotlinx.android.synthetic.main.view_usb_devices_item.view.*
-
 
 class UsbDeviceView @JvmOverloads
 constructor(private val ctx: Context, private val vsp: VirtualSerialDriver, private val attributeSet: AttributeSet? = null, private val defStyleAttr: Int = 0)
@@ -40,7 +38,7 @@ constructor(private val ctx: Context, private val vsp: VirtualSerialDriver, priv
             SerialDriverClass.UNKNOWN -> "Unknown"
         }
 
-        serialDriverText.text = driverText + context.getString(R.string.serial_driver)
+        serialDriverText.text = driverText + " " + context.getString(R.string.serial_driver)
         if (!usbDevice.autoDetect) {
             serialDriverText.text = serialDriverText.text.toString() + context.getString(R.string.tap_to_select)
         }

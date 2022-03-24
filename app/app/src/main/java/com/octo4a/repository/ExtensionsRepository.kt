@@ -30,6 +30,7 @@ interface ExtensionsRepository {
     fun stopExtension(extension: RegisteredExtension, killedCallback: () -> Unit = {})
     fun modifyExtensionSetting(name: String, enabled: Boolean)
     fun getExtensionSettings(name: String): ExtensionSettings?
+    fun getValidExtensions()
     fun startExtension(extension: RegisteredExtension)
     fun stopAllExtensions()
 
@@ -123,7 +124,7 @@ class ExtensionsRepositoryImpl(
 
             extensionMap[extension.name] = Thread {
                 val process =
-                    bootstrapRepository.runCommand("sh /root/extensions/${extension.name}/start.sh", root = true)
+                    bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so sh /root/extensions/${extension.name}/start.sh", root = true)
                 connectReader(extension, process)
 
                 try {
@@ -204,7 +205,7 @@ class ExtensionsRepositoryImpl(
         return settingResult
     }
 
-    private fun getValidExtensions() {
+    override fun getValidExtensions() {
         val validExtensions = mutableListOf<RegisteredExtension>()
 
         val f = File(extensionsPath)

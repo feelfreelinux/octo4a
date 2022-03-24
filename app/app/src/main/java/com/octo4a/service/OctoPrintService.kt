@@ -17,6 +17,7 @@ import com.octo4a.serial.id
 import com.octo4a.ui.MainActivity
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
+import java.io.File
 
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
@@ -82,6 +83,7 @@ class OctoPrintService() : LifecycleService() {
                 EVENT_USB_ATTACHED -> {
                     virtualSerialDriver.updateDevicesList(BROADCAST_SERVICE_USB_GOT_ACCESS)?.apply {
                         handlerRepository.usbAttached(this)
+                        verifyPtyRunning()
                     }
                 }
 
@@ -107,9 +109,12 @@ class OctoPrintService() : LifecycleService() {
         virtualSerialDriver.handlePtyThread()
         scope.launch {
             handlerRepository.beginInstallation()
+            virtualSerialDriver.initializeVSP()
+            virtualSerialDriver.handlePtyThread()
         }
 
         handlerRepository.serverState.asLiveData().observe(this) {
+            verifyPtyRunning()
             updateNotificationStatus(
                 when (it) {
                     ServerStatus.Running -> resources.getString(R.string.notification_status_running)
@@ -130,6 +135,14 @@ class OctoPrintService() : LifecycleService() {
             }
         }
         super.onCreate()
+    }
+
+    fun verifyPtyRunning() {
+        val ptyFile = File("/data/data/com.octo4a/files/serialpipe")
+        if (!ptyFile.exists()) {
+            virtualSerialDriver.initializeVSP()
+            virtualSerialDriver.handlePtyThread()
+        }
     }
 
     override fun onDestroy() {

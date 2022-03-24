@@ -1,0 +1,31 @@
+You don't have a Raspberry Pi, but you want to control your 3D printer remotely? Use your phone as an octoprint host! With the Octo4a app you can install Octoprint on your android phone in minutes, without any special Linux knowledge.
+
+<b>Usage</b>
+
+- Enable installing 3rd-party .apk in your phone's settings.
+- Install the apk file downloaded from the releases page.
+- Open the app.
+- Click "Install OctoPrint" to download and install OctoPrint
+- Allow the app to access the storage, if asked for permission.
+- Wait for the installation to complete. This may take a long time, depending on your internet speed.
+- Click "Continue" when the installation finishes.
+- Optionally start the camera server to enable watching yur printer from octoprint.
+- Navigate to the IP address shown at the top in your browser to access and set-up OctoPrint.
+- Happy printing!
+
+<b>Features</b>
+- Quick and easy octoprint installation.
+- Printer connection via USB OTG. Thanks to our custom USB driver you can use octoprint even on phones without root access.
+- Built-in camera support. You can use the built-in camera in your phone to see the progress of your 3D prints, instead of buying a separate module. The app also supports octolapse.
+- SSH support. You can easily log-in via ssh and customize your octoprint installation.
+
+<b>Wiki</b>
+FAQ and many different topics are described in the project's wiki
+
+<b>Contributing</b>
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+<b>Disclaimer</b>
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

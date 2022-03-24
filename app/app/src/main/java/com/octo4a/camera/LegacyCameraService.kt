@@ -37,7 +37,6 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
     private val logger: LoggerRepository by inject()
 
-
     override val newestFrame: ByteArray
         get() = synchronized(latestFrame) { return latestFrame }
 
