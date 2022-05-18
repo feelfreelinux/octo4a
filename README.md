@@ -2,6 +2,7 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/feelfreelinux)
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/bc1q5z2q3fqftydt9cd6qhma92vvhjucz9w9qkvxch)](https://en.cryptobadges.io/donate/bc1q5z2q3fqftydt9cd6qhma92vvhjucz9w9qkvxch)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/feelfreelinux)
+![IzzySoft](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.octo4a)
 
 ![A banner visually expaining how the app works](.github/readme-banner.png)
 
