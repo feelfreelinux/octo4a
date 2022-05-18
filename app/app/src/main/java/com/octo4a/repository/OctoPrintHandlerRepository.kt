@@ -88,6 +88,10 @@ class OctoPrintHandlerRepositoryImpl(
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
+
+    private val commPyFixFile by lazy {
+        File("$octoPrintStoragePath/plugins/comm-fix.py")
+    }
     private val vspPty by lazy { VSPPty() }
     private val yaml by lazy { Yaml() }
 
@@ -199,6 +203,15 @@ class OctoPrintHandlerRepositoryImpl(
         return pid
     }
 
+    fun ensureCommFixExists() {
+        if (!commPyFixFile.exists()) {
+            // OctoPrint 1.8.0 breaks android compatibility, force install a plugin that monkey-fixes comm.py
+            bootstrapRepository.runCommand("mkdir -p ~/.octoprint/plugins; curl -o ~/.octoprint/plugins/comm-fix.py -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/comm-fix.py").waitAndPrintOutput(
+                logger
+            )
+        }
+    }
+
     override fun startOctoPrint() {
         if (!isInstalledProperly) {
             _serverState.value = ServerStatus.Corrupted
@@ -212,7 +225,7 @@ class OctoPrintHandlerRepositoryImpl(
         bootstrapRepository.run {
             vspPty.createEventPipe()
         }
-
+        ensureCommFixExists()
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
         Thread {
