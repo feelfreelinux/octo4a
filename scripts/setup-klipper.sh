@@ -47,4 +47,9 @@ chmod +x /root/extensions/klipper/kill.sh
 chmod 777 /root/extensions/klipper/start.sh
 chmod 777 /root/extensions/klipper/kill.sh
 
-echo -e "${COL}\nKlipper installed! Please kill the app and restart it again to see it in extension settings${NC}"
+cat << EOF
+${COL}
+Klipper installed!
+Please place your own klipper config file at /root/printer.cfg
+Please kill the app and restart it again to see it in extension settings${NC}
+EOF
