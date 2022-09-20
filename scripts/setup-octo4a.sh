@@ -2,7 +2,7 @@
 
 set -e
 # install required dependencies
-apk add py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow ttyd ffmpeg
+apk add py3-pip py3-yaml py3-regex py3-netifaces py3-psutil unzip py3-pillow ttyd ffmpeg libffi-dev gcc python3-dev musl-dev
 
 mkdir -p /root/extensions/ttyd
 cat << EOF > /root/extensions/ttyd/manifest.json
