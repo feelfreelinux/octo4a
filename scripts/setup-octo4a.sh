@@ -18,6 +18,8 @@ cat << EOF > /root/extensions/ttyd/start.sh
 ttyd -p 5002 --credential root:\$(cat /root/.octoCredentials) bash
 EOF
 
+pi
+
 cat << EOF > /root/extensions/ttyd/kill.sh
 #!/bin/sh
 pkill ttyd
@@ -26,3 +28,6 @@ chmod +x /root/extensions/ttyd/start.sh
 chmod +x /root/extensions/ttyd/kill.sh
 chmod 777 /root/extensions/ttyd/start.sh
 chmod 777 /root/extensions/ttyd/kill.sh
+
+pip3 install -U packaging --ignore-installed
+pip3 install https://github.com/feelfreelinux/octo4a-argon2-mock/archive/main.zip
