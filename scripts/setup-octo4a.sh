@@ -18,8 +18,6 @@ cat << EOF > /root/extensions/ttyd/start.sh
 ttyd -p 5002 --credential root:\$(cat /root/.octoCredentials) bash
 EOF
 
-pi
-
 cat << EOF > /root/extensions/ttyd/kill.sh
 #!/bin/sh
 pkill ttyd
