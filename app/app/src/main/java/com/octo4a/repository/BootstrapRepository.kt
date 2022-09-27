@@ -26,6 +26,7 @@ interface BootstrapRepository {
     fun resetSSHPassword(newPassword: String)
     val isBootstrapInstalled: Boolean
     val isSSHConfigured: Boolean
+    val isArgonFixApplied: Boolean
 }
 
 class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
@@ -203,6 +204,10 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
     override val isSSHConfigured: Boolean
         get() {
             return File("/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.ssh_configured").exists()
+        }
+    override val isArgonFixApplied: Boolean
+        get() {
+            return File("/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.argon-fix").exists()
         }
 
     override fun resetSSHPassword(newPassword: String) {

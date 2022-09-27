@@ -225,6 +225,18 @@ class OctoPrintHandlerRepositoryImpl(
         bootstrapRepository.run {
             vspPty.createEventPipe()
         }
+        if (!bootstrapRepository.isArgonFixApplied) {
+            logger.log { "Applying argon fix..." }
+            bootstrapRepository.runCommand("pip3 install -U packaging --ignore-installed").waitAndPrintOutput(
+                logger
+            )
+            bootstrapRepository.runCommand("pip3 install https://github.com/feelfreelinux/octo4a-argon2-mock/archive/main.zip").waitAndPrintOutput(
+                logger
+            )
+            bootstrapRepository.runCommand("touch /home/octoprint/.argon-fix").waitAndPrintOutput(
+                logger
+            )
+        }
         ensureCommFixExists()
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess = bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
