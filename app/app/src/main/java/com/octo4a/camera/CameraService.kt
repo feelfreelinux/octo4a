@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
@@ -13,7 +14,9 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Size
+import android.view.Display
 import android.view.Surface
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.CaptureRequestOptions
@@ -53,6 +56,25 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
     fun getCurrentRotation(): Int {
         val currentRotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
+        val display: Display = (getSystemService(WINDOW_SERVICE) as WindowManager)
+            .defaultDisplay
+
+        val orientation: Int = display.getRotation()
+        if (orientation == Surface.ROTATION_90) {
+            return when (currentRotation) {
+                90 -> Surface.ROTATION_180
+                180 -> Surface.ROTATION_270
+                270 -> Surface.ROTATION_0
+                else -> Surface.ROTATION_90
+            }
+        } else if (orientation == Surface.ROTATION_270){
+            return when (currentRotation) {
+                90 -> Surface.ROTATION_0
+                180 -> Surface.ROTATION_90
+                270 -> Surface.ROTATION_180
+                else -> Surface.ROTATION_270
+            }
+        }
         return when (currentRotation) {
             90 -> Surface.ROTATION_90
             180 -> Surface.ROTATION_180
@@ -197,6 +219,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             mjpegServer.startServer()
         }.start()
         return START_STICKY
+    }
+
+    @SuppressLint("UnsafeExperimentalUsageError")
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            cameraPreview.targetRotation = getCurrentRotation()
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            cameraPreview.targetRotation = getCurrentRotation()
+        }
     }
 
 
