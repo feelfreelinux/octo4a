@@ -36,6 +36,21 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 
 FAQ and many different topics are described in the [project's wiki](https://github.com/feelfreelinux/octo4a/wiki)
 
+## Video tutorials
+
+Here are some video tutorials made by the octo4a community that will help you with setting everything up:
+
+- ["Octo4A - Octoprint On Your Android Phone - 2022 - Chris's Basement"  by Chris Riley](https://www.youtube.com/watch?v=2Psbwc-NFTU)
+
+  [![Video tutorial by Chris Riley - thumbnail](https://img.youtube.com/vi/2Psbwc-NFTU/0.jpg)](https://www.youtube.com/watch?v=2Psbwc-NFTU)
+- ["How to run OctoPrint on your phone!"  by Thomas Sanladerer](https://www.youtube.com/watch?v=74xdib_-X38)
+
+  [![Video tutorial by Thomas Sanladerer - thumbnail](https://img.youtube.com/vi/74xdib_-X38/0.jpg)](https://www.youtube.com/watch?v=74xdib_-X38)
+- ["Running OctoPrint on Android with Octo4a!"  by Sumit Basra](https://www.youtube.com/watch?v=X56itQuqXY4)
+
+  [![Video tutorial by Sumit Basra - thumbnail](https://img.youtube.com/vi/X56itQuqXY4/0.jpg)](https://www.youtube.com/watch?v=X56itQuqXY4)
+
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
