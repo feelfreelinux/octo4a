@@ -26,7 +26,7 @@
                 app:key="changeSSHPassword"
                 app:iconSpaceReserved="false"
                 app:singleLineTitle="false"
-                app:title="Change SSH password"/>
+                app:title="Change SSH password for the 'root' user"/>
         <EditTextPreference
                 app:dependency="enableSSH"
                 app:key="sshPort"
