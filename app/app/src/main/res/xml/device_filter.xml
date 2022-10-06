@@ -31,6 +31,8 @@
     <usb-device product-id="516" vendor-id="3368"/>
     <!-- Marlin firmware - CDC drivers -->
     <usb-device product-id="24617" vendor-id="7504"/>
+    <!-- BIGTREETECH SKR Mini E3 - CDC drivers -->
+    <usb-device product-id="22336" vendor-id="1155"/>
 
     <usb-device product-id="24812" vendor-id="7504"/>
 
