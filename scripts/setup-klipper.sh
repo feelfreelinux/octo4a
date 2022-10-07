@@ -11,7 +11,7 @@ then
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
 fi
 
-echo -e "${COL}Installing dependencies...\n${NC}"
+echo -e "${COL}\nInstalling dependencies...\n${NC}"
 # install required dependencies
 apk add py3-cffi py3-greenlet linux-headers can-utils
 pip3 install python-can
