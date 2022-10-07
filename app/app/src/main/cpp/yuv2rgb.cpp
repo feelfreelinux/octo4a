@@ -36,7 +36,7 @@ void yuv420toNv21(int image_width, int image_height, const int8_t* y_buffer,
   }
 }
 
-}  // nampespace
+}  // namespace
 
 extern "C" {
 
