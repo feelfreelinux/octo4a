@@ -209,6 +209,15 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         ) {
             return
         }
+        // ensure that the cameras are enumerated
+        cameraEnumerationRepository.enumerateCameras()
+        // check if the device has any cameras at all
+        // some TV boxes have no cameras at all, and it causes cameraSelector to throw an exception
+        if(cameraEnumerationRepository.enumeratedCameras.value?.isEmpty() != false) {
+            return
+        }
+
+
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
         val out = ByteArrayOutputStream()
@@ -234,7 +243,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     if (listenerCount > 0 || latestFrame.isEmpty()) {
                         val isI420 = (image.planes[1].pixelStride == 1)
 
-                        var nv21: ByteArray = if (isI420) nativeUtils.yuvToNv21Slow(image)!! else nativeUtils.toNv21(image)!!
+                        var nv21: ByteArray = if (isI420) nativeUtils.yuvToNv21Slow(image) else nativeUtils.toNv21(image)!!
 
                         var realWidth = image.width
                         var realHeight = image.height
