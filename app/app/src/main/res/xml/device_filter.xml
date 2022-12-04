@@ -16,6 +16,8 @@
     <usb-device product-id="8963" vendor-id="1659"/>
     <!-- CH341 -->
     <usb-device product-id="29987" vendor-id="6790"/>
+    <!-- Ender 5 S1 -->
+    <usb-device product-id="7523" vendor-id="6790"/>
     <!-- Prusa - CDC drivers -->
     <usb-device vendor-id="11417"/>
     <!-- Arduino - CDC drivers -->
