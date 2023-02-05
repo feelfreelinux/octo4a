@@ -60,6 +60,10 @@
     <string name="bugreport_dialog_msg">Octo4a is currently under rapid development. Enabling anonymous bug reporting makes it easier for developers to see what caused the app to malfunction and improve it. You can always change this setting later in the app\'s preferences.</string>
     <string name="bugreport_dialog_dismiss">No</string>
     <string name="bugreport_dialog_enable">Yes, enable reporting</string>
+    <string name="app_will_restart_to_clear">The app will stop to clear it\'s data. Please start it again and re-install.</string>
+    <string name="reinstall_dialog_title">Do you want to clear the app\'s data and restart?</string>
+    <string name="reinstall_dialog_continue">Continue</string>
+    <string name="reinstall_dialog_dismiss">Cancel</string>
 
 
 </resources>

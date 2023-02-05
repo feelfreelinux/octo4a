@@ -2,6 +2,7 @@ package com.octo4a.ui.fragments
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -21,6 +22,7 @@ import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.octo4a.Octo4aApplication
 import com.octo4a.R
 import com.octo4a.camera.CameraService
 import com.octo4a.repository.GithubRelease
@@ -29,6 +31,7 @@ import com.octo4a.repository.ServerStatus
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.ui.InitialActivity
 import com.octo4a.ui.WebinterfaceActivity
+import com.octo4a.ui.showBugReportingDialog
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.StatusViewModel
@@ -226,25 +229,39 @@ class ServerFragment : Fragment() {
     }
 
     private fun clearDataAndRestartApp() {
-        try {
-            val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            // clearing app data
-            if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
-                activityManager.clearApplicationUserData()
-            } else {
-                val packageName = requireActivity().applicationContext.packageName
-                val runtime = Runtime.getRuntime();
-                runtime.exec("pm clear $packageName");
+        val builder = AlertDialog.Builder(context)
+        builder.apply {
+            setTitle(getString(R.string.reinstall_dialog_title))
+            setMessage(R.string.app_will_restart_to_clear)
+            setNegativeButton(getString(R.string.reinstall_dialog_dismiss)) { dialog, id ->
+
             }
+            setPositiveButton(getString(R.string.reinstall_dialog_continue)) { dialog, id ->
+                try {
+                    val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    // clearing app data
+                    if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
+                        activityManager.clearApplicationUserData()
+                    } else {
+                        val packageName = requireActivity().applicationContext.packageName
+                        val runtime = Runtime.getRuntime();
+                        runtime.exec("pm clear $packageName");
+                    }
 
-            // restart the app
-            val intent = Intent(context, InitialActivity::class.java)
-            intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
-            requireActivity().startActivity(intent)
+                    // restart the app
+                    val intent = Intent(context, InitialActivity::class.java)
+                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+                    requireActivity().startActivity(intent)
 
-            Runtime.getRuntime().exit(0)
-        } catch (e: Exception) {
-            e.printStackTrace()
+                    Runtime.getRuntime().exit(0)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
+        val dialog = builder.create()
+        dialog.show()
+
+
     }
 }
