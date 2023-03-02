@@ -18,11 +18,14 @@ import androidx.lifecycle.LifecycleService
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.octo4a.R
+import com.octo4a.camera.CameraService
+import com.octo4a.camera.LegacyCameraService
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.serial.id
 import com.octo4a.service.OctoPrintService
 import com.octo4a.ui.fragments.TerminalSheetDialog
+import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
@@ -46,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         showBugReportingDialog(mainPreferences)
+
+        startOctoService()
     }
 
     private fun showBatteryOptimizationDialog() {
@@ -56,15 +61,15 @@ class MainActivity : AppCompatActivity() {
             builder.apply {
                 setTitle(R.string.disable_battery_optimization)
                 setMessage(R.string.disable_battery_optimization_msg)
-                setNegativeButton(R.string.action_never_ask_again) { dialog, id ->
+                setNegativeButton(R.string.action_never_ask_again) { _, _ ->
                     mainPreferences.warnDisableBatteryOptimization = false
                 }
-                setNeutralButton(R.string.action_later) { dialog, id ->
+                setNeutralButton(R.string.action_later) { _, _ ->
                     // User cancelled the dialog
                 }
 
                 if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_NORMAL) {
-                    setPositiveButton(R.string.action_open_settings) { dialog, id ->
+                    setPositiveButton(R.string.action_open_settings) { _, _ ->
                         val whitelist = Intent()
                         whitelist.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                         whitelist.data = Uri.parse("package:$packageName")
@@ -107,5 +112,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    private val cameraServerRunning by lazy {
+        isServiceRunning(CameraService::class.java) || isServiceRunning(
+            LegacyCameraService::class.java
+        )
+    }
+
+    private fun startOctoService() {
+        if (!isServiceRunning(OctoPrintService::class.java)) {
+            val intent = Intent(this, OctoPrintService::class.java)
+            startService(intent)
+        }
+
+        if (!cameraServerRunning && mainPreferences.enableCameraServer) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val intent = Intent(this, CameraService::class.java)
+                startService(intent)
+            } else {
+                val intent = Intent(this, LegacyCameraService::class.java)
+                startService(intent)
+            }
+        }
     }
 }

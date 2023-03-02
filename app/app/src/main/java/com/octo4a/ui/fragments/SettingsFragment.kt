@@ -18,17 +18,14 @@ import com.octo4a.camera.*
 import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.camera.CameraService
 import com.octo4a.repository.ExtrasStatus
-import com.octo4a.repository.LoggerRepository
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
-import kotlinx.coroutines.flow.observeOn
 import org.koin.android.ext.android.inject
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val prefs: MainPreferences by inject()
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
-    private val logger: LoggerRepository by inject()
 
     // Camera permission request
     private val hasCameraPermission: Boolean
@@ -43,7 +40,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
     private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
-    private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
+    private val videoRotation by lazy { findPreference<ListPreference>("videoRotation") }
+    private val snapshotRotation by lazy { findPreference<ListPreference>("snapshotRotation") }
     private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
     private val enableBugReporting by lazy { findPreference<SwitchPreferenceCompat>("enableBugReporting") }
 
@@ -169,8 +167,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
             initCameraConfig(cameras)
         }
 
-        imageRotation?.setOnPreferenceChangeListener { _, value ->
-            prefs.imageRotation = value as String
+        videoRotation?.setOnPreferenceChangeListener { _, value ->
+            prefs.videoRotation = value as String
+            stopCameraServer()
+            startCameraServer()
+            true
+        }
+
+        snapshotRotation?.setOnPreferenceChangeListener { _, value ->
+            prefs.snapshotRotation = value as String
             stopCameraServer()
             startCameraServer()
             true

@@ -28,6 +28,7 @@ import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -35,7 +36,7 @@ import kotlin.coroutines.suspendCoroutine
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
-    private var listenerCount = 0
+    private var listenerCount: AtomicInteger = AtomicInteger(0)
 
     private val cameraSettings: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
@@ -43,17 +44,26 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val captureExecutor by lazy { Executors.newCachedThreadPool() }
     private val nativeUtils by lazy { NativeCameraUtils() }
-    var currentCamera: Camera? = null
+    private var currentCamera: Camera? = null
 
-    var fpsLimit = -1
-    var lastImageMilliseconds = System.currentTimeMillis()
+    private var fpsLimit = -1
+    private var lastImageMilliseconds = System.currentTimeMillis()
 
-    var cameraInitialized = false
-    var cameraProcessProvider: ProcessCameraProvider? = null
+    private var cameraInitialized = false
+    private var cameraProcessProvider: ProcessCameraProvider? = null
 
-    fun getCurrentRotation(): Int {
-        val currentRotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
-        return when (currentRotation) {
+    private fun getCurrentVideoRotation(): Int {
+        val currentRotation = cameraSettings.videoRotation?.toIntOrNull() ?: 0
+        return getCurrentSurfaceRotation(currentRotation)
+    }
+
+    private fun getCurrentSnapshotRotation(): Int {
+        val currentRotation = cameraSettings.snapshotRotation?.toIntOrNull() ?: 0
+        return getCurrentSurfaceRotation(currentRotation)
+    }
+
+    private fun getCurrentSurfaceRotation(rotationAngle: Int): Int {
+        return when (rotationAngle) {
             90 -> Surface.ROTATION_90
             180 -> Surface.ROTATION_180
             270 -> Surface.ROTATION_270
@@ -72,7 +82,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     private val cameraPreview by lazy {
         Preview.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-            .setTargetRotation(getCurrentRotation())
+            .setTargetRotation(getCurrentVideoRotation())
             .build()
     }
 
@@ -80,7 +90,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         ImageCapture.Builder()
             .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .setTargetRotation(getCurrentRotation())
+            .setTargetRotation(getCurrentSnapshotRotation())
             .build()
     }
 
@@ -125,25 +135,19 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     }
 
     override fun registerListener() {
-        synchronized(listenerCount) {
-            listenerCount++
-        }
         logger.log(this) { "Camera server register listener" }
 
         val turnFlashOn = cameraSettings.flashWhenObserved
 
-        if (listenerCount > 0  && turnFlashOn && cameraInitialized) {
+        if (listenerCount.incrementAndGet() > 0  && turnFlashOn && cameraInitialized) {
             currentCamera?.cameraControl?.enableTorch(true)
         }
     }
 
     override fun unregisterListener() {
-        synchronized(listenerCount) {
-            listenerCount--
-        }
         logger.log(this) { "Camera server unregister listener" }
 
-        if (listenerCount < 1 && cameraInitialized) {
+        if (listenerCount.decrementAndGet() < 1 && cameraInitialized) {
             currentCamera?.cameraControl?.enableTorch(false)
         }
     }
@@ -190,7 +194,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         super.onStartCommand(intent, flags, startId)
 
         fpsLimit = cameraSettings.fpsLimit?.toIntOrNull() ?: 0
-        cameraPreview.targetRotation = getCurrentRotation()
+        cameraPreview.targetRotation = getCurrentVideoRotation()
 
         readyCamera()
         Thread {
@@ -198,7 +202,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         }.start()
         return START_STICKY
     }
-
 
     @SuppressWarnings("UnsafeExperimentalUsageError")
     private fun readyCamera() {
@@ -217,16 +220,13 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             return
         }
 
-
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
         val out = ByteArrayOutputStream()
 
-        val rotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
+        val rotation = cameraSettings.videoRotation?.toIntOrNull() ?: 0
 
         cameraProviderFuture.addListener({
             cameraProcessProvider = cameraProviderFuture.get()
-
 
             imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
                 // Roughly limit fps to user's chosen value
@@ -238,9 +238,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     }
                 }
 
-
                 synchronized(listenerCount) {
-                    if (listenerCount > 0 || latestFrame.isEmpty()) {
+                    if (listenerCount.get() > 0 || latestFrame.isEmpty()) {
                         val isI420 = (image.planes[1].pixelStride == 1)
 
                         var nv21: ByteArray = if (isI420) nativeUtils.yuvToNv21Slow(image) else nativeUtils.toNv21(image)!!

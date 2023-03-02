@@ -65,15 +65,24 @@
                 app:summary="%s"/>
 
         <ListPreference
-                app:iconSpaceReserved="false"
-                app:key="imageRotation"
-                app:entries="@array/rotation_settings"
-                app:entryValues="@array/rotation_settings_values"
-                app:dependency="enableCameraServer"
-                app:defaultValue="0"
-                app:title="Image rotation"
-                app:summary="%s"/>
+            app:defaultValue="0"
+            app:dependency="enableCameraServer"
+            app:entries="@array/rotation_settings"
+            app:entryValues="@array/rotation_settings_values"
+            app:iconSpaceReserved="false"
+            app:key="videoRotation"
+            app:summary="%s"
+            app:title="Video rotation" />
 
+        <ListPreference
+            app:defaultValue="0"
+            app:dependency="enableCameraServer"
+            app:entries="@array/rotation_settings"
+            app:entryValues="@array/rotation_settings_values"
+            app:iconSpaceReserved="false"
+            app:key="snapshotRotation"
+            app:summary="%s"
+            app:title="Snapshot rotation" />
 
         <ListPreference
                 app:iconSpaceReserved="false"

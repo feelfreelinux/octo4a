@@ -1,6 +1,5 @@
 package com.octo4a.utils
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.graphics.ImageFormat
@@ -10,7 +9,6 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.text.format.Formatter
 import android.util.TypedValue
-import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
