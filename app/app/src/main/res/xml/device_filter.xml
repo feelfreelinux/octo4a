@@ -36,4 +36,7 @@
 
     <usb-device product-id="24812" vendor-id="7504"/>
 
+    <!-- BTT SKR1.3 -->
+    <usb-device product-id="24910" vendor-id="7504"/>
+
 </resources>
