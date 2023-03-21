@@ -18,12 +18,15 @@ import androidx.lifecycle.LifecycleService
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.octo4a.R
+import com.octo4a.camera.CameraService
+import com.octo4a.camera.LegacyCameraService
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.serial.id
 import com.octo4a.service.OctoPrintService
 import com.octo4a.ui.fragments.TerminalSheetDialog
 import com.octo4a.utils.preferences.MainPreferences
+import com.octo4a.utils.isServiceRunning
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 
@@ -32,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private val vsp: VirtualSerialDriver by inject()
     private val mainPreferences: MainPreferences by inject()
     private val pm  by lazy { getSystemService(LifecycleService.POWER_SERVICE) as PowerManager }
+    private val prefs: MainPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +50,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         showBugReportingDialog(mainPreferences)
+
+        startCameraServerIfNeeded()
+    }
+
+    private val cameraServerRunning by lazy {
+        isServiceRunning(CameraService::class.java) || isServiceRunning(
+            LegacyCameraService::class.java
+        )
+    }
+    private fun startCameraServerIfNeeded() {
+        if (!cameraServerRunning && prefs.enableCameraServer) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val intent = Intent(this, CameraService::class.java)
+                startService(intent)
+            } else {
+                val intent = Intent(this, LegacyCameraService::class.java)
+                startService(intent)
+            }
+        }
     }
 
     private fun showBatteryOptimizationDialog() {

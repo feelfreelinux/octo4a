@@ -105,11 +105,7 @@ class InitialActivity: AppCompatActivity() {
         }
     }
 
-    private val cameraServerRunning by lazy {
-        isServiceRunning(CameraService::class.java) || isServiceRunning(
-            LegacyCameraService::class.java
-        )
-    }
+
 
     private fun isNetworkConnected(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -122,15 +118,7 @@ class InitialActivity: AppCompatActivity() {
             startService(intent)
         }
 
-        if (!cameraServerRunning && prefs.enableCameraServer) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val intent = Intent(this, CameraService::class.java)
-                startService(intent)
-            } else {
-                val intent = Intent(this, LegacyCameraService::class.java)
-                startService(intent)
-            }
-        }
+
     }
 
     private fun showLegacyBootstrapDialog() {
