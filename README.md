@@ -7,6 +7,16 @@
 
 You don't have a Raspberry Pi, but you want to control your 3D printer remotely? Use your phone as an octoprint host! With the Octo4a app you can install Octoprint on your android phone in minutes, without any special Linux knowledge.
 
+## Important note about charging and using OTG
+
+Some phones do not support simultaneous charging and USB on the go (OTG). Please consult this community contributed list of phones our users use, If you wish to buy a phone for the purpose of running octo4a:
+
+https://docs.google.com/spreadsheets/d/1pbKAELzvTrMVm6NpDpK8TfQR33w3QHQEgqkcGdbPFI0/edit?usp=sharing
+
+If you have a phone that is not on the list, please add it and let us know if it works or not:
+
+https://forms.gle/cnTtdDqG3UcwTgnW9
+
 ## Download
 
 Newest `.apk` files are available in the [releases page](https://github.com/feelfreelinux/octo4a/releases).
