@@ -65,7 +65,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
 
                 val asset = release?.assets?.first { asset -> asset.name.contains(arch)  }
 
-                logger.log(this) { "Downloading bootstrap ${release?.tagName}" }
+                logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${asset!!.browserDownloadUrl}" }
 
                 val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
                 val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
@@ -122,18 +122,14 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
                 runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput(logger)
                 runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(logger)
                 runCommand("cat /etc/motd").waitAndPrintOutput(logger)
+                runCommand("env").waitAndPrintOutput(logger)
+                runCommand("ls /").waitAndPrintOutput(logger)
 
                 // Setup ssh
-                runCommand("apk add openssh-server curl bash", bash = false).waitAndPrintOutput(logger)
+                runCommand("apk add openssh-server curl bash unzip p7zip", bash = false).waitAndPrintOutput(logger)
                 runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
                 runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
 
-                // Turn ssh on for easier debug
-                if (BuildConfig.DEBUG) {
-//                    runCommand("passwd").setPassword("octoprint")
-//                    runCommand("passwd octoprint").setPassword("octoprint")
-//                    runCommand("/usr/sbin/sshd -p 2137")
-                }
 
                 logger.log(this) { "Bootstrap installation done" }
 
