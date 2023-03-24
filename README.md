@@ -26,7 +26,7 @@ Newest `.apk` files are available in the [releases page](https://github.com/feel
 1. Enable installing 3rd-party .apk in your phone's settings.
 2. Install the apk file downloaded from the releases page.
 3. Open the app.
-4. Click "Install OctoPrint" to download and install OctoPrint
+4. Click "Install OctoPrint" to download and install OctoPrint (needs working connection to internet & querries Google DNS servers 8.8.8.8 and 8.8.4.4)
 5. Allow the app to access the storage, if asked for permission.
 6. Wait for the installation to complete. This may take a long time, depending on your internet speed.
 7. Click "Continue" when the installation finishes.
