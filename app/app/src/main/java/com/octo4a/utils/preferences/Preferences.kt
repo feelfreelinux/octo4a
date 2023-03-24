@@ -46,6 +46,16 @@ abstract class Preferences(var context: Context? = null, useDefaultFile: Boolean
         }
     }
 
+    fun floatPref(prefKey: String? = null, defaultValue: Float = 0.0f) = FloatPrefDelegate(prefKey, defaultValue)
+
+    inner class FloatPrefDelegate(prefKey: String? = null, val defaultValue: Float) : PrefDelegate<Float>(prefKey) {
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = prefs.getFloat(prefKey ?: property.name, defaultValue)
+        override fun setValue(thisRef: Any?, property: KProperty<*>, value: Float) {
+            prefs.edit().putFloat(prefKey ?: property.name, value).apply()
+            onPrefChanged(property)
+        }
+    }
+
     fun booleanPref(prefKey: String? = null, defaultValue: Boolean = false) = BooleanPrefDelegate(prefKey, defaultValue)
 
     inner class BooleanPrefDelegate(prefKey: String? = null, val defaultValue: Boolean) : PrefDelegate<Boolean>(prefKey) {
