@@ -52,6 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:visibility="visible"
             >
 
             <TextView
@@ -141,7 +142,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/seeLogsButton"
                 android:layout_width="match_parent"
-                android:background="@color/design_default_color_on_secondary"
+                android:background="@color/cardview_light_background"
                 android:layout_height="match_parent"
                 android:layout_marginTop="8dp"
                 android:text="@string/see_logs"
@@ -150,6 +151,18 @@
                 app:cornerRadius="16dp"
 
 
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/clearDataAndRestart"
+                android:layout_width="match_parent"
+                android:background="@android:color/transparent"
+                android:textColor="#000"
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:text="@string/clear_data_and_restart"
+                android:textStyle="bold"
+                app:cornerRadius="16dp"
                 />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

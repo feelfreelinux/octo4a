@@ -60,126 +60,134 @@ class BootstrapRepositoryImpl(
     }
 
     override suspend fun setupBootstrap() {
-            withContext(Dispatchers.IO) {
-                val PREFIX_FILE = File(PREFIX_PATH)
-                if (PREFIX_FILE.isDirectory) {
-                    return@withContext
+        withContext(Dispatchers.IO) {
+            val PREFIX_FILE = File(PREFIX_PATH)
+            if (PREFIX_FILE.isDirectory) {
+                return@withContext
+            }
+
+            try {
+                val bootstrapReleases =
+                    githubRepository.getNewestReleases("feelfreelinux/android-linux-bootstrap")
+                val arch = getArchString()
+
+                val release = bootstrapReleases.firstOrNull {
+                    it.assets.any { asset -> asset.name.contains(arch) }
                 }
 
-                try {
-                    val bootstrapReleases =
-                        githubRepository.getNewestReleases("feelfreelinux/android-linux-bootstrap")
-                    val arch = getArchString()
-
-                    val release = bootstrapReleases.firstOrNull {
-                        it.assets.any { asset -> asset.name.contains(arch) }
-                    }
-
-                    val asset = release?.assets?.first { asset -> asset.name.contains(arch) }
-                    logger.log(this) { "Arch: $arch" }
+                val asset = release?.assets?.first { asset -> asset.name.contains(arch) }
+                logger.log(this) { "Arch: $arch" }
 
 
-                    val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
-                    val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
+                val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
+                val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
 
-                    if (STAGING_PREFIX_FILE.exists()) {
-                        deleteFolder(STAGING_PREFIX_FILE)
-                    }
+                if (STAGING_PREFIX_FILE.exists()) {
+                    deleteFolder(STAGING_PREFIX_FILE)
+                }
 
-                    val buffer = ByteArray(8096)
-                    val symlinks = ArrayList<Pair<String, String>>(50)
+                val buffer = ByteArray(8096)
+                val symlinks = ArrayList<Pair<String, String>>(50)
 
-                    val urlPrefix =  asset!!.browserDownloadUrl
-                    logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${urlPrefix}" }
+                val urlPrefix = asset!!.browserDownloadUrl
+                logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${urlPrefix}" }
 
-                    val sslcontext = SSLContext.getInstance("TLSv1")
-                    sslcontext.init(null, null, null)
-                    val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
+                val sslcontext = SSLContext.getInstance("TLSv1")
+                sslcontext.init(null, null, null)
+                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
 
-                    HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
-                    val connection: HttpsURLConnection =
-                        URL(urlPrefix).openConnection() as HttpsURLConnection
-                    connection.sslSocketFactory = noSSLv3Factory
-                    connection.connect()
-                    val code = connection.responseCode
-                    logger.log(this) {   "Request to ${connection.url} returned status code $code" }
-                    if (code > 399) {
+                HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
+                val connection: HttpsURLConnection =
+                    URL(urlPrefix).openConnection() as HttpsURLConnection
+                connection.sslSocketFactory = noSSLv3Factory
+                connection.connect()
+                val code = connection.responseCode
+                logger.log(this) { "Request to ${connection.url} returned status code $code" }
+                if (code > 399) {
 
-                        throw RuntimeException(
-                            "Fetching ${connection.url} failed with status code $code"
-                        )
-                    }
-                    ZipInputStream(connection.inputStream).use { zipInput ->
-                        var zipEntry = zipInput.nextEntry
-                        while (zipEntry != null) {
+                    throw RuntimeException(
+                        "Fetching ${connection.url} failed with status code $code"
+                    )
+                }
+                ZipInputStream(connection.inputStream).use { zipInput ->
+                    var zipEntry = zipInput.nextEntry
+                    while (zipEntry != null) {
 
-                            val zipEntryName = zipEntry.name
-                            val targetFile = File(STAGING_PREFIX_PATH, zipEntryName)
-                            val isDirectory = zipEntry.isDirectory
+                        val zipEntryName = zipEntry.name
+                        val targetFile = File(STAGING_PREFIX_PATH, zipEntryName)
+                        val isDirectory = zipEntry.isDirectory
 
-                            ensureDirectoryExists(if (isDirectory) targetFile else targetFile.parentFile)
+                        ensureDirectoryExists(if (isDirectory) targetFile else targetFile.parentFile)
 
-                            if (!isDirectory) {
-                                FileOutputStream(targetFile).use { outStream ->
-                                    var readBytes = zipInput.read(buffer)
-                                    while ((readBytes) != -1) {
-                                        outStream.write(buffer, 0, readBytes)
-                                        readBytes = zipInput.read(buffer)
-                                    }
+                        if (!isDirectory) {
+                            FileOutputStream(targetFile).use { outStream ->
+                                var readBytes = zipInput.read(buffer)
+                                while ((readBytes) != -1) {
+                                    outStream.write(buffer, 0, readBytes)
+                                    readBytes = zipInput.read(buffer)
                                 }
                             }
-                            zipEntry = zipInput.nextEntry
                         }
+                        zipEntry = zipInput.nextEntry
                     }
+                }
 
-                    if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
-                        throw RuntimeException("Unable to rename staging folder")
-                    }
-                    logger.log(this) { "Bootstrap extracted, setting it up..." }
-                    runCommand("ls", prooted = false).waitAndPrintOutput(logger)
-                    runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
-                    if (shouldUsePre5Bootstrap()) {
-                        runCommand(
-                            "rm -r root && mv root-pre5 root",
-                            prooted = false
-                        ).waitAndPrintOutput(logger)
-                    }
-
+                if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
+                    throw RuntimeException("Unable to rename staging folder")
+                }
+                logger.log(this) { "Bootstrap extracted, setting it up..." }
+                runCommand("ls", prooted = false).waitAndPrintOutput(logger)
+                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
+                if (shouldUsePre5Bootstrap()) {
                     runCommand(
-                        "sh install-bootstrap.sh",
+                        "rm -r root && mv root-pre5 root",
                         prooted = false
                     ).waitAndPrintOutput(logger)
-                    runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(
-                        logger
-                    )
-                    runCommand("cat /etc/motd").waitAndPrintOutput(logger)
-                    runCommand("env").waitAndPrintOutput(logger)
-                    runCommand("ls /").waitAndPrintOutput(logger)
+                }
 
-                    // Setup ssh
+                runCommand(
+                    "sh install-bootstrap.sh",
+                    prooted = false
+                ).waitAndPrintOutput(logger)
+                runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(
+                    logger
+                )
+                runCommand("cat /etc/motd").waitAndPrintOutput(logger)
+                runCommand("env").waitAndPrintOutput(logger)
+                runCommand("ls /").waitAndPrintOutput(logger)
+
+                // Setup ssh
+                runCommand(
+                    "apk add openssh-server curl bash unzip",
+                    bash = false
+                ).waitAndPrintOutput(logger)
+                runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(
+                    logger
+                )
+                runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
+
+                logger.log(this) { "Installing p7zip..." }
+
+                try {
                     runCommand(
-                        "apk add openssh-server curl bash unzip",
+                        "apk add p7zip",
                         bash = false
                     ).waitAndPrintOutput(logger)
-                    runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(
-                        logger
-                    )
-                    runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
-
-                    logger.log(this) { "Setting p7zip" }
-
-                    if (arch == "armhf" || arch == "arm" || arch == "armv7" || arch == "") {
-                        logger.log(this) { "On armhf " }
-                    }
-
-                    logger.log(this) { "Bootstrap installation done" }
-
-                    return@withContext
-                } catch (e: Exception) {
-                    throw (e)
-                } finally {
+                } catch (e: java.lang.Exception) {
+                    logger.log { "Failed to install p7zip from release repository, trying Alpine edge..." }
+                    logger.log { "This may be caused by the fact that p7zip is missing on armhf Alpine 3.17, see: https://gitlab.alpinelinux.org/alpine/aports/-/commits/master/main/p7zip/APKBUILD" }
+                    runCommand(
+                        "apk add p7zip --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main",
+                        bash = false
+                    ).waitAndPrintOutput(logger)
                 }
+
+                return@withContext
+            } catch (e: Exception) {
+                throw (e)
+            } finally {
             }
+        }
 
     }
 
@@ -213,7 +221,7 @@ class BootstrapRepositoryImpl(
         root: Boolean,
         bash: Boolean
     ): Process {
-        logger.run { ">$command" }
+        logger.log { ">$command" }
         val FILES = "/data/data/com.octo4a/files"
         val directory = File(filesPath)
         if (!directory.exists()) {

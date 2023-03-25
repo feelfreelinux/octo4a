@@ -67,6 +67,7 @@
     <string name="installation_error">Installation error</string>
     <string name="please_attach_log">Please attach the log when seeking support on Github. It is vital for troubleshooting.</string>
     <string name="see_logs">See logs</string>
+    <string name="clear_data_and_restart">Clear data and restart</string>
 
 
 </resources>

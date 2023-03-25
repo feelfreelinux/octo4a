@@ -1,6 +1,9 @@
 package com.octo4a.ui
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -62,6 +65,24 @@ class InstallationActivity : AppCompatActivity() {
         seeLogsButton.setOnClickListener {
             val logsFragment = TerminalSheetDialog()
             logsFragment.show(supportFragmentManager, logsFragment.tag)
+        }
+        clearDataAndRestart.setOnClickListener{
+            try {
+                val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                // clearing app data
+                if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
+                    activityManager.clearApplicationUserData()
+                } else {
+                    val packageName = applicationContext.packageName
+                    val runtime = Runtime.getRuntime();
+                    runtime.exec("pm clear $packageName");
+                }
+
+
+                Runtime.getRuntime().exit(0)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

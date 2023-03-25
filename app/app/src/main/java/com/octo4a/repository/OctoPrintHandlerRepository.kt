@@ -1,24 +1,19 @@
 package com.octo4a.repository
 
-import android.R.attr.path
-import android.R.attr.start
 import android.content.Context
 import android.os.Environment
-import android.util.Log
-import com.google.gson.JsonParser
 import com.octo4a.serial.VSPPty
-import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.*
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
-import java.lang.Exception
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.lang.reflect.Field
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -155,7 +150,14 @@ class OctoPrintHandlerRepositoryImpl(
                             logger
                         )
                         runCommand("ls -lah").waitAndPrintOutput(logger)
-                        runCommand("7z x -y octoprint.zip").waitAndPrintOutput(logger)
+                        try {
+                            runCommand("7z x -y octoprint.zip").waitAndPrintOutput(logger)
+                        } catch(e: java.lang.Exception) {
+                            logger.log { "7zip extraction failed: $e" }
+                            logger.log { "Trying to use unzip" }
+                            runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
+                        }
+
                     }
                     _serverState.emit(ServerStatus.InstallingDependencies)
                     bootstrapRepository.apply {
@@ -181,6 +183,11 @@ class OctoPrintHandlerRepositoryImpl(
         } catch (e: java.lang.Exception) {
             _serverState.emit(ServerStatus.InstallationError)
             _installErrorDescription.emit(e.toString())
+            val sw = StringWriter()
+            val pw = PrintWriter(sw)
+            e.printStackTrace(pw)
+
+            logger.log{ "An exception has occurred at:\n$sw\nException:\n${e.toString()}"}
         }
     }
 
