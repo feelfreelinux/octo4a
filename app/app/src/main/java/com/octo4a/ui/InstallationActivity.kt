@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.octo4a.R
@@ -34,9 +35,18 @@ class InstallationActivity : AppCompatActivity() {
         showBugReportingDialog(MainPreferences(this))
 
         installationViewModel.serverStatus.observe(this) {
-            progressTextView.text = "${it.getInstallationProgress()}%"
+            if(it == ServerStatus.InstallationError) {
+                progressTextView.text = "FATAL ERROR"
+                progressTextView.textSize = 32.0f
+            } else {
+                progressTextView.text = "${it.getInstallationProgress()}%"
+            }
             setItemsState(it)
             continueButton.isEnabled = it == ServerStatus.Running
+        }
+
+        installationViewModel.installErrorDescription.observe(this) {
+            errorContentsTextView.text = it
         }
 
         continueButton.setOnClickListener {
@@ -49,14 +59,28 @@ class InstallationActivity : AppCompatActivity() {
             val logsFragment = TerminalSheetDialog()
             logsFragment.show(supportFragmentManager, logsFragment.tag)
         }
+        seeLogsButton.setOnClickListener {
+            val logsFragment = TerminalSheetDialog()
+            logsFragment.show(supportFragmentManager, logsFragment.tag)
+        }
     }
 
     private fun setItemsState(status: ServerStatus) {
+        if(status == ServerStatus.InstallationError) {
+            progressList.visibility = View.GONE
+            errorWrapper.visibility = View.VISIBLE
+            mainInstallationLayout.background = resources.getDrawable(R.drawable.red_gradient)
+        } else {
+            progressList.visibility = View.VISIBLE
+            errorWrapper.visibility = View.GONE
+            mainInstallationLayout.background = resources.getDrawable(R.drawable.green_gradient)
+        }
         bootstrapItem.setStatus(status, ServerStatus.InstallingBootstrap)
         downloadingOctoprintItem.setStatus(status, ServerStatus.DownloadingOctoPrint)
         installingDependenciesItem.setStatus(status, ServerStatus.InstallingDependencies)
         bootingOctoprintItem.setStatus(status, ServerStatus.BootingUp)
         installationCompleteItem.setStatus(status, ServerStatus.Running)
+
     }
 
     private fun InstallationProgressItem.setStatus(currentStatus: ServerStatus, requiredStatus: ServerStatus) {

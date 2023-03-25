@@ -21,7 +21,13 @@ import javax.net.ssl.SSLSocketFactory
 interface BootstrapRepository {
     val commandsFlow: SharedFlow<String>
     suspend fun setupBootstrap()
-    fun runCommand(command: String, prooted: Boolean = true, root: Boolean = true, bash: Boolean = false): Process
+    fun runCommand(
+        command: String,
+        prooted: Boolean = true,
+        root: Boolean = true,
+        bash: Boolean = false
+    ): Process
+
     fun ensureHomeDirectory()
     fun resetSSHPassword(newPassword: String)
     val isBootstrapInstalled: Boolean
@@ -29,12 +35,17 @@ interface BootstrapRepository {
     val isArgonFixApplied: Boolean
 }
 
-class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val githubRepository: GithubRepository, val context: Context) : BootstrapRepository {
+class BootstrapRepositoryImpl(
+    private val logger: LoggerRepository,
+    private val githubRepository: GithubRepository,
+    val context: Context
+) : BootstrapRepository {
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/bootstrap"
         val HOME_PATH = "$FILES_PATH/home"
     }
+
     val filesPath: String by lazy { context.getExternalFilesDir(null).absolutePath }
     private var _commandsFlow = MutableSharedFlow<String>(100)
     override val commandsFlow: SharedFlow<String>
@@ -49,46 +60,58 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
     }
 
     override suspend fun setupBootstrap() {
-        withContext(Dispatchers.IO) {
-            val PREFIX_FILE = File(PREFIX_PATH)
-            if (PREFIX_FILE.isDirectory) {
-                return@withContext
-            }
-
-            try {
-                val bootstrapReleases = githubRepository.getNewestReleases("feelfreelinux/android-linux-bootstrap")
-                val arch = getArchString()
-
-                val release = bootstrapReleases.firstOrNull {
-                    it.assets.any { asset -> asset.name.contains(arch) }
+            withContext(Dispatchers.IO) {
+                val PREFIX_FILE = File(PREFIX_PATH)
+                if (PREFIX_FILE.isDirectory) {
+                    return@withContext
                 }
 
-                val asset = release?.assets?.first { asset -> asset.name.contains(arch)  }
+                try {
+                    val bootstrapReleases =
+                        githubRepository.getNewestReleases("feelfreelinux/android-linux-bootstrap")
+                    val arch = getArchString()
 
-                logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${asset!!.browserDownloadUrl}" }
+                    val release = bootstrapReleases.firstOrNull {
+                        it.assets.any { asset -> asset.name.contains(arch) }
+                    }
 
-                val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
-                val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
+                    val asset = release?.assets?.first { asset -> asset.name.contains(arch) }
+                    logger.log(this) { "Arch: $arch" }
 
-                if (STAGING_PREFIX_FILE.exists()) {
-                    deleteFolder(STAGING_PREFIX_FILE)
-                }
 
-                val buffer = ByteArray(8096)
-                val symlinks = ArrayList<Pair<String, String>>(50)
+                    val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
+                    val STAGING_PREFIX_FILE = File(STAGING_PREFIX_PATH)
 
-                val urlPrefix = asset!!.browserDownloadUrl
-                val sslcontext = SSLContext.getInstance("TLSv1")
-                sslcontext.init(null, null, null)
-                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
+                    if (STAGING_PREFIX_FILE.exists()) {
+                        deleteFolder(STAGING_PREFIX_FILE)
+                    }
 
-                HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
-                val connection: HttpsURLConnection = URL(urlPrefix).openConnection() as HttpsURLConnection
-                connection.sslSocketFactory = noSSLv3Factory
+                    val buffer = ByteArray(8096)
+                    val symlinks = ArrayList<Pair<String, String>>(50)
 
-                ZipInputStream(connection.inputStream).use { zipInput ->
-                    var zipEntry = zipInput.nextEntry
-                    while (zipEntry != null) {
+                    val urlPrefix =  asset!!.browserDownloadUrl
+                    logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${urlPrefix}" }
+
+                    val sslcontext = SSLContext.getInstance("TLSv1")
+                    sslcontext.init(null, null, null)
+                    val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
+
+                    HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
+                    val connection: HttpsURLConnection =
+                        URL(urlPrefix).openConnection() as HttpsURLConnection
+                    connection.sslSocketFactory = noSSLv3Factory
+                    connection.connect()
+                    val code = connection.responseCode
+                    logger.log(this) {   "Request to ${connection.url} returned status code $code" }
+                    if (code > 399) {
+
+                        throw RuntimeException(
+                            "Fetching ${connection.url} failed with status code $code"
+                        )
+                    }
+                    ZipInputStream(connection.inputStream).use { zipInput ->
+                        var zipEntry = zipInput.nextEntry
+                        while (zipEntry != null) {
 
                             val zipEntryName = zipEntry.name
                             val targetFile = File(STAGING_PREFIX_PATH, zipEntryName)
@@ -104,41 +127,60 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
                                         readBytes = zipInput.read(buffer)
                                     }
                                 }
+                            }
+                            zipEntry = zipInput.nextEntry
                         }
-                        zipEntry = zipInput.nextEntry
                     }
+
+                    if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
+                        throw RuntimeException("Unable to rename staging folder")
+                    }
+                    logger.log(this) { "Bootstrap extracted, setting it up..." }
+                    runCommand("ls", prooted = false).waitAndPrintOutput(logger)
+                    runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
+                    if (shouldUsePre5Bootstrap()) {
+                        runCommand(
+                            "rm -r root && mv root-pre5 root",
+                            prooted = false
+                        ).waitAndPrintOutput(logger)
+                    }
+
+                    runCommand(
+                        "sh install-bootstrap.sh",
+                        prooted = false
+                    ).waitAndPrintOutput(logger)
+                    runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(
+                        logger
+                    )
+                    runCommand("cat /etc/motd").waitAndPrintOutput(logger)
+                    runCommand("env").waitAndPrintOutput(logger)
+                    runCommand("ls /").waitAndPrintOutput(logger)
+
+                    // Setup ssh
+                    runCommand(
+                        "apk add openssh-server curl bash unzip",
+                        bash = false
+                    ).waitAndPrintOutput(logger)
+                    runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(
+                        logger
+                    )
+                    runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
+
+                    logger.log(this) { "Setting p7zip" }
+
+                    if (arch == "armhf" || arch == "arm" || arch == "armv7" || arch == "") {
+                        logger.log(this) { "On armhf " }
+                    }
+
+                    logger.log(this) { "Bootstrap installation done" }
+
+                    return@withContext
+                } catch (e: Exception) {
+                    throw (e)
+                } finally {
                 }
-
-                if (!STAGING_PREFIX_FILE.renameTo(PREFIX_FILE)) {
-                    throw RuntimeException("Unable to rename staging folder")
-                }
-                logger.log(this) { "Bootstrap extracted, setting it up..." }
-                runCommand("ls", prooted = false).waitAndPrintOutput(logger)
-                runCommand("chmod -R 700 .", prooted = false).waitAndPrintOutput(logger)
-                if (shouldUsePre5Bootstrap()) {
-                    runCommand("rm -r root && mv root-pre5 root", prooted = false).waitAndPrintOutput(logger)
-                }
-
-                runCommand("sh install-bootstrap.sh", prooted = false).waitAndPrintOutput(logger)
-                runCommand("sh add-user.sh octoprint", prooted = false).waitAndPrintOutput(logger)
-                runCommand("cat /etc/motd").waitAndPrintOutput(logger)
-                runCommand("env").waitAndPrintOutput(logger)
-                runCommand("ls /").waitAndPrintOutput(logger)
-
-                // Setup ssh
-                runCommand("apk add openssh-server curl bash unzip p7zip", bash = false).waitAndPrintOutput(logger)
-                runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(logger)
-                runCommand("ssh-keygen -A").waitAndPrintOutput(logger)
-
-
-                logger.log(this) { "Bootstrap installation done" }
-
-                return@withContext
-            } catch (e: Exception) {
-                throw(e)
-            } finally {
             }
-        }
+
     }
 
     private fun ensureDirectoryExists(directory: File) {
@@ -165,7 +207,13 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         }
     }
 
-    override fun runCommand(command: String, prooted: Boolean, root: Boolean, bash: Boolean): Process {
+    override fun runCommand(
+        command: String,
+        prooted: Boolean,
+        root: Boolean,
+        bash: Boolean
+    ): Process {
+        logger.run { ">$command" }
         val FILES = "/data/data/com.octo4a/files"
         val directory = File(filesPath)
         if (!directory.exists()) {
@@ -176,15 +224,17 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
         pb.environment()["HOME"] = "$FILES/bootstrap"
         pb.environment()["LANG"] = "'en_US.UTF-8'"
         pb.environment()["PWD"] = "$FILES/bootstrap"
-        pb.environment()["EXTRA_BIND"] = "-b ${filesPath}:/root -b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
-        pb.environment()["PATH"] = "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
+        pb.environment()["EXTRA_BIND"] =
+            "-b ${filesPath}:/root -b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a -b /data/data/com.octo4a/files/bootstrap/ioctlHook.so:/home/octoprint/ioctlHook.so"
+        pb.environment()["PATH"] =
+            "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
         pb.directory(File("$FILES/bootstrap"))
         var user = "root"
         if (!root) user = "octoprint"
         if (prooted) {
             // run inside proot
             val shell = if (bash) "/bin/bash" else "/bin/sh"
-            pb.command("sh", "run-bootstrap.sh", user,  shell, "-c", command)
+            pb.command("sh", "run-bootstrap.sh", user, shell, "-c", command)
         } else {
             pb.command("sh", "-c", command)
         }
@@ -197,6 +247,7 @@ class BootstrapRepositoryImpl(private val logger: LoggerRepository, private val 
 //            homeFile.mkdir()
 //        }
     }
+
     override val isSSHConfigured: Boolean
         get() {
             return File("/data/data/com.octo4a/files/bootstrap/bootstrap/home/octoprint/.ssh_configured").exists()

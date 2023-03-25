@@ -6,4 +6,5 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 
 class InstallationViewModel(private val octoPrintHandlerRepository: OctoPrintHandlerRepository) : ViewModel() {
     val serverStatus = octoPrintHandlerRepository.serverState.asLiveData()
+    val installErrorDescription = octoPrintHandlerRepository.installErrorDescription.asLiveData()
 }

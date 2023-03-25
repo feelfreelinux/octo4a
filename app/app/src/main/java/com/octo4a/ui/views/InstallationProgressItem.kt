@@ -32,6 +32,7 @@ constructor(private val ctx: Context, private val attributeSet: AttributeSet? = 
                 ServerStatus.BootingUp -> resources.getString(R.string.installation_step_bootup)
                 ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.installation_step_downloading_octoprint, "newest")
                 ServerStatus.Running -> resources.getString(R.string.installation_step_done)
+                ServerStatus.InstallationError -> resources.getString(R.string.installation_error)
                 else -> "Unknown status"
             }
         }
