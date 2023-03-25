@@ -42,7 +42,7 @@ enum class ExtrasStatus {
 data class UsbDeviceStatus(val isAttached: Boolean, val port: String = "")
 
 fun ServerStatus.getInstallationProgress(): Int {
-    return  max(((value.toDouble() / 4) * 100).roundToInt(), 0)
+    return max(((value.toDouble() / 4) * 100).roundToInt(), 0)
 }
 
 fun ServerStatus.isInstallationFinished(): Boolean {
@@ -152,7 +152,7 @@ class OctoPrintHandlerRepositoryImpl(
                         runCommand("ls -lah").waitAndPrintOutput(logger)
                         try {
                             runCommand("7z x -y octoprint.zip").waitAndPrintOutput(logger)
-                        } catch(e: java.lang.Exception) {
+                        } catch (e: java.lang.Exception) {
                             logger.log { "7zip extraction failed: $e" }
                             logger.log { "Trying to use unzip" }
                             runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
@@ -187,7 +187,7 @@ class OctoPrintHandlerRepositoryImpl(
             val pw = PrintWriter(sw)
             e.printStackTrace(pw)
 
-            logger.log{ "An exception has occurred at:\n$sw\nException:\n${e.toString()}"}
+            logger.log { "An exception has occurred at:\n$sw\nException:\n${e.toString()}" }
         }
     }
 
@@ -205,10 +205,15 @@ class OctoPrintHandlerRepositoryImpl(
         if (_extrasStatus.value == ExtrasStatus.NotInstalled) {
             Thread {
                 _extrasStatus.value = ExtrasStatus.Installing
-                bootstrapRepository.runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-plugin-extras.sh | bash -s")
-                    .waitAndPrintOutput(
-                        logger
-                    )
+                try {
+                    bootstrapRepository.runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-plugin-extras.sh | bash -s")
+                        .waitAndPrintOutput(
+                            logger
+                        )
+                } catch (e: java.lang.Exception) {
+                    logger.log { "Failed to install plugin extras: $e" }
+                }
+
                 _extrasStatus.value = ExtrasStatus.Installed
             }.start()
         }
@@ -234,11 +239,16 @@ class OctoPrintHandlerRepositoryImpl(
 
     fun ensureCommFixExists() {
         if (!commPyFixFile.exists()) {
-            // OctoPrint 1.8.0 breaks android compatibility, force install a plugin that monkey-fixes comm.py
-            bootstrapRepository.runCommand("mkdir -p ~/.octoprint/plugins; curl -o ~/.octoprint/plugins/comm-fix.py -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/comm-fix.py")
-                .waitAndPrintOutput(
-                    logger
-                )
+            try {
+                // OctoPrint 1.8.0 breaks android compatibility, force install a plugin that monkey-fixes comm.py
+                bootstrapRepository.runCommand("mkdir -p ~/.octoprint/plugins; curl -o ~/.octoprint/plugins/comm-fix.py -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/comm-fix.py")
+                    .waitAndPrintOutput(
+                        logger
+                    )
+            } catch (e: java.lang.Exception) {
+                logger.log { "Failed to apply comm fix: $e" }
+            }
+
         }
     }
 
@@ -257,17 +267,23 @@ class OctoPrintHandlerRepositoryImpl(
         }
         if (!bootstrapRepository.isArgonFixApplied) {
             logger.log { "Applying argon fix..." }
-            bootstrapRepository.runCommand("pip3 install -U packaging --ignore-installed")
-                .waitAndPrintOutput(
-                    logger
-                )
-            bootstrapRepository.runCommand("pip3 install https://github.com/feelfreelinux/octo4a-argon2-mock/archive/main.zip")
-                .waitAndPrintOutput(
-                    logger
-                )
-            bootstrapRepository.runCommand("touch /home/octoprint/.argon-fix").waitAndPrintOutput(
-                logger
-            )
+            try {
+                bootstrapRepository.runCommand("pip3 install -U packaging --ignore-installed")
+                    .waitAndPrintOutput(
+                        logger
+                    )
+                bootstrapRepository.runCommand("pip3 install https://github.com/feelfreelinux/octo4a-argon2-mock/archive/main.zip")
+                    .waitAndPrintOutput(
+                        logger
+                    )
+                bootstrapRepository.runCommand("touch /home/octoprint/.argon-fix")
+                    .waitAndPrintOutput(
+                        logger
+                    )
+            } catch (e: java.lang.Exception) {
+                logger.log { "Failed to apply argon fix: $e" }
+            }
+
         }
         ensureCommFixExists()
         _serverState.value = ServerStatus.BootingUp
@@ -331,8 +347,13 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun stopSSH() {
         // Kills ssh demon
-        bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
-        logger.log(this) { "killed sshd" }
+        try {
+            bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
+            logger.log(this) { "killed sshd" }
+        } catch (e: java.lang.Exception) {
+            logger.log(this) { "Killing sshd failed: $e" }
+        }
+
     }
 
     override fun usbAttached(port: String) {

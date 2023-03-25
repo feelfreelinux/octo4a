@@ -19,10 +19,20 @@ fun Process.waitAndPrintOutput(logger: LoggerRepository, type: LogType = LogType
 
    val exitCode =  waitFor()
     if (exitCode != 0) {
+        val uselessWarnings = arrayListOf(
+            "proot warning: can't sanitize binding \"/data/data/com.octo4a/files/serialpipe\": No such file or directory",
+            "WARNING: linker: ./root/bin/proot: unused DT entry:"
+        )
         val logLines = outputStr
             // replace useless proot warning
-            .replace("proot warning: can't sanitize binding \"/data/data/com.octo4a/files/serialpipe\": No such file or directory", "")
+            .let {
+                uselessWarnings.runningFold(it) { curr, valueToReplace ->
+                    curr.replace(valueToReplace, "")
+                }
+            }
+            .toString()
             .lines()
+            .filter { it.trim() != "" }
             .takeLast(2)
             .joinToString("\n") { it.take(50) }
         throw RuntimeException("Process exited with error code ${exitCode}. $logLines")

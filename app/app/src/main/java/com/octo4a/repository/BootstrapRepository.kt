@@ -90,7 +90,7 @@ class BootstrapRepositoryImpl(
                 val symlinks = ArrayList<Pair<String, String>>(50)
 
                 val urlPrefix = asset!!.browserDownloadUrl
-                logger.log(this) { "Downloading bootstrap ${release?.tagName} from ${urlPrefix}" }
+                logger.log(this) { "Downloading bootstrap ${release?.tagName} from $urlPrefix" }
 
                 val sslcontext = SSLContext.getInstance("TLSv1")
                 sslcontext.init(null, null, null)
@@ -267,9 +267,18 @@ class BootstrapRepositoryImpl(
 
     override fun resetSSHPassword(newPassword: String) {
         logger.log(this) { "Deleting password just in case" }
-        runCommand("passwd -d octoprint").waitAndPrintOutput(logger)
+        try {
+            runCommand("passwd -d octoprint").waitAndPrintOutput(logger)
+        } catch (e: java.lang.Exception) {
+            logger.log(this) { "Failed to delete password: $e" }
+        }
+
         runCommand("passwd octoprint").setPassword(newPassword)
-        runCommand("passwd -d root").waitAndPrintOutput(logger)
+        try {
+            runCommand("passwd -d root").waitAndPrintOutput(logger)
+        } catch (e: java.lang.Exception) {
+            logger.log(this) { "Failed to delete password: $e" }
+        }
         runCommand("passwd root").setPassword(newPassword)
         runCommand("touch .ssh_configured", root = false)
         runCommand("touch .ssh_configured", root = true)
