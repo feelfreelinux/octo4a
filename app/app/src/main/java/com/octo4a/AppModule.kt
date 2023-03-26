@@ -7,6 +7,7 @@ import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.utils.TLSSocketFactory
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
+import com.octo4a.viewmodel.NetworkStatusViewModel
 import com.octo4a.viewmodel.StatusViewModel
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -46,4 +47,5 @@ val appModule = module {
 
     viewModel { InstallationViewModel(get()) }
     viewModel { StatusViewModel(androidApplication(), get(), get()) }
+    viewModel { NetworkStatusViewModel(androidApplication(), get()) }
 }

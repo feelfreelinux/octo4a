@@ -10,6 +10,7 @@
     <color name="secondaryTextColor">#ffffff</color>
 
     <color name="warningColor">#FFE082</color>
+    <color name="warningDarkColor">#d35400</color>
     <color name="separatorColor">#1FFFFFFF</color>
     <color name="cardHeaderColor">#000000</color>
     <color name="iconGreen">#ff4CAF50</color>

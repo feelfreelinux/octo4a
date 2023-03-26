@@ -25,28 +25,44 @@
         </FrameLayout>
 
         <TextView
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="OctoPrint running"
-                android:id="@+id/titleText"
-                android:layout_marginStart="12dp"
-                app:layout_constraintStart_toEndOf="@id/iconCircle"
-                app:layout_constraintTop_toTopOf="@id/iconCircle"
-                android:textStyle="bold"
-                android:textColor="@color/primaryTextColor"
-                android:textSize="18sp"
-        />
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="OctoPrint running"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/iconCircle"
+            app:layout_constraintTop_toTopOf="@id/iconCircle" />
 
         <TextView
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="tap to copy address"
-                android:id="@+id/subtitleText"
-                android:fontFamily="sans-serif-light"
-                android:layout_marginStart="12dp"
-                app:layout_constraintStart_toEndOf="@id/iconCircle"
-                app:layout_constraintBottom_toBottomOf="@id/iconCircle"
-                android:textColor="@color/primaryTextColor"
-                android:textSize="17sp"
-        />
+            android:visibility="visible"
+            android:id="@+id/subtitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-light"
+            android:text="tap to copy address\ndffddf"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="17sp"
+            app:layout_constraintBottom_toBottomOf="@id/iconCircle"
+            app:layout_constraintStart_toEndOf="@id/iconCircle"
+            app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:visibility="gone"
+            android:id="@+id/ipAddressList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toEndOf="@+id/iconCircle"
+            app:layout_constraintTop_toBottomOf="@+id/titleText"
+
+            tools:itemCount="3"
+            tools:listitem="@layout/view_ip_address" />
 
         <ImageButton
                 android:layout_width="28dp"
@@ -67,4 +83,19 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:tint="@color/iconGreen"/>
+
+        <TextView
+                  android:visibility="gone"
+                  android:id="@+id/warningText"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="12dp"
+                  android:layout_marginTop="8dp"
+                  android:fontFamily="sans-serif-light"
+                  android:text="WARNING WARNING WARNING"
+                  android:textColor="@color/warningDarkColor"
+                  android:textSize="12sp"
+                  app:layout_constraintStart_toEndOf="@id/iconCircle"
+                  app:layout_constraintTop_toBottomOf="@id/ipAddressList" />
+
 </merge>

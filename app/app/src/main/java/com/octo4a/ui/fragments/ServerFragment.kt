@@ -34,6 +34,9 @@ import com.octo4a.ui.WebinterfaceActivity
 import com.octo4a.ui.showBugReportingDialog
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
+import com.octo4a.viewmodel.IPAddress
+import com.octo4a.viewmodel.IPAddressType
+import com.octo4a.viewmodel.NetworkStatusViewModel
 import com.octo4a.viewmodel.StatusViewModel
 import kotlinx.android.synthetic.main.fragment_server.*
 import kotlinx.android.synthetic.main.view_status_card.view.*
@@ -43,6 +46,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ServerFragment : Fragment() {
     private val statusViewModel: StatusViewModel by sharedViewModel()
+    private val networkStatusViewModel: NetworkStatusViewModel by sharedViewModel()
     private lateinit var cameraService: CameraService
     private var boundToCameraService = false
     private val vspDriver: VirtualSerialDriver by inject()
@@ -73,6 +77,7 @@ class ServerFragment : Fragment() {
         Intent(activity, CameraService::class.java).also { intent ->
             activity.bindService(intent, cameraServiceConnection, Context.BIND_AUTO_CREATE)
         }
+        networkStatusViewModel.scanIPAddresses()
     }
 
     override fun onStop() {
@@ -138,17 +143,20 @@ class ServerFragment : Fragment() {
                     serverStatus.onActionClicked = {
                         statusViewModel.stopServer()
                     }
-                    serverStatus.subtitle = statusViewModel.getServerAddress()
+//                    serverStatus.subtitle = statusViewModel.getServerAddress()
+                    serverStatus.showIpAddresses = true
                 }
 
                 ServerStatus.BootingUp -> {
                     serverStatus.title = resources.getString(R.string.status_starting)
                     serverStatus.subtitle = resources.getString(R.string.status_starting_subtitle)
+                    serverStatus.showIpAddresses = false
                 }
 
                 ServerStatus.ShuttingDown -> {
                     serverStatus.title = resources.getString(R.string.status_shutting_down)
                     serverStatus.subtitle = resources.getString(R.string.status_shutting_down_subtitle)
+                    serverStatus.showIpAddresses = false
                 }
 
                 ServerStatus.Stopped -> {
@@ -158,6 +166,7 @@ class ServerFragment : Fragment() {
                     serverStatus.onActionClicked = {
                         statusViewModel.startServer()
                     }
+                    serverStatus.showIpAddresses = false
                 }
 
                 ServerStatus.Corrupted -> {
@@ -167,6 +176,7 @@ class ServerFragment : Fragment() {
                     serverStatus.onActionClicked = {
                         clearDataAndRestartApp()
                     }
+                    serverStatus.showIpAddresses = false
                 }
                 else -> {}
             }
@@ -181,9 +191,22 @@ class ServerFragment : Fragment() {
             }
         }
 
+        networkStatusViewModel.ipAddresses.observe(viewLifecycleOwner) {
+            Log.d("ServerFragment", "IP addresses: ${it.joinToString(", ") { it.address }} }}")
+            serverStatus.ipAddresses = it.map { it.copy(port = "5000") }.toTypedArray()
+            val hasNoLocalNetwork = it.isEmpty() || it.all { it.type == IPAddressType.Cellular }
+            if(hasNoLocalNetwork) {
+                serverStatus.warning = getString(R.string.no_local_network)
+            } else {
+                serverStatus.warning = ""
+            }
+        }
+
         // Fetch autoupdater
         statusViewModel.checkUpdateAvailable()
     }
+
+
 
     private fun showUpdateDialog(update: GithubRelease) {
         if (update.tagName != mainPreferences.updateDismissed) {

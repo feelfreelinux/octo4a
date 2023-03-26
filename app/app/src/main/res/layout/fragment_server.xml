@@ -41,15 +41,15 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <com.octo4a.ui.views.StatusView
-            android:layout_width="match_parent"
-            android:layout_margin="8dp"
+        <com.octo4a.ui.views.StatusView
             android:id="@+id/serverStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             app:icon="@drawable/ic_print_24px"
             app:iconColor="@color/iconGreen"
-            app:title="OctoPrint is running"
             app:subtitle="http://192.168.254.103:5000"
-            android:layout_height="wrap_content"/>
+            app:title="OctoPrint is running" />
     <View style="@style/Divider"
           android:id="@id/dividerView"/>
     <com.octo4a.ui.views.StatusView
