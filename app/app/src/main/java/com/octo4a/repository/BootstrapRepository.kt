@@ -156,11 +156,14 @@ class BootstrapRepositoryImpl(
                 runCommand("env").waitAndPrintOutput(logger)
                 runCommand("ls /").waitAndPrintOutput(logger)
 
-                // Setup ssh
-                runCommand(
-                    "apk add openssh-server curl bash unzip",
-                    bash = false
-                ).waitAndPrintOutput(logger)
+                retryOperation(logger, maxRetries = 2) {
+                    // Setup ssh
+                    runCommand(
+                        "apk add openssh-server curl bash unzip",
+                        bash = false
+                    ).waitAndPrintOutput(logger)
+
+                }
                 runCommand("echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config").waitAndPrintOutput(
                     logger
                 )

@@ -138,13 +138,16 @@ class OctoPrintHandlerRepositoryImpl(
                     _serverState.emit(ServerStatus.DownloadingOctoPrint)
                     bootstrapRepository.apply {
                         logger.log { "Downloading Octoprint from ${octoPrintRelease.zipballUrl}" }
-                        runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-octo4a.sh | bash -s").waitAndPrintOutput(
-                            logger
-                        )
-
-                        runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(
-                            logger
-                        )
+                        retryOperation(logger, maxRetries = 2) {
+                            runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-octo4a.sh | bash -s").waitAndPrintOutput(
+                                logger
+                            )
+                        }
+                        retryOperation(logger, maxRetries = 2) {
+                            runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(
+                                logger
+                            )
+                        }
 
                         runCommand("echo PWD IS \$PWD, and running as \$USER, patch is \$PATH, Unzip is at $(which unzip) && ls -lah $(which unzip)").waitAndPrintOutput(
                             logger
@@ -206,10 +209,12 @@ class OctoPrintHandlerRepositoryImpl(
             Thread {
                 _extrasStatus.value = ExtrasStatus.Installing
                 try {
-                    bootstrapRepository.runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-plugin-extras.sh | bash -s")
-                        .waitAndPrintOutput(
-                            logger
-                        )
+                    retryOperation(logger, maxRetries = 2) {
+                        bootstrapRepository.runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-plugin-extras.sh | bash -s")
+                            .waitAndPrintOutput(
+                                logger
+                            )
+                    }
                 } catch (e: java.lang.Exception) {
                     logger.log { "Failed to install plugin extras: $e" }
                 }
