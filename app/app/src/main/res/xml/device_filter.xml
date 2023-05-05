@@ -38,5 +38,6 @@
 
     <!-- BTT SKR1.3 -->
     <usb-device product-id="24910" vendor-id="7504"/>
-
+    <!-- Snapmaker -->
+    <usb-device product-id="29987" vendor-id="6790"/>
 </resources>
