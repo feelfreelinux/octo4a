@@ -164,7 +164,8 @@ class OctoPrintHandlerRepositoryImpl(
                     }
                     _serverState.emit(ServerStatus.InstallingDependencies)
                     bootstrapRepository.apply {
-                        runCommand("cd Octo* && pip3 install .").waitAndPrintOutput(logger)
+                        // Dirty fix - make setup.py ignore psutil dependency
+                        runCommand("cd Octo* && sed -i '/psutil/d' ./setup.py && pip3 install .").waitAndPrintOutput(logger)
                     }
                     _serverState.emit(ServerStatus.BootingUp)
                     insertInitialConfig()

@@ -13,8 +13,8 @@ android {
         applicationId = "com.octo4a"
         minSdk = 17
         targetSdk = 28
-        versionName = "1.2.5"
-        versionCode = 1001002
+        versionName = "1.2.6"
+        versionCode = 1002006
         multiDexEnabled = true
 
         ndk {
