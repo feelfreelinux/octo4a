@@ -15,13 +15,14 @@ import com.octo4a.repository.*
 import com.octo4a.serial.VirtualSerialDriver
 import com.octo4a.serial.id
 import com.octo4a.ui.MainActivity
+import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import java.io.File
 
 
 // OctoprintService handles foreground service that OctoPrintManager resides in
-class OctoPrintService() : LifecycleService() {
+class OctoPrintService : LifecycleService() {
     private val handlerRepository: OctoPrintHandlerRepository by inject()
     private val bootstrapRepository: BootstrapRepository by inject()
     private val fifoEventRepository: FIFOEventRepository by inject()
@@ -107,6 +108,7 @@ class OctoPrintService() : LifecycleService() {
         bootstrapRepository.ensureHomeDirectory()
         virtualSerialDriver.initializeVSP()
         virtualSerialDriver.handlePtyThread()
+
         scope.launch {
             handlerRepository.beginInstallation()
             virtualSerialDriver.initializeVSP()
@@ -119,7 +121,7 @@ class OctoPrintService() : LifecycleService() {
                 when (it) {
                     ServerStatus.Running -> resources.getString(R.string.notification_status_running)
                     ServerStatus.Stopped -> resources.getString(R.string.notification_status_stopped)
-                    ServerStatus.InstallingDependencies, ServerStatus.InstallingBootstrap, ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.notification_status_installing)
+                    ServerStatus.DownloadingBootstrap, ServerStatus.ExtractingBootstrap -> resources.getString(R.string.notification_status_installing)
                     else -> resources.getString(R.string.notification_status_starting)
                 }
             )

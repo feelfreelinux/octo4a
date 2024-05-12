@@ -22,9 +22,8 @@ import kotlin.math.roundToInt
 
 
 enum class ServerStatus(val value: Int, val progress: Boolean = false) {
-    InstallingBootstrap(0),
-    DownloadingOctoPrint(1),
-    InstallingDependencies(2),
+    DownloadingBootstrap(1),
+    ExtractingBootstrap(2),
     BootingUp(3, true),
     Running(4),
     ShuttingDown(3, true),
@@ -89,14 +88,12 @@ class OctoPrintHandlerRepositoryImpl(
     private val configFile by lazy {
         File("$octoPrintStoragePath/config.yaml")
     }
+    private val octoprintPath = "/home/octoprint/octoprint-venv/bin/octoprint";
 
-    private val commPyFixFile by lazy {
-        File("$octoPrintStoragePath/plugins/comm-fix.py")
-    }
     private val vspPty by lazy { VSPPty() }
     private val yaml by lazy { Yaml() }
 
-    private var _serverState = MutableStateFlow(ServerStatus.InstallingBootstrap)
+    private var _serverState = MutableStateFlow(ServerStatus.DownloadingBootstrap)
     private var _installErrorDescription = MutableStateFlow("")
     private var _extensionsState = MutableStateFlow(listOf<RegisteredExtension>())
     private var _octoPrintVersion = MutableStateFlow("...")
@@ -130,43 +127,11 @@ class OctoPrintHandlerRepositoryImpl(
                     _octoPrintVersion.emit(octoPrintRelease.tagName)
 
                     logger.log { "No bootstrap detected, proceeding with installation" }
-                    _serverState.emit(ServerStatus.InstallingBootstrap)
-                    bootstrapRepository.apply {
-                        setupBootstrap()
-                    }
+                    _serverState.emit(ServerStatus.DownloadingBootstrap)
+                    bootstrapRepository.downloadBootstrap()
+                    _serverState.emit(ServerStatus.ExtractingBootstrap)
+                    bootstrapRepository.extractBootstrap()
                     logger.log { "Bootstrap installed" }
-                    _serverState.emit(ServerStatus.DownloadingOctoPrint)
-                    bootstrapRepository.apply {
-                        logger.log { "Downloading Octoprint from ${octoPrintRelease.zipballUrl}" }
-                        retryOperation(logger, maxRetries = 2) {
-                            runCommand("curl -s https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/setup-octo4a.sh | bash -s").waitAndPrintOutput(
-                                logger
-                            )
-                        }
-                        retryOperation(logger, maxRetries = 2) {
-                            runCommand("curl -o octoprint.zip -L ${octoPrintRelease.zipballUrl}").waitAndPrintOutput(
-                                logger
-                            )
-                        }
-
-                        runCommand("echo PWD IS \$PWD, and running as \$USER, patch is \$PATH, Unzip is at $(which unzip) && ls -lah $(which unzip)").waitAndPrintOutput(
-                            logger
-                        )
-                        runCommand("ls -lah").waitAndPrintOutput(logger)
-                        try {
-                            runCommand("7z x -y octoprint.zip").waitAndPrintOutput(logger)
-                        } catch (e: java.lang.Exception) {
-                            logger.log { "7zip extraction failed: $e" }
-                            logger.log { "Trying to use unzip" }
-                            runCommand("unzip octoprint.zip").waitAndPrintOutput(logger)
-                        }
-
-                    }
-                    _serverState.emit(ServerStatus.InstallingDependencies)
-                    bootstrapRepository.apply {
-                        // Dirty fix - make setup.py ignore psutil dependency
-                        runCommand("cd Octo* && sed -i '/psutil/d' ./setup.py && pip3 install .").waitAndPrintOutput(logger)
-                    }
                     _serverState.emit(ServerStatus.BootingUp)
                     insertInitialConfig()
                     vspPty.cancelPtyThread()
@@ -196,7 +161,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun getExtrasStatus() {
-        val file = File("/data/data/com.octo4a/files/bootstrap/bootstrap/usr/bin/gcc")
+        val file = File("/data/data/com.octo4a/files/bootstrap/bootstrap/usr/bin/g++")
 
         if (file.exists()) {
             _extrasStatus.value = ExtrasStatus.Installed
@@ -243,26 +208,12 @@ class OctoPrintHandlerRepositoryImpl(
         return pid
     }
 
-    fun ensureCommFixExists() {
-        if (!commPyFixFile.exists()) {
-            try {
-                // OctoPrint 1.8.0 breaks android compatibility, force install a plugin that monkey-fixes comm.py
-                bootstrapRepository.runCommand("mkdir -p ~/.octoprint/plugins; curl -o ~/.octoprint/plugins/comm-fix.py -L https://raw.githubusercontent.com/feelfreelinux/octo4a/master/scripts/comm-fix.py")
-                    .waitAndPrintOutput(
-                        logger
-                    )
-            } catch (e: java.lang.Exception) {
-                logger.log { "Failed to apply comm fix: $e" }
-            }
-
-        }
-    }
-
     override fun startOctoPrint() {
         if (!isInstalledProperly) {
             _serverState.value = ServerStatus.Corrupted
             return
         }
+
         wakeLock.acquire()
 
         if (octoPrintProcess != null && octoPrintProcess!!.isRunning()) {
@@ -271,30 +222,9 @@ class OctoPrintHandlerRepositoryImpl(
         bootstrapRepository.run {
             vspPty.createEventPipe()
         }
-        if (!bootstrapRepository.isArgonFixApplied) {
-            logger.log { "Applying argon fix..." }
-            try {
-                bootstrapRepository.runCommand("pip3 install -U packaging --ignore-installed")
-                    .waitAndPrintOutput(
-                        logger
-                    )
-                bootstrapRepository.runCommand("pip3 install https://github.com/feelfreelinux/octo4a-argon2-mock/archive/main.zip")
-                    .waitAndPrintOutput(
-                        logger
-                    )
-                bootstrapRepository.runCommand("touch /home/octoprint/.argon-fix")
-                    .waitAndPrintOutput(
-                        logger
-                    )
-            } catch (e: java.lang.Exception) {
-                logger.log { "Failed to apply argon fix: $e" }
-            }
-
-        }
-        ensureCommFixExists()
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess =
-            bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so octoprint serve --iknowwhatimdoing")
+            bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctl-hook.so ${octoprintPath} serve -b /mnt/external/.octoprint", root = false)
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -318,7 +248,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun getConfigValue(value: String): String {
-        return bootstrapRepository.runCommand("octoprint config get $value", root = false)
+        return bootstrapRepository.runCommand("$octoprintPath config get $value", root = false)
             .getOutputAsString()
             .replace("\n", "")
             .removeSurrounding("'")
@@ -348,18 +278,17 @@ class OctoPrintHandlerRepositoryImpl(
 
     override fun startSSH() {
         stopSSH()
-        bootstrapRepository.runCommand("/usr/sbin/sshd -p ${preferences.sshPort}")
+        bootstrapRepository.runCommand("dropbear -F -R -p ${preferences.sshPort}")
     }
 
     override fun stopSSH() {
         // Kills ssh demon
         try {
-            bootstrapRepository.runCommand("pkill sshd").waitAndPrintOutput(logger)
-            logger.log(this) { "killed sshd" }
+            bootstrapRepository.runCommand("pkill dropbear").waitAndPrintOutput(logger)
+            logger.log(this) { "killed dropbear" }
         } catch (e: java.lang.Exception) {
-            logger.log(this) { "Killing sshd failed: $e" }
+            logger.log(this) { "Killing dropbear failed: $e" }
         }
-
     }
 
     override fun usbAttached(port: String) {
@@ -379,6 +308,7 @@ class OctoPrintHandlerRepositoryImpl(
             "snapshot" to "http://localhost:5001/snapshot"
         )
         map["serial"] = mapOf(
+            "autorefresh" to false,
             "exclusive" to false,
             "additionalPorts" to listOf("/dev/ttyOcto4a")
         )
@@ -421,6 +351,6 @@ class OctoPrintHandlerRepositoryImpl(
 
     // Validate installation
     val isInstalledProperly: Boolean
-        get() = bootstrapRepository.runCommand("command -v octoprint").getOutputAsString()
-            .contains("/usr/bin/octoprint")
+        get() = !bootstrapRepository.runCommand("ls $octoprintPath", root = false).getOutputAsString()
+            .contains("No such")
 }

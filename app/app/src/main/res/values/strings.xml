@@ -6,9 +6,8 @@
         make sure that you have at least 700mb of storage available. You will also need an OTG cable in order to connect
         your phone to your 3d printer.\n\nThis project is an unofficial product, not affiliated with OctoPrint project.
     </string>
-    <string name="installation_step_bootstrap">Installing bootstrap (%1$s)…</string>
-    <string name="installation_step_downloading_octoprint">Downloading OctoPrint (%1$s)…</string>
-    <string name="installation_step_dependencies">Installing dependencies…</string>
+    <string name="installation_step_downloading">Downloading bootstrap (%1$s)…</string>
+    <string name="installation_step_extracting">Extracting bootstrap (%1$s)…</string>
     <string name="installation_step_bootup">Booting OctoPrint for the first time…</string>
     <string name="installation_step_done">Installation complete</string>
     <string name="status_starting">OctoPrint is starting…</string>
@@ -42,6 +41,7 @@
     <string name="disable_battery_optimization">Disable battery optimization</string>
     <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
     <string name="legacy_bootstrap">Legacy installation detected</string>
+    <string name="pre1_legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
     <string name="legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
     <string name="clear_and_install">Clear data</string>
     <string name="status_shutting_down">OctoPrint is shutting down…</string>
@@ -70,6 +70,4 @@
     <string name="clear_data_and_restart">Clear data and restart</string>
     <string name="no_local_network">It appears that your device has no connectivity to your local network. Please connect to Wi-Fi, Ethernet or a VPN to access your OctoPrint instance from other devices.</string>
     <string name="ip_address_copied_to_clipboard">IP address copied to clipboard!</string>
-
-
 </resources>

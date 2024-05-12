@@ -88,7 +88,7 @@ class ExtensionsRepositoryImpl(
 
                         Thread {
                             val process =
-                                bootstrapRepository.runCommand("sh /root/extensions/${extension.name}/kill.sh")
+                                bootstrapRepository.runCommand("sh ${extensionsPath}/${extension.name}/kill.sh")
 
                             connectReader(extension, process)
                             process.waitFor()
@@ -124,7 +124,7 @@ class ExtensionsRepositoryImpl(
 
             extensionMap[extension.name] = Thread {
                 val process =
-                    bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so sh /root/extensions/${extension.name}/start.sh", root = true)
+                    bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctlHook.so sh ${extensionsPath}/${extension.name}/start.sh", root = true)
                 connectReader(extension, process)
 
                 try {

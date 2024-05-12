@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -96,9 +94,8 @@ class InstallationActivity : AppCompatActivity() {
             errorWrapper.visibility = View.GONE
             mainInstallationLayout.background = resources.getDrawable(R.drawable.green_gradient)
         }
-        bootstrapItem.setStatus(status, ServerStatus.InstallingBootstrap)
-        downloadingOctoprintItem.setStatus(status, ServerStatus.DownloadingOctoPrint)
-        installingDependenciesItem.setStatus(status, ServerStatus.InstallingDependencies)
+        bootstrapItem.setStatus(status, ServerStatus.DownloadingBootstrap)
+        extractingItem.setStatus(status, ServerStatus.ExtractingBootstrap)
         bootingOctoprintItem.setStatus(status, ServerStatus.BootingUp)
         installationCompleteItem.setStatus(status, ServerStatus.Running)
 

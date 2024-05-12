@@ -70,7 +70,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="sans-serif-light"
-                android:text="This might take a while depending on your network connection (Up to 30 minutes)"
+                android:text="This might take a while depending on your network connection (Up to 10 minutes)"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
@@ -81,13 +81,7 @@
                 android:layout_marginBottom="16dp" />
 
             <com.octo4a.ui.views.InstallationProgressItem
-                android:id="@+id/downloadingOctoprintItem"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
-
-            <com.octo4a.ui.views.InstallationProgressItem
-                android:id="@+id/installingDependenciesItem"
+                android:id="@+id/extractingItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp" />

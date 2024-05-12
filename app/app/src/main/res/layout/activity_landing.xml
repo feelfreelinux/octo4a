@@ -47,6 +47,27 @@
                     android:fontFamily="sans-serif-light"
                     android:textColor="@android:color/black"
                     android:text="@string/landing_description"/>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif"
+                android:text="Bootstrap"/>
+            <Spinner
+                android:id="@+id/bootstrapVersionSpinner"
+                android:spinnerMode="dialog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
