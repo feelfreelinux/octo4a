@@ -220,8 +220,8 @@ class BootstrapRepositoryImpl(
         logger.log(this) {filesPath}
         pb.environment()["EXTRA_BIND"] =
             "-b ${filesPath}:/mnt/external -b /data/data/com.octo4a/files/serialpipe:/dev/ttyOcto4a"
-//        pb.environment()["PATH"] =
-//            "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
+        pb.environment()["PATH"] =
+            "/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin"
         pb.directory(File("$FILES/bootstrap"))
         var user = "root"
         if (!root) user = "octoprint"
