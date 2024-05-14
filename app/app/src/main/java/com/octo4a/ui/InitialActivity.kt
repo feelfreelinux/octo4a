@@ -26,8 +26,10 @@ import com.octo4a.camera.LegacyCameraService
 import com.octo4a.repository.BootstrapRepository
 import com.octo4a.repository.GithubRelease
 import com.octo4a.service.OctoPrintService
+import com.octo4a.utils.getOutputAsString
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
+import com.octo4a.utils.waitAndPrintOutput
 import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_landing.*
 import org.koin.android.ext.android.inject
@@ -162,7 +164,7 @@ class InitialActivity: AppCompatActivity() {
 
                 setPositiveButton(R.string.clear_and_install) { dialog, id ->
                     // Remove all bootstrap-related data
-                    bootstrapRepository.runCommand("rm -rf *", prooted = false)
+                    bootstrapRepository.runCommand("cd .. && rm -rf *", prooted = false).getOutputAsString()
                     prepareBootstrap()
                 }
 

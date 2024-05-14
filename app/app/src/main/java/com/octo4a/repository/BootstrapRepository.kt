@@ -171,6 +171,9 @@ class BootstrapRepositoryImpl(
             runCommand("chmod -R 755 /mnt/external/").waitAndPrintOutput(
                 logger
             )
+            runCommand("chown root:root /mnt/external/").waitAndPrintOutput(
+                logger
+            )
             runCommand("mkdir -p /mnt/external/.octoprint/plugins").waitAndPrintOutput(logger)
             runCommand("cp /home/octoprint/comm-fix.py /mnt/external/.octoprint/plugins").waitAndPrintOutput(
                 logger
@@ -272,5 +275,5 @@ class BootstrapRepositoryImpl(
     }
 
     override val isBootstrapInstalled: Boolean
-        get() = File("$FILES_PATH/bootstrap").exists()
+        get() = File("$FILES_PATH/bootstrap/bootstrap").exists()
 }

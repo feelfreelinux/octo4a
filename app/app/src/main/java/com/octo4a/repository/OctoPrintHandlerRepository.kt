@@ -89,6 +89,7 @@ class OctoPrintHandlerRepositoryImpl(
         File("$octoPrintStoragePath/config.yaml")
     }
     private val octoprintPath = "/home/octoprint/octoprint-venv/bin/octoprint";
+    private val octoprintVenvScript = "/home/octoprint/octoprint-venv/bin/activate";
 
     private val vspPty by lazy { VSPPty() }
     private val yaml by lazy { Yaml() }
@@ -224,7 +225,7 @@ class OctoPrintHandlerRepositoryImpl(
         }
         _serverState.value = ServerStatus.BootingUp
         octoPrintProcess =
-            bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctl-hook.so ${octoprintPath} serve -b /mnt/external/.octoprint", root = false)
+            bootstrapRepository.runCommand("LD_PRELOAD=/home/octoprint/ioctl-hook.so ${octoprintPath} serve -b /mnt/external/.octoprint --iknowwhatimdoing")
         Thread {
             try {
                 octoPrintProcess!!.inputStream.reader().forEachLine {
@@ -248,7 +249,7 @@ class OctoPrintHandlerRepositoryImpl(
     }
 
     override fun getConfigValue(value: String): String {
-        return bootstrapRepository.runCommand("$octoprintPath config get $value", root = false)
+        return bootstrapRepository.runCommand("$octoprintPath config get $value")
             .getOutputAsString()
             .replace("\n", "")
             .removeSurrounding("'")
@@ -351,6 +352,6 @@ class OctoPrintHandlerRepositoryImpl(
 
     // Validate installation
     val isInstalledProperly: Boolean
-        get() = !bootstrapRepository.runCommand("ls $octoprintPath", root = false).getOutputAsString()
+        get() = !bootstrapRepository.runCommand("ls $octoprintPath").getOutputAsString()
             .contains("No such")
 }
