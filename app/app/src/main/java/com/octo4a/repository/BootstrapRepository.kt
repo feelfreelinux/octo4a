@@ -270,5 +270,5 @@ class BootstrapRepositoryImpl(
     }
 
     override val isBootstrapInstalled: Boolean
-        get() = File("$FILES_PATH/bootstrap/build-version.txt").exists()
+        get() = File("$FILES_PATH/bootstrap/bootstrap").exists()
 }

@@ -352,6 +352,6 @@ class OctoPrintHandlerRepositoryImpl(
 
     // Validate installation
     val isInstalledProperly: Boolean
-        get() = !bootstrapRepository.runCommand("ls $octoprintPath").getOutputAsString()
-            .contains("No such")
+        get() = bootstrapRepository.runCommand("ls $octoprintPath && echo \"available\"").getOutputAsString()
+            .contains("available")
 }
