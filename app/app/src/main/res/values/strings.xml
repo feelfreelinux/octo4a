@@ -42,7 +42,7 @@
     <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
     <string name="legacy_bootstrap">Legacy installation detected</string>
     <string name="pre1_legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
-    <string name="legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
+    <string name="legacy_bootstrap_msg">Upgrading from a legacy release will require a reinstall of previously-installed plugins. All other data and configuration should be kept intact. Alternatively, you can downgrade to octo4a 1.2.6, and prepare a backup in OctoPrint\'s settings.</string>
     <string name="clear_and_install">Clear data</string>
     <string name="status_shutting_down">OctoPrint is shutting down…</string>
     <string name="status_shutting_down_subtitle">this could take a couple of seconds</string>
