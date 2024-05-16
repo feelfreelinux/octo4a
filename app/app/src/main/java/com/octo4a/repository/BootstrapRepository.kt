@@ -98,7 +98,8 @@ class BootstrapRepositoryImpl(
 
                 val sslcontext = SSLContext.getInstance("TLSv1")
                 sslcontext.init(null, null, null)
-                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory()
+
+                val noSSLv3Factory: SSLSocketFactory = TLSSocketFactory(context)
 
                 HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
                 val connection: HttpsURLConnection =

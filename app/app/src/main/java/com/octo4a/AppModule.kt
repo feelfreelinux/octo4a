@@ -28,7 +28,7 @@ val appModule = module {
             }
             engine {
                 sslManager = {
-                    it.sslSocketFactory = TLSSocketFactory()
+                    it.sslSocketFactory = TLSSocketFactory(androidContext())
                 }
             }
         }
