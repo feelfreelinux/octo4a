@@ -2,10 +2,15 @@ package com.octo4a.repository
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.util.Pair
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import com.octo4a.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -16,9 +21,11 @@ import java.util.zip.ZipInputStream
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
+import kotlin.math.roundToInt
 
 interface BootstrapRepository {
     val commandsFlow: SharedFlow<String>
+    val downloadProgressData: LiveData<Int>
     suspend fun downloadBootstrap()
     suspend fun extractBootstrap()
     fun runCommand(
@@ -51,9 +58,13 @@ class BootstrapRepositoryImpl(
 
     val filesPath: String by lazy { context.getExternalFilesDir(null).absolutePath }
     private var _commandsFlow = MutableSharedFlow<String>(100)
+    private var _downloadProgressFlow = MutableStateFlow(0)
     private var _selectedGitHubRelease: GithubRelease? = null
     override val commandsFlow: SharedFlow<String>
         get() = _commandsFlow
+
+    override val downloadProgressData: LiveData<Int>
+        get() = _downloadProgressFlow.asLiveData()
 
     private fun shouldUsePre5Bootstrap(): Boolean {
         if (getArchString() != "arm" && getArchString() != "i686") {
@@ -69,12 +80,16 @@ class BootstrapRepositoryImpl(
 
     override suspend fun downloadBootstrap() {
         withContext(Dispatchers.IO) {
+            // Set download progress to zero
+            _downloadProgressFlow.value = 0
+
             val prefixFile = File(PREFIX_PATH)
             if (prefixFile.isDirectory) {
                 return@withContext
             }
 
             try {
+
                 if (_selectedGitHubRelease == null) {
                     logger.log(this) { "No release selected for installation" }
                     return@withContext
@@ -114,7 +129,11 @@ class BootstrapRepositoryImpl(
                     )
                 }
 
-                ZipInputStream(connection.inputStream).use { zipInput ->
+                ZipInputStream(ProgressTrackingInputStream(connection.inputStream) {
+                    val progressValue = ((it.toFloat() / connection.contentLength) * 100).roundToInt()
+                    // Update progress
+                    _downloadProgressFlow.value = progressValue
+                }).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
                         logger.log(this) { "Zip got file ${zipEntry.name}"}

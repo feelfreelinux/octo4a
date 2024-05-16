@@ -135,9 +135,6 @@ class OctoPrintHandlerRepositoryImpl(
                     logger.log { "Bootstrap installed" }
                     _serverState.emit(ServerStatus.BootingUp)
                     insertInitialConfig()
-                    vspPty.cancelPtyThread()
-                    Thread.sleep(10)
-                    vspPty.runPtyThread()
                     startOctoPrint()
                     logger.log { "Dependencies installed" }
                 } else {

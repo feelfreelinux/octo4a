@@ -20,6 +20,7 @@ class InstallationViewModel(context: Application, private val octoPrintHandlerRe
     val serverStatus = octoPrintHandlerRepository.serverState.asLiveData()
     val installErrorDescription = octoPrintHandlerRepository.installErrorDescription.asLiveData()
     val bootstrapReleases = _bootstrapReleases.asLiveData()
+    val bootstrapDownloadProgress = bootstrapRepository.downloadProgressData
 
     fun fetchBootstrapReleases() {
         viewModelScope.launch {
