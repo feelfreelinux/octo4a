@@ -108,11 +108,11 @@ class BootstrapRepositoryImpl(
                 val code = connection.responseCode
                 logger.log(this) { "Request to ${connection.url} returned status code $code" }
                 if (code > 399) {
-
                     throw RuntimeException(
                         "Fetching ${connection.url} failed with status code $code"
                     )
                 }
+
                 ZipInputStream(connection.inputStream).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
@@ -153,6 +153,13 @@ class BootstrapRepositoryImpl(
         withContext(Dispatchers.IO) {
             logger.log(this) { "Bootstrap downloaded, extracting it..." }
             runCommand("ls", prooted = false).waitAndPrintOutput(logger)
+
+            if (shouldUsePre5Bootstrap()) {
+                runCommand(
+                    "rm -rf bin && mv bin-pre5 bin && rm -rf libexec && mv libexec-pre5 libexec",
+                    prooted = false
+                ).waitAndPrintOutput(logger)
+            }
 
             // First call inside of proot will automatically extract the bootstrap
             runCommand("ls").waitAndPrintOutput(logger)

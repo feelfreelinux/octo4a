@@ -26,7 +26,7 @@ class InstallationViewModel(context: Application, private val octoPrintHandlerRe
             withIO {
                 try {
                     // Fetch releases from octo4a-bootstrap-builder
-                    val newestReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a-bootstrap-builder").filter { !it.prerelease }
+                    val newestReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a-bootstrap-builder")
                     _bootstrapReleases.value = newestReleases
 
                     bootstrapRepository.selectReleaseForInstallation(newestReleases.first())
