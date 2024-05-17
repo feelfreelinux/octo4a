@@ -153,7 +153,6 @@ extern "C"
 
 [[noreturn]] static void* ptyThread(void* irrelevant)
 {
-
     int slave;
     __android_log_print(ANDROID_LOG_VERBOSE, "TAG", "PtyThread getting ready");
 

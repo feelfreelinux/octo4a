@@ -106,13 +106,11 @@ class OctoPrintService : LifecycleService() {
     override fun onCreate() {
         registerReceiver(broadcastReceiver, intentFilter)
         bootstrapRepository.ensureHomeDirectory()
-        virtualSerialDriver.initializeVSP()
-        virtualSerialDriver.handlePtyThread()
 
         scope.launch {
-            handlerRepository.beginInstallation()
             virtualSerialDriver.initializeVSP()
             virtualSerialDriver.handlePtyThread()
+            handlerRepository.beginInstallation()
         }
 
         handlerRepository.serverState.asLiveData().observe(this) {

@@ -55,7 +55,7 @@ class BootstrapRepositoryImpl(
     companion object {
         private val FILES_PATH = "/data/data/com.octo4a/files"
         val PREFIX_PATH = "$FILES_PATH/bootstrap"
-        val HOME_PATH = "$FILES_PATH/home"
+        val HOME_PATH = "$FILES_PATH"
     }
 
     val filesPath: String by lazy { context.getExternalFilesDir(null).absolutePath }
@@ -266,10 +266,10 @@ class BootstrapRepositoryImpl(
     }
 
     override fun ensureHomeDirectory() {
-//        val homeFile = File(HOME_PATH)
-//        if (!homeFile.exists()) {
-//            homeFile.mkdir()
-//        }
+        val homeFile = File(HOME_PATH)
+        if (!homeFile.exists()) {
+            homeFile.mkdir()
+        }
     }
 
     override val isSSHConfigured: Boolean
