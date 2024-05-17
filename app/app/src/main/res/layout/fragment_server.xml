@@ -27,7 +27,7 @@
                       android:textStyle="bold"
                       android:fontFamily="sans-serif"
                       android:textSize="16sp"
-                      android:text="Thanks for testing out this app."
+                      android:text="@string/unofficial_app_thanks"
             />
             <TextView android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                       android:textStyle="normal"
                       android:fontFamily="sans-serif-light"
                       android:textSize="16sp"
-                      android:text="This is an unofficial app, not affiliated with OctoPrint project. Use at your own risk."
+                      android:text="@string/unofficial_app_note"
             />
         </LinearLayout>
 

@@ -11,11 +11,15 @@ import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.octo4a.Octo4aApplication
@@ -30,18 +34,47 @@ import com.octo4a.utils.getOutputAsString
 import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.utils.waitAndPrintOutput
+import com.octo4a.viewmodel.BootstrapItem
 import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_landing.*
+import kotlinx.android.synthetic.main.bootstrap_spinner_view.view.bootstrapVersion
+import kotlinx.android.synthetic.main.bootstrap_spinner_view.view.octoprintVersion
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
+class BootstrapSpinnerAdapter(context: Context, @LayoutRes private val layoutResource: Int, private val releases: List<BootstrapItem>):
+    ArrayAdapter<BootstrapItem>(context, layoutResource, releases) {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        return createViewFromResource(position, convertView, parent)
+    }
+
+    override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        return createViewFromResource(position, convertView, parent)
+    }
+
+    private fun createViewFromResource(position: Int, convertView: View?, parent: ViewGroup?): View{
+        val view = convertView ?: LayoutInflater.from(context).inflate(layoutResource, parent, false)
+        val release = releases[position]
+        view.octoprintVersion.text = release.title
+
+        var bootstrapVersionText = release.bootstrapVersion
+
+        if (release.recommended) {
+            bootstrapVersionText += " • recommended"
+        } else if (release.prerelease) {
+            bootstrapVersionText += " • prerelease"
+        }
+        view.bootstrapVersion.text = bootstrapVersionText
+        return view
+    }
+}
 class InitialActivity: AppCompatActivity() {
     private val bootstrapRepository: BootstrapRepository by inject()
     private val prefs: MainPreferences by inject()
     private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
     private val installationViewModel: InstallationViewModel by viewModel()
-    private val spinnerArrayAdapter: ArrayAdapter<String> by lazy { ArrayAdapter<String>(this, android.R.layout.simple_spinner_item) }
+    private val spinnerArrayAdapter: BootstrapSpinnerAdapter by lazy { BootstrapSpinnerAdapter(this, R.layout.bootstrap_spinner_view, mutableListOf()) }
 
     // Storage permission request
     private val hasStoragePermission: Boolean
@@ -91,10 +124,16 @@ class InitialActivity: AppCompatActivity() {
         }
     }
 
-    private fun updateBootstrapSpinnerItems(releases: List<GithubRelease>) {
+    private fun updateBootstrapSpinnerItems(releases: List<BootstrapItem>) {
         spinnerArrayAdapter.clear()
-        spinnerArrayAdapter.addAll(releases.map { if (it.name == releases.first().name) "latest (${it.name})" else it.name })
+        spinnerArrayAdapter.addAll(releases)
         spinnerArrayAdapter.notifyDataSetChanged()
+
+        val recommendedItem = releases.indexOfFirst { it.recommended }
+
+        if (recommendedItem > -1) {
+            bootstrapVersionSpinner.setSelection(recommendedItem)
+        }
     }
 
     private fun prepareBootstrap() {
@@ -128,10 +167,14 @@ class InitialActivity: AppCompatActivity() {
 
     private fun startApp() {
         if (!bootstrapRepository.isBootstrapInstalled) {
-            startOctoService()
-            val intent = Intent(this, InstallationActivity::class.java)
-            startActivity(intent)
-            finish()
+            if (!bootstrapRepository.isBootstrapInstallItemSelected) {
+                Toast.makeText(this, getString(R.string.bootstrap_not_selected), Toast.LENGTH_LONG).show()
+            } else {
+                startOctoService()
+                val intent = Intent(this, InstallationActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
         } else {
             startOctoService()
             val intent = Intent(this, MainActivity::class.java)
@@ -139,8 +182,6 @@ class InitialActivity: AppCompatActivity() {
             finish()
         }
     }
-
-
 
     private fun isNetworkConnected(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import com.octo4a.utils.*
+import com.octo4a.viewmodel.BootstrapItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,7 @@ import kotlin.math.roundToInt
 interface BootstrapRepository {
     val commandsFlow: SharedFlow<String>
     val downloadProgressData: LiveData<Int>
+    val isBootstrapInstallItemSelected: Boolean
     suspend fun downloadBootstrap()
     suspend fun extractBootstrap()
     fun runCommand(
@@ -38,7 +40,7 @@ interface BootstrapRepository {
     fun ensureHomeDirectory()
     fun resetSSHPassword(newPassword: String)
 
-    fun selectReleaseForInstallation(release: GithubRelease)
+    fun selectReleaseForInstallation(release: BootstrapItem)
 
     val isBootstrapInstalled: Boolean
     val isSSHConfigured: Boolean
@@ -59,12 +61,15 @@ class BootstrapRepositoryImpl(
     val filesPath: String by lazy { context.getExternalFilesDir(null).absolutePath }
     private var _commandsFlow = MutableSharedFlow<String>(100)
     private var _downloadProgressFlow = MutableStateFlow(0)
-    private var _selectedGitHubRelease: GithubRelease? = null
+    private var _selectedGitHubRelease: BootstrapItem? = null
     override val commandsFlow: SharedFlow<String>
         get() = _commandsFlow
 
     override val downloadProgressData: LiveData<Int>
         get() = _downloadProgressFlow.asLiveData()
+
+    override val isBootstrapInstallItemSelected: Boolean
+        get() = _selectedGitHubRelease != null
 
     private fun shouldUsePre5Bootstrap(): Boolean {
         if (getArchString() != "arm" && getArchString() != "i686") {
@@ -74,7 +79,7 @@ class BootstrapRepositoryImpl(
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
     }
 
-    override fun selectReleaseForInstallation(release: GithubRelease) {
+    override fun selectReleaseForInstallation(release: BootstrapItem) {
         _selectedGitHubRelease = release
     }
 
@@ -95,7 +100,6 @@ class BootstrapRepositoryImpl(
                     return@withContext
                 }
                 val arch = getArchString()
-                val asset = _selectedGitHubRelease!!.assets.firstOrNull { asset -> asset.name.contains(arch) }
                 logger.log(this) { "Arch: $arch" }
 
                 val STAGING_PREFIX_PATH = "${FILES_PATH}/bootstrap-staging"
@@ -108,8 +112,8 @@ class BootstrapRepositoryImpl(
                 val buffer = ByteArray(8096)
                 val symlinks = ArrayList<Pair<String, String>>(50)
 
-                val urlPrefix = asset!!.browserDownloadUrl
-                logger.log(this) { "Downloading bootstrap ${_selectedGitHubRelease?.tagName} from $urlPrefix" }
+                val urlPrefix = _selectedGitHubRelease!!.assetUrl
+                logger.log(this) { "Downloading bootstrap ${_selectedGitHubRelease?.bootstrapVersion} from $urlPrefix" }
 
                 val sslcontext = SSLContext.getInstance("TLSv1")
                 sslcontext.init(null, null, null)
@@ -136,7 +140,6 @@ class BootstrapRepositoryImpl(
                 }).use { zipInput ->
                     var zipEntry = zipInput.nextEntry
                     while (zipEntry != null) {
-                        logger.log(this) { "Zip got file ${zipEntry.name}"}
                         val zipEntryName = zipEntry.name
                         val targetFile = File(STAGING_PREFIX_PATH, zipEntryName)
                         val isDirectory = zipEntry.isDirectory

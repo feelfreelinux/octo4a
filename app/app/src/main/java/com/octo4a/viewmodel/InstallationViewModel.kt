@@ -8,14 +8,15 @@ import com.octo4a.repository.BootstrapRepository
 import com.octo4a.repository.GithubRelease
 import com.octo4a.repository.GithubRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
+import com.octo4a.utils.getArchString
 import com.octo4a.utils.withIO
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-class InstallationViewModel(context: Application, private val octoPrintHandlerRepository: OctoPrintHandlerRepository, private val githubRepository: GithubRepository, private val bootstrapRepository: BootstrapRepository) : AndroidViewModel(context) {
-    private var _bootstrapReleases = MutableStateFlow(listOf<GithubRelease>())
-    private var _selectedGitHubRelease = MutableStateFlow<GithubRelease?>(null)
+data class BootstrapItem(val title: String, val bootstrapVersion: String, val assetUrl: String, val prerelease: Boolean, var recommended: Boolean = false)
+class InstallationViewModel(context: Application, octoPrintHandlerRepository: OctoPrintHandlerRepository, private val githubRepository: GithubRepository, private val bootstrapRepository: BootstrapRepository) : AndroidViewModel(context) {
+    private var _bootstrapReleases = MutableStateFlow(listOf<BootstrapItem>())
+    private var _selectedRelease = MutableStateFlow<BootstrapItem?>(null)
 
     val serverStatus = octoPrintHandlerRepository.serverState.asLiveData()
     val installErrorDescription = octoPrintHandlerRepository.installErrorDescription.asLiveData()
@@ -27,10 +28,34 @@ class InstallationViewModel(context: Application, private val octoPrintHandlerRe
             withIO {
                 try {
                     // Fetch releases from octo4a-bootstrap-builder
-                    val newestReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a-bootstrap-builder")
-                    _bootstrapReleases.value = newestReleases
+                    val newestReleases = githubRepository.getNewestReleases("feelfreelinux/octo4a-bootstrap-builder").toMutableList()
 
-                    bootstrapRepository.selectReleaseForInstallation(newestReleases.first())
+                    // Sort for newest releases
+                    newestReleases.sortByDescending { it.publishedAt }
+
+                    val arch = getArchString()
+
+                    val bootstrapItems = newestReleases.mapNotNull {
+                        // Get matching asset
+                        val asset = it.assets.firstOrNull { asset -> asset.name.contains(arch) }
+                        val nameSplit = it.name.split("-")
+
+                        // Filter out invalid releases
+                        if (nameSplit.size != 2 || (asset == null)) null
+                        else BootstrapItem("OctoPrint ${nameSplit[1]}", nameSplit.first().removePrefix("v"), asset.browserDownloadUrl, it.prerelease)
+                    }
+
+
+                    // Latest non-prerelease should be the recommended bootstrap
+                    val recommendedItem = bootstrapItems.firstOrNull { !it.prerelease }
+
+                    recommendedItem?.recommended = true
+                    _bootstrapReleases.value = bootstrapItems
+                    _selectedRelease.value = recommendedItem
+
+                    recommendedItem?.apply {
+                        bootstrapRepository.selectReleaseForInstallation(this)
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -38,12 +63,8 @@ class InstallationViewModel(context: Application, private val octoPrintHandlerRe
         }
     }
 
-    fun selectBootstrapRelease(releaseStr: String) {
-        val release = _bootstrapReleases.value.firstOrNull { releaseStr.contains(it.name) }
-
-        release?.apply {
-            _selectedGitHubRelease.value = this
-            bootstrapRepository.selectReleaseForInstallation(this)
-        }
+    fun selectBootstrapRelease(bootstrapItem: BootstrapItem) {
+        _selectedRelease.value = bootstrapItem
+        bootstrapRepository.selectReleaseForInstallation(bootstrapItem)
     }
 }
