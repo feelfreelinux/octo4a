@@ -4,6 +4,7 @@ import android.animation.LayoutTransition
 import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isGone
@@ -27,16 +28,20 @@ constructor(private val ctx: Context, private val attributeSet: AttributeSet? = 
         get() = ServerStatus.Stopped
         set(value) {
             contentTextView.text = when (value) {
-                ServerStatus.InstallingBootstrap -> resources.getString(R.string.installation_step_bootstrap, getArchString())
-                ServerStatus.InstallingDependencies -> resources.getString(R.string.installation_step_dependencies)
+                ServerStatus.DownloadingBootstrap -> resources.getString(R.string.installation_step_downloading, getArchString())
+                ServerStatus.ExtractingBootstrap -> resources.getString(R.string.installation_step_extracting, getArchString())
                 ServerStatus.BootingUp -> resources.getString(R.string.installation_step_bootup)
-                ServerStatus.DownloadingOctoPrint -> resources.getString(R.string.installation_step_downloading_octoprint, "newest")
                 ServerStatus.Running -> resources.getString(R.string.installation_step_done)
                 ServerStatus.InstallationError -> resources.getString(R.string.installation_error)
                 else -> "Unknown status"
             }
         }
 
+    var statusText: String
+        get() = contentTextView.text.toString()
+        set(value) {
+            contentTextView.text = value
+        }
     var isLoading: Boolean
         get() = false
         set(value) {

@@ -3,12 +3,11 @@
     <string name="landing_install">Install OctoPrint</string>
     <string name="landing_no_installation">No existing installation detected</string>
     <string name="landing_description">This application will install OctoPrint server on your android device. Please
-        make sure that you have at least 700mb of storage available. You will also need an OTG cable in order to connect
+        make sure that you have at least 800mb of storage available. You will also need an OTG cable in order to connect
         your phone to your 3d printer.\n\nThis project is an unofficial product, not affiliated with OctoPrint project.
     </string>
-    <string name="installation_step_bootstrap">Installing bootstrap (%1$s)…</string>
-    <string name="installation_step_downloading_octoprint">Downloading OctoPrint (%1$s)…</string>
-    <string name="installation_step_dependencies">Installing dependencies…</string>
+    <string name="installation_step_downloading">Downloading bootstrap (%1$s)…</string>
+    <string name="installation_step_extracting">Extracting bootstrap (%1$s)…</string>
     <string name="installation_step_bootup">Booting OctoPrint for the first time…</string>
     <string name="installation_step_done">Installation complete</string>
     <string name="status_starting">OctoPrint is starting…</string>
@@ -42,7 +41,8 @@
     <string name="disable_battery_optimization">Disable battery optimization</string>
     <string name="disable_battery_optimization_msg">For stability reasons it is necessary to disable battery optimizations for this app in the system settings</string>
     <string name="legacy_bootstrap">Legacy installation detected</string>
-    <string name="legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
+    <string name="pre1_legacy_bootstrap_msg">Upgrading from legacy releases is not supported. Proceeding with installation will delete all existing octoprint data.</string>
+    <string name="legacy_bootstrap_msg">Upgrading from a legacy release will require a reinstall of previously-installed plugins. All other data and configuration should be kept intact. Alternatively, you can downgrade to octo4a 1.2.6, and prepare a backup in OctoPrint\'s settings.</string>
     <string name="clear_and_install">Clear data</string>
     <string name="status_shutting_down">OctoPrint is shutting down…</string>
     <string name="status_shutting_down_subtitle">this could take a couple of seconds</string>
@@ -54,6 +54,7 @@
     <string name="tap_to_select"> (tap to select)</string>
     <string name="installation_corrupt">Installation corrupted</string>
     <string name="missing_write_permission">Missing storage permission…</string>
+    <string name="bootstrap_not_selected">No bootstrap version selected…</string>
     <string name="missing_network">No network connection</string>
     <string name="tap_to_reinstall">tap to reinstall the app</string>
     <string name="bugreport_dialog_title">Enable anonymous bug reporting</string>
@@ -70,6 +71,6 @@
     <string name="clear_data_and_restart">Clear data and restart</string>
     <string name="no_local_network">It appears that your device has no connectivity to your local network. Please connect to Wi-Fi, Ethernet or a VPN to access your OctoPrint instance from other devices.</string>
     <string name="ip_address_copied_to_clipboard">IP address copied to clipboard!</string>
-
-
+    <string name="unofficial_app_note">This is an unofficial app, not affiliated with OctoPrint project. Use at your own risk.</string>
+    <string name="unofficial_app_thanks">Thanks for using this app.</string>
 </resources>

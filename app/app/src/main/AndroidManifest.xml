@@ -14,8 +14,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-sdk
             tools:overrideLibrary="androidx.camera.view, androidx.camera.extensions, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.core"/>
@@ -30,7 +30,7 @@
             android:installLocation="internalOnly"
             android:usesCleartextTraffic="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".ui.InitialActivity">
+        <activity android:name=".ui.InitialActivity" android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

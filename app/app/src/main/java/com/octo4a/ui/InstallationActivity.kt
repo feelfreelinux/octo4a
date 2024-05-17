@@ -5,8 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +15,7 @@ import com.octo4a.repository.ServerStatus
 import com.octo4a.repository.getInstallationProgress
 import com.octo4a.ui.fragments.TerminalSheetDialog
 import com.octo4a.ui.views.InstallationProgressItem
+import com.octo4a.utils.getArchString
 import com.octo4a.utils.preferences.MainPreferences
 import com.octo4a.viewmodel.InstallationViewModel
 import kotlinx.android.synthetic.main.activity_installation_progress.*
@@ -45,11 +45,15 @@ class InstallationActivity : AppCompatActivity() {
                 progressTextView.text = "${it.getInstallationProgress()}%"
             }
             setItemsState(it)
-            continueButton.isEnabled = it == ServerStatus.Running
+            //continueButton.isEnabled = it == ServerStatus.Running
         }
 
         installationViewModel.installErrorDescription.observe(this) {
             errorContentsTextView.text = it
+        }
+
+        installationViewModel.bootstrapDownloadProgress.observe(this) {
+            bootstrapItem.statusText = resources.getString(R.string.installation_step_downloading, "$it%")
         }
 
         continueButton.setOnClickListener {
@@ -96,12 +100,10 @@ class InstallationActivity : AppCompatActivity() {
             errorWrapper.visibility = View.GONE
             mainInstallationLayout.background = resources.getDrawable(R.drawable.green_gradient)
         }
-        bootstrapItem.setStatus(status, ServerStatus.InstallingBootstrap)
-        downloadingOctoprintItem.setStatus(status, ServerStatus.DownloadingOctoPrint)
-        installingDependenciesItem.setStatus(status, ServerStatus.InstallingDependencies)
+        bootstrapItem.setStatus(status, ServerStatus.DownloadingBootstrap)
+        extractingItem.setStatus(status, ServerStatus.ExtractingBootstrap)
         bootingOctoprintItem.setStatus(status, ServerStatus.BootingUp)
         installationCompleteItem.setStatus(status, ServerStatus.Running)
-
     }
 
     private fun InstallationProgressItem.setStatus(currentStatus: ServerStatus, requiredStatus: ServerStatus) {

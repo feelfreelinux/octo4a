@@ -16,11 +16,11 @@
             app:title="Server settings"
             app:iconSpaceReserved="false">
         <SwitchPreferenceCompat
-                app:iconSpaceReserved="false"
-                app:key="enableSSH"
-                app:defaultValue="false"
-                app:title="Enable OpenSSH Server"
-                app:summary="Enables SSH access from network"/>
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="enableSSH"
+            app:summary="Enables SSH access from network"
+            app:title="Enable Dropbear SSH Server" />
         <EditTextPreference
                 app:dependency="enableSSH"
                 app:key="changeSSHPassword"

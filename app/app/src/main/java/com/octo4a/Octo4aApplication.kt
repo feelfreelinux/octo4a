@@ -37,7 +37,7 @@ class Octo4aApplication : MultiDexApplication() {
     }
 
     fun initializeSSLContext() {
-        val noSSLv3Factory: TLSSocketFactory = TLSSocketFactory()
+        val noSSLv3Factory: TLSSocketFactory = TLSSocketFactory(applicationContext)
 
         HttpsURLConnection.setDefaultSSLSocketFactory(noSSLv3Factory)
     }

@@ -28,16 +28,16 @@ val appModule = module {
             }
             engine {
                 sslManager = {
-                    it.sslSocketFactory = TLSSocketFactory()
+                    it.sslSocketFactory = TLSSocketFactory(androidContext())
                 }
             }
         }
     }
 
     factory { MainPreferences(androidContext()) }
-    factory <GithubRepository> { GithubRepositoryImpl(get()) }
-    factory<BootstrapRepository> { BootstrapRepositoryImpl(get(), get(), androidContext()) }
+    factory<GithubRepository> { GithubRepositoryImpl(get()) }
 
+    single<BootstrapRepository> { BootstrapRepositoryImpl(get(), get(), androidContext()) }
     single<FIFOEventRepository> { FIFOEventRepositoryImpl(get()) }
     single<VirtualSerialDriver> { VirtualSerialDriver(androidContext(), get(), get(), get()) }
     single<ExtensionsRepository> { ExtensionsRepositoryImpl(androidContext(), get(), get(), get()) }
@@ -45,7 +45,7 @@ val appModule = module {
     single<OctoPrintHandlerRepository> { OctoPrintHandlerRepositoryImpl(androidContext(), get(), get(), get(), get(), get(), get()) }
     single { CameraEnumerationRepository(androidApplication()) }
 
-    viewModel { InstallationViewModel(get()) }
+    viewModel { InstallationViewModel(androidApplication(), get(), get(), get()) }
     viewModel { StatusViewModel(androidApplication(), get(), get()) }
     viewModel { NetworkStatusViewModel(androidApplication(), get()) }
 }

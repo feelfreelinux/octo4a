@@ -1,30 +1,60 @@
 package com.octo4a.utils
 
+import android.content.Context
+import com.octo4a.R
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.InetAddress
 import java.net.Socket
 import java.net.UnknownHostException
 import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import java.util.*
 import javax.net.ssl.*
 
-class TLSSocketFactory() : SSLSocketFactory() {
+class TLSSocketFactory(val context: Context) : SSLSocketFactory() {
     private val delegate: SSLSocketFactory
     private var trustManagers: Array<TrustManager>? = emptyArray()
     @Throws(KeyStoreException::class, NoSuchAlgorithmException::class)
     private fun generateTrustManagers() {
-        val trustManagerFactory: TrustManagerFactory =
-            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(null as KeyStore?)
-        val trustManagers: Array<TrustManager> = trustManagerFactory.getTrustManagers()
-        if (trustManagers.size != 1 || trustManagers.get(0) !is X509TrustManager) {
-            throw IllegalStateException(
-                "Unexpected default trust managers:"
-                        + Arrays.toString(trustManagers)
-            )
+        val inputStream: InputStream = context.resources.openRawResource(R.raw.cacert)
+
+        // Load PEM-encoded certificate bundle
+        val pemCertificates = mutableListOf<X509Certificate>()
+        var certBuffer = StringBuilder()
+        BufferedReader(InputStreamReader(inputStream)).use { reader ->
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                if (line!!.startsWith("-----BEGIN CERTIFICATE-----")) {
+                    certBuffer = StringBuilder()
+                }
+                certBuffer.append(line).append("\n")
+                if (line!!.startsWith("-----END CERTIFICATE-----")) {
+                    val certBytes = certBuffer.toString().toByteArray()
+                    val certificateFactory = CertificateFactory.getInstance("X.509")
+                    val certificate = certificateFactory.generateCertificate(certBytes.inputStream()) as X509Certificate
+                    pemCertificates.add(certificate)
+                }
+            }
         }
+
+        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+        keyStore.load(null)
+        for ((index, certificate) in pemCertificates.withIndex()) {
+            keyStore.setCertificateEntry("ca$index", certificate)
+        }
+
+        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        trustManagerFactory.init(keyStore)
+
+        val trustManagers = trustManagerFactory.trustManagers
+        val trustManager = trustManagers.firstOrNull { it is X509TrustManager } as? X509TrustManager
+            ?: throw IllegalStateException("No X509TrustManager found")
         this.trustManagers = trustManagers
     }
 
