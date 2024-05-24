@@ -93,8 +93,8 @@ EOF
 
 mkdir -p /etc/nginx/conf.d/
 
-cat << EOF > /etc/nginx/conf.d/upstreams.conf
-# /etc/nginx/conf.d/upstreams.conf
+cat << EOF > /etc/nginx/http.d/upstreams.conf
+# /etc/nginx/http.d/upstreams.conf
 
 upstream apiserver {
     ip_hash;
