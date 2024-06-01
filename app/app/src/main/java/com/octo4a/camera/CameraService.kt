@@ -39,6 +39,7 @@ import kotlin.coroutines.suspendCoroutine
 class CameraService : LifecycleService(), MJpegFrameProvider {
     private var latestFrame: ByteArray = ByteArray(0)
     private var listenerCount = 0
+    private var flashRefCnt: Int = 0
 
     private val cameraSettings: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
@@ -108,10 +109,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         if (!cameraInitialized) {
             it.resume(ByteArray(0))
         } else {
+            if (cameraSettings.flashWhenObserved) {
+                addFlashObserver()
+            }
             imageCapture.takePicture(
                 captureExecutor,
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
+                        if (cameraSettings.flashWhenObserved) {
+                            removeFlashObserver()
+                        }
                         val buffer = image.planes[0].buffer
                         val bytes = ByteArray(buffer.capacity()).also { array -> buffer.get(array) }
                         val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
@@ -135,6 +142,9 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                     }
 
                     override fun onError(exception: ImageCaptureException) {
+                        if (cameraSettings.flashWhenObserved) {
+                            removeFlashObserver()
+                        }
                         super.onError(exception)
                         logger.log(this) { "Single capture error: $exception" }
                         it.resume(ByteArray(0))
@@ -148,11 +158,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             listenerCount++
         }
         logger.log(this) { "Camera server register listener" }
-
-        val turnFlashOn = cameraSettings.flashWhenObserved
-
-        if (listenerCount > 0  && turnFlashOn && cameraInitialized) {
-            currentCamera?.cameraControl?.enableTorch(true)
+        if (cameraSettings.flashWhenObserved) {
+            addFlashObserver()
         }
     }
 
@@ -161,15 +168,34 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             listenerCount--
         }
         logger.log(this) { "Camera server unregister listener" }
-
-        if (listenerCount < 1 && cameraInitialized) {
-            currentCamera?.cameraControl?.enableTorch(false)
+        if (cameraSettings.flashWhenObserved) {
+            removeFlashObserver()
         }
     }
 
     private val mjpegServer by lazy { MJpegServer(5001, this) }
 
     private val callbackExecutorPool = Executors.newCachedThreadPool()
+
+    private fun addFlashObserver() {
+        synchronized(flashRefCnt) {
+            flashRefCnt++
+            if (cameraInitialized) {
+                currentCamera?.cameraControl?.enableTorch(true)
+            }
+        }
+    }
+
+    private fun removeFlashObserver() {
+        synchronized(flashRefCnt) {
+            if(flashRefCnt > 0) {
+                flashRefCnt--
+            }
+            if(cameraInitialized && flashRefCnt == 0) {
+                currentCamera?.cameraControl?.enableTorch(false)
+            }
+        }
+    }
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -184,9 +210,15 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         octoprintHandler.isCameraServerRunning = false
     }
 
+    fun stopPreview() {
+        // Doesn't actually unbind the camera
+        if(cameraSettings.flashWhenObserved) {
+            removeFlashObserver()
+        }
+    }
+
     fun getPreview(): Preview {
         cameraInitialized = false
-        val turnFlashOn = cameraSettings.flashWhenObserved
 
         cameraProcessProvider?.unbindAll()
         val camera = cameraProcessProvider?.bindToLifecycle(
@@ -197,10 +229,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             cameraPreview
         )
 
-        if (turnFlashOn) {
-            camera?.cameraControl?.enableTorch(true)
-        }
         cameraInitialized = true
+        if(cameraSettings.flashWhenObserved) {
+            addFlashObserver()
+        }
         return cameraPreview
     }
 

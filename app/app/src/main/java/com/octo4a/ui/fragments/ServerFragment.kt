@@ -237,11 +237,14 @@ class ServerFragment : Fragment() {
                 .setTitle(R.string.camera_preview)
                 .setView(R.layout.dialog_camera_preview)
                 .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
+                .setOnDismissListener {
+                    if (boundToCameraService) {
+                        cameraService.stopPreview()
+                    }
+                }
                 .show()
 
             dialog.findViewById<PreviewView>(R.id.previewView)?.apply {
-
-
                 if (boundToCameraService) {
                     cameraService.getPreview().setSurfaceProvider(surfaceProvider)
                 }
