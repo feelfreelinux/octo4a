@@ -42,6 +42,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
+    private val flashWhenObserved by lazy { findPreference<SwitchPreferenceCompat>("flashWhenObserved") }
     private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
     private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
@@ -178,6 +179,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         fpsLimit?.setOnPreferenceChangeListener { _, value ->
             prefs.fpsLimit = value as String
+            stopCameraServer()
+            startCameraServer()
+            true
+        }
+
+        flashWhenObserved?.setOnPreferenceChangeListener { _, value ->
             stopCameraServer()
             startCameraServer()
             true
