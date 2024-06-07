@@ -40,6 +40,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val sshPortPref by lazy { findPreference<EditTextPreference>("sshPort") }
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
+    private val selectedCameraVideoResolution by lazy { findPreference<ListPreference>("selectedVideoResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
     private val flashWhenObserved by lazy { findPreference<SwitchPreferenceCompat>("flashWhenObserved") }
@@ -225,6 +226,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             val selectedResolution = selectedCamera?.sizes?.sortedBy { it.width }?.firstOrNull { it.width >= 1000 } ?: selectedCamera?.sizes?.first()
             prefs.selectedCamera = selectedCamera?.id
             prefs.selectedResolution = selectedResolution?.readableString()
+            prefs.selectedVideoResolution = selectedResolution?.readableString()
         }
 
         disableAF?.apply {
@@ -247,6 +249,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 prefs.selectedResolution = selectedCam?.getRecommendedSize()?.readableString()
                 setCameraResolutions(newValue)
                 selectedCameraResolution?.value = prefs.selectedResolution
+                selectedCameraVideoResolution?.value = prefs.selectedVideoResolution
                 startCameraServer()
                 true
             }
@@ -255,6 +258,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         selectedCameraPref?.value = currentCam!!
         setCameraResolutions(currentCam)
         selectedCameraResolution?.value = prefs.selectedResolution
+        selectedCameraVideoResolution?.value = prefs.selectedVideoResolution
     }
 
     private fun setCameraResolutions(selectedCam: String) {
@@ -267,6 +271,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 startCameraServer()
                 true
             }
+        }
+        selectedCameraVideoResolution?.apply {
+          entries = camera?.sizes?.map { it.readableString() }?.toTypedArray()
+          entryValues = entries
+          setOnPreferenceChangeListener { _, value ->
+              prefs.selectedVideoResolution = value as String
+              startCameraServer()
+              true
+          }
         }
     }
 

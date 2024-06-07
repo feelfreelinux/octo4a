@@ -17,10 +17,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.octo4a.Octo4aApplication
 import com.octo4a.R
@@ -34,6 +37,7 @@ import com.octo4a.ui.WebinterfaceActivity
 import com.octo4a.ui.showBugReportingDialog
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
+import com.octo4a.utils.ManualLifecycleOwner
 import com.octo4a.viewmodel.IPAddress
 import com.octo4a.viewmodel.IPAddressType
 import com.octo4a.viewmodel.NetworkStatusViewModel
@@ -45,10 +49,16 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
 class ServerFragment : Fragment() {
+    class PreviewViewModel : ViewModel() {
+      var visible: Boolean = false
+      var preview: Preview? = null
+      var lifecycle: ManualLifecycleOwner? = null
+    }
+
     private val statusViewModel: StatusViewModel by sharedViewModel()
     private val networkStatusViewModel: NetworkStatusViewModel by sharedViewModel()
-    private lateinit var cameraService: CameraService
-    private var boundToCameraService = false
+    private var _cameraService: CameraService? = null
+    private lateinit var _previewViewModel: PreviewViewModel // needed to handle screen rotation while preview window up
     private val vspDriver: VirtualSerialDriver by inject()
     private val mainPreferences: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
@@ -56,12 +66,11 @@ class ServerFragment : Fragment() {
     private val cameraServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as CameraService.LocalBinder
-            cameraService = binder.getService()
-            boundToCameraService = true
+            _cameraService = binder.getService()
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            boundToCameraService = false
+          _cameraService = null
         }
     }
     override fun onCreateView(
@@ -83,7 +92,7 @@ class ServerFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         requireActivity().unbindService(cameraServiceConnection)
-        boundToCameraService = false
+        _cameraService = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,6 +101,11 @@ class ServerFragment : Fragment() {
         statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
             logger.log(this) { "Update available" }
             showUpdateDialog(it)
+        }
+
+        _previewViewModel = ViewModelProvider(this).get(PreviewViewModel::class.java)
+        if (_previewViewModel.visible) {
+          showPreviewDialog()
         }
 
         vspDriver.connectedDevices.asLiveData().observe(viewLifecycleOwner) { devices ->
@@ -232,22 +246,33 @@ class ServerFragment : Fragment() {
     }
 
     private fun showPreviewDialog() {
+        logger.log(this) { "showPreviewDialog" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val lifecycle = _previewViewModel.lifecycle ?: ManualLifecycleOwner()
+            val preview = _previewViewModel.preview ?: _cameraService?.getPreview(lifecycle)
+
             val dialog = MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(R.string.camera_preview)
                 .setView(R.layout.dialog_camera_preview)
                 .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
-                .setOnDismissListener {
-                    if (boundToCameraService) {
-                        cameraService.stopPreview()
-                    }
+                .create().apply {
+                  setOnDismissListener {
+                    _previewViewModel.visible = false
+                    _previewViewModel.preview = null
+                    _previewViewModel.lifecycle = null
+                    lifecycle.stop()
+                  }
+                  setOnShowListener {
+                    _previewViewModel.visible = true
+                    _previewViewModel.preview = preview
+                    _previewViewModel.lifecycle = lifecycle
+                    lifecycle.start()
+                  }
+                  show()
                 }
-                .show()
 
             dialog.findViewById<PreviewView>(R.id.previewView)?.apply {
-                if (boundToCameraService) {
-                    cameraService.getPreview().setSurfaceProvider(surfaceProvider)
-                }
+              preview?.setSurfaceProvider(surfaceProvider)
             }
         } else {
             Toast.makeText(context, getString(R.string.api_too_low), Toast.LENGTH_LONG).show()
