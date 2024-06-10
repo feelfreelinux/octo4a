@@ -5,7 +5,6 @@ import java.io.OutputStream
 import java.io.PrintWriter
 import java.text.SimpleDateFormat
 import java.util.*
-import android.util.Log
 
 class MjpegResponse(private val frameProvider: MJpegFrameProvider) :
     NanoHTTPD.Response(Status.OK, "multipart/x-mixed-replace; boundary=--octo4a", null, 0) {

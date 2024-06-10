@@ -44,7 +44,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import org.koin.android.ext.android.inject
 
-const val UNBIND_DELAY_MS: Long = 5*60*1000 // Unbind the camera after 5 minutes of no use
+const val UNBIND_DELAY_MS: Long = 5 * 60 * 1000 // Unbind the camera after 5 minutes of no use
+const val UNBIND_STREAM_DELAY_MS: Long = 10 * 1000 // Unbind streams faster to save CPU
 const val JPEG_QUALITY: Int = 70
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -61,6 +62,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   data class CompletableInitState(
       var state: InitState,
       val callback: ((CompletableInitState) -> Unit)? = null,
+      val unbindDelayMs: Long = UNBIND_DELAY_MS,
       var refcnt: Int = 0,
       var waitEvent: WaitableEvent = WaitableEvent(),
       val unbindTimer: CancelableTimer = CancelableTimer()
@@ -128,10 +130,11 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
     val ret = builder.build()
 
-    if (_cameraSettings.flashWhenObserved) {
-      _cameraBoundUseCases[ret] =
-          CompletableInitState(InitState.NOT_INITIALIZED, callback = ::torchControlCallback)
-    }
+    _cameraBoundUseCases[ret] =
+        CompletableInitState(
+            InitState.NOT_INITIALIZED,
+            callback = ::torchControlCallback,
+            unbindDelayMs = UNBIND_STREAM_DELAY_MS)
 
     ret
   }
@@ -144,8 +147,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             .setTargetRotation(getSettingsRotation())
             .setFlashMode(
                 if (_cameraSettings.flashWhenObserved) ImageCapture.FLASH_MODE_ON
-                else ImageCapture.FLASH_MODE_ON)
-
+                else ImageCapture.FLASH_MODE_OFF)
     val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
     ext.setCaptureRequestOption(
         CaptureRequest.CONTROL_AF_MODE,
@@ -153,12 +155,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         else CameraMetadata.CONTROL_AF_MODE_AUTO)
 
     val ret = builder.build()
-
-    if (_cameraSettings.flashWhenObserved) {
-      _cameraBoundUseCases[ret] =
-          CompletableInitState(InitState.NOT_INITIALIZED, callback = ::torchControlCallback)
-    }
-
     ret
   }
 
@@ -182,13 +178,13 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     }
 
     val ret = builder.build()
-
-    if (_cameraSettings.flashWhenObserved) {
-      _cameraBoundUseCases[ret] =
-          CompletableInitState(InitState.NOT_INITIALIZED, callback = ::torchControlCallback)
-    }
-
+    _cameraBoundUseCases[ret] =
+        CompletableInitState(
+            InitState.NOT_INITIALIZED,
+            callback = ::torchControlCallback,
+            unbindDelayMs = UNBIND_STREAM_DELAY_MS)
     ret.setAnalyzer(_callbackExecutorPool, ::analyzeFrame)
+
     ret
   }
 
@@ -196,7 +192,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     synchronized(_torchRefCnt) {
       _torchRefCnt += 1
       if (_torchRefCnt == 1) {
-        _cameraControl?.enableTorch(true)
+        if (_cameraSettings.flashWhenObserved) {
+          _cameraControl?.enableTorch(true)
+        }
+        _logger.log(this) { "Torch now has users" }
       }
     }
   }
@@ -206,10 +205,13 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       if (_torchRefCnt > 0) {
         _torchRefCnt -= 1
       } else {
-        _logger.log(this) { "Got removeTorchUser when no known users!" }
+        _logger.log(this) { "Excessive removeTorchUser calls!" }
       }
       if (_torchRefCnt == 0) {
-        _cameraControl?.enableTorch(false)
+        if (_cameraSettings.flashWhenObserved) {
+          _cameraControl?.enableTorch(false)
+        }
+        _logger.log(this) { "Torch has no more users" }
       }
     }
   }
@@ -290,17 +292,21 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private val binder = LocalBinder()
 
   override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
+    _logger.log(this) { "Received takeSnapshot request" }
     if (!initUseCase(_imageCapture, block = true)) {
       it.resume(ByteArray(0))
+      return@suspendCoroutine
     }
     _imageCapture.takePicture(
         _captureExecutor,
         object : ImageCapture.OnImageCapturedCallback() {
           override fun onCaptureSuccess(image: ImageProxy) {
-            val bitmap = toBitmap(image.planes[0].buffer)
+            _logger.log(this) { "Snapshot Capture Success" }
+            val bitmap =
+                toBitmap(
+                    image.planes[0].buffer, image.getImageInfo().getRotationDegrees().toFloat())
             val compressedStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
-
             it.resume(compressedStream.toByteArray())
             super.onCaptureSuccess(image) // Closes the image
             image.close()
@@ -334,7 +340,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     var realWidth = image.width
     var realHeight = image.height
 
-    val rotation: Int = (getSettingsRotation() + image.imageInfo.rotationDegrees) % 360
+    val rotation: Int = image.imageInfo.rotationDegrees
     if (rotation > 0) {
       nv21 = RotateUtils.rotate(nv21, realWidth, realHeight, rotation)!!
       if (rotation != 180) {
@@ -342,7 +348,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         realHeight = image.width
       }
     }
-
     setNextFrame(compressNv21(nv21, realWidth, realHeight))
     image.close()
     sleepToLimitFps()
@@ -429,13 +434,11 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   }
 
   private fun initUseCase(useCase: UseCase, block: Boolean = false): Boolean {
-    _logger.log(this) { "Init use case $useCase" }
     if (_cameraProcessProvider == null) {
       _logger.log(this) { "Can't init use case $useCase, camera not initialized!" }
       return false
     }
     var waitForInitNeeded = false
-
     var initState: CompletableInitState
     synchronized(_cameraBoundUseCases) {
       _cameraBoundUseCases.computeIfAbsent(useCase) {
@@ -443,6 +446,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       }
       initState = _cameraBoundUseCases[useCase]!!
     }
+    _logger.log(this) { "Entering initUseCase: [$useCase]  [$initState]" }
     synchronized(initState) {
       if (initState.state == InitState.UNINITIALIZING) {
         initState.unbindTimer.cancel()
@@ -460,30 +464,29 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         initState.setState(InitState.INITIALIZING)
       }
     }
-
     if (waitForInitNeeded) {
       initState.waitEvent.wait()
     }
     if (initState.state != InitState.INITIALIZING) {
       return (initState.state == InitState.INITIALIZED)
     }
-
     fun bindCamera() {
       var camera: Camera?
       try {
         camera = _cameraProcessProvider?.bindToLifecycle(this, _cameraSelector, useCase)
         _cameraControl = _cameraControl ?: camera?.cameraControl
+
         synchronized(initState) {
           initState.refcnt += 1
           initState.setState(InitState.INITIALIZED)
         }
       } catch (e: Exception) {
         initState.setState(InitState.FAILED)
+        _logger.log(this) { "Failed to bind camera: $e" }
       } finally {
         initState.waitEvent.set()
       }
     }
-
     val handler = Handler(Looper.getMainLooper())
     if (block) {
       val isMainThread = Looper.getMainLooper().thread == Thread.currentThread()
@@ -497,7 +500,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     } else {
       handler.post { bindCamera() }
     }
-    return (initState.state == InitState.INITIALIZED)
+    return (initState.state == InitState.INITIALIZED ||
+        (!block && initState.state == InitState.INITIALIZING))
   }
 
   private fun deinitUseCase(useCase: UseCase) {
@@ -509,12 +513,13 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       initState = _cameraBoundUseCases[useCase]!!
     }
     synchronized(initState) {
+      _logger.log(this) { "Entering deinitUseCase [$useCase] : [$initState]" }
       assert(initState.refcnt > 0)
       initState.refcnt -= 1
       if (initState.refcnt == 0) {
         initState.setState(InitState.UNINITIALIZING)
         initState.unbindTimer.start(
-            UNBIND_DELAY_MS,
+            initState.unbindDelayMs,
             {
               synchronized(initState) {
                 if (initState.state == InitState.UNINITIALIZING) {
@@ -523,7 +528,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                   initState.waitEvent.reset()
 
                   _logger.log(this) {
-                    "Unbound use case $useCase after unreferenced for $UNBIND_DELAY_MS ms"
+                    "Unbound use case $useCase after unreferenced for ${initState.unbindDelayMs} ms"
                   }
                 }
               }
