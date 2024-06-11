@@ -99,6 +99,25 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private val _callbackExecutorPool by lazy { Executors.newCachedThreadPool() }
   private var _lastImageMilliseconds = System.currentTimeMillis()
 
+  private fun <T> setFpsAndAutofocus(builder: T) where T : ExtendableBuilder<*>, T : Any {
+    val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
+    if (_cameraSettings.disableAF) {
+      ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+      ext.setCaptureRequestOption(
+        CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+        ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f);
+    } else {
+      ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+    }
+
+    if (_fpsLimit > 0) {
+      ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
+    }
+  }
+
   private val _cameraSelector by lazy {
     CameraSelector.Builder()
         .apply {
@@ -117,19 +136,9 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                 Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
             .setTargetRotation(getSettingsRotation())
 
-    val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
-    ext.setCaptureRequestOption(
-        CaptureRequest.CONTROL_AF_MODE,
-        if (_cameraSettings.disableAF) CameraMetadata.CONTROL_AF_MODE_OFF
-        else CameraMetadata.CONTROL_AF_MODE_AUTO)
-
-    if (_fpsLimit > 0) {
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
-    }
+    setFpsAndAutofocus(builder)
 
     val ret = builder.build()
-
     _cameraBoundUseCases[ret] =
         CompletableInitState(
             InitState.NOT_INITIALIZED,
@@ -148,12 +157,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             .setFlashMode(
                 if (_cameraSettings.flashWhenObserved) ImageCapture.FLASH_MODE_ON
                 else ImageCapture.FLASH_MODE_OFF)
-    val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
-    ext.setCaptureRequestOption(
-        CaptureRequest.CONTROL_AF_MODE,
-        if (_cameraSettings.disableAF) CameraMetadata.CONTROL_AF_MODE_OFF
-        else CameraMetadata.CONTROL_AF_MODE_AUTO)
-
     val ret = builder.build()
     ret
   }
@@ -166,16 +169,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             .setTargetRotation(getSettingsRotation())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
 
-    val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
-    ext.setCaptureRequestOption(
-        CaptureRequest.CONTROL_AF_MODE,
-        if (_cameraSettings.disableAF) CameraMetadata.CONTROL_AF_MODE_OFF
-        else CameraMetadata.CONTROL_AF_MODE_AUTO)
-
-    if (_fpsLimit > 0) {
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
-    }
+    setFpsAndAutofocus(builder)
 
     val ret = builder.build()
     _cameraBoundUseCases[ret] =
@@ -460,7 +454,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         waitForInitNeeded = true
       }
       if (initState.state == InitState.NOT_INITIALIZED) {
-        InitState.INITIALIZED
         initState.setState(InitState.INITIALIZING)
       }
     }
