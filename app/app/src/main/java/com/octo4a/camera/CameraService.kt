@@ -478,8 +478,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
 
         synchronized(initState) {
           initState.refcnt += 1
-          initState.setState(InitState.INITIALIZED)
           initState.cameraControl = camera?.cameraControl
+          initState.setState(InitState.INITIALIZED)
         }
       } catch (e: Exception) {
         initState.setState(InitState.FAILED)
