@@ -311,6 +311,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             val compressedStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
             it.resume(compressedStream.toByteArray())
+            super.onCaptureSuccess(image)
             image.close()
             deinitUseCase(_imageCapture)
           }
@@ -319,6 +320,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             _logger.log(this) { "Failed to capture image: $exception" }
             deinitUseCase(_imageCapture)
             it.resume(ByteArray(0))
+            super.onError(exception)
           }
         })
   }
