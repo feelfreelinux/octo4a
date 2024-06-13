@@ -65,7 +65,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       val unbindDelayMs: Long = UNBIND_DELAY_MS,
       var refcnt: Int = 0,
       var waitEvent: WaitableEvent = WaitableEvent(),
-      val unbindTimer: CancelableTimer = CancelableTimer()
+      val unbindTimer: CancelableTimer = CancelableTimer(),
+      var cameraControl: CameraControl? = null,
   )
 
   fun CompletableInitState.setState(newState: InitState) {
@@ -85,7 +86,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       LatestFrameInfo(frameInfo = MJpegFrameProvider.FrameInfo(id = 1))
 
   private var _cameraProcessProvider: ProcessCameraProvider? = null
-  private var _cameraControl: CameraControl? = null
   private val _cameraBoundUseCases: MutableMap<UseCase, CompletableInitState> = HashMap()
   private var _fpsLimit: Int = -1
   private var _torchRefCnt: Int = 0
@@ -105,8 +105,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
       ext.setCaptureRequestOption(
-        CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-        ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f);
+          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+      ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f)
     } else {
       ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
@@ -182,12 +182,21 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     ret
   }
 
+  private fun getCameraControl(): CameraControl? {
+    var cameraControl: CameraControl? = null
+    _cameraBoundUseCases.entries
+        .firstOrNull { it.value.cameraControl != null }
+        ?.let { entry -> cameraControl = entry.value.cameraControl }
+    _logger.log(this) { "Got camera control : $cameraControl" }
+    return cameraControl
+  }
+
   private fun addTorchUser() {
     synchronized(_torchRefCnt) {
       _torchRefCnt += 1
       if (_torchRefCnt == 1) {
         if (_cameraSettings.flashWhenObserved) {
-          _cameraControl?.enableTorch(true)
+          getCameraControl()?.enableTorch(true)
         }
         _logger.log(this) { "Torch now has users" }
       }
@@ -203,7 +212,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       }
       if (_torchRefCnt == 0) {
         if (_cameraSettings.flashWhenObserved) {
-          _cameraControl?.enableTorch(false)
+          getCameraControl()?.enableTorch(false)
         }
         _logger.log(this) { "Torch has no more users" }
       }
@@ -302,7 +311,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             val compressedStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
             it.resume(compressedStream.toByteArray())
-            super.onCaptureSuccess(image) // Closes the image
             image.close()
             deinitUseCase(_imageCapture)
           }
@@ -467,11 +475,11 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       var camera: Camera?
       try {
         camera = _cameraProcessProvider?.bindToLifecycle(this, _cameraSelector, useCase)
-        _cameraControl = _cameraControl ?: camera?.cameraControl
 
         synchronized(initState) {
           initState.refcnt += 1
           initState.setState(InitState.INITIALIZED)
+          initState.cameraControl = camera?.cameraControl
         }
       } catch (e: Exception) {
         initState.setState(InitState.FAILED)
@@ -517,6 +525,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
               synchronized(initState) {
                 if (initState.state == InitState.UNINITIALIZING) {
                   _cameraProcessProvider?.unbind(useCase)
+                  initState.cameraControl = null
                   initState.setState(InitState.NOT_INITIALIZED)
                   initState.waitEvent.reset()
 

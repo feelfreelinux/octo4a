@@ -257,12 +257,15 @@ class ServerFragment : Fragment() {
                 .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
                 .create().apply {
                   setOnDismissListener {
+                    logger.log(this) { "Preview Dismissed" }
+                    _previewViewModel.preview?.setSurfaceProvider(null)
                     _previewViewModel.visible = false
                     _previewViewModel.preview = null
                     _previewViewModel.lifecycle = null
                     lifecycle.stop()
                   }
                   setOnShowListener {
+                    logger.log(this) { "Preview Shown, starting lifecycle!" }
                     _previewViewModel.visible = true
                     _previewViewModel.preview = preview
                     _previewViewModel.lifecycle = lifecycle
