@@ -12,22 +12,24 @@ import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
 interface MJpegFrameProvider {
-    val newestFrame: ByteArray
+    data class FrameInfo(val image: ByteArray? = null, val id: Int)
 
     suspend fun takeSnapshot(): ByteArray
-    fun registerListener()
+    fun getNewFrame(prevFrame: FrameInfo?): FrameInfo
+    fun registerListener(): Boolean
     fun unregisterListener()
 }
 
 // Simple http server hosting mjpeg stream along with
 class MJpegServer(port: Int, private val frameProvider: MJpegFrameProvider): NanoHTTPD(port) {
+
     override fun serve(session: IHTTPSession?): Response {
         when (session?.uri) {
             "/snapshot" -> {
                     var res: Response? = null
                     kotlin.runCatching {
                         runBlocking {
-                            val data = frameProvider.takeSnapshot()
+                            val data = frameProvider?.takeSnapshot()
                             val inputStream = ByteArrayInputStream(data)
 
                             res = newFixedLengthResponse(

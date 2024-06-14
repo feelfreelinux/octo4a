@@ -16,7 +16,7 @@ import com.octo4a.utils.isServiceRunning
 
 data class CameraSize(val width: Int, val height: Int)
 
-data class CameraDescription(val id: String, val megapixels: Int, val lensFacing: Int, val sizes: List<CameraSize>)
+data class CameraDescription(val id: String, val megapixels: Int, val lensFacing: Int, val sizes: List<CameraSize>, val frameRates: List<Int>)
 
 fun CameraSize.readableString(): String {
     return "${width}x${height}"
@@ -67,9 +67,11 @@ class CameraEnumerationRepository(val context: Context) {
                     val configs = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
                     )
+                    val fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
+                    val frameRates = fpsRanges?.map { it.upper }?.distinct()?.sorted() ?: emptyList()
                     val sizes = configs?.getOutputSizes(ImageFormat.YUV_420_888)
                         ?.map { size -> CameraSize(size.width, size.height) }
-                    CameraDescription(it, megapixels, facing, sizes ?: emptyList())
+                    CameraDescription(it, megapixels, facing, sizes ?: emptyList(), frameRates)
                 }.toMutableList()
             } else {
                 val needToRestartService = context.isServiceRunning(LegacyCameraService::class.java)
@@ -84,7 +86,7 @@ class CameraEnumerationRepository(val context: Context) {
                     Camera.getCameraInfo(i, cameraInfo)
 
                     val cam = Camera.open(i)
-
+                    val supportedFrameRates = cam.parameters.supportedPreviewFrameRates.sorted()
                     val pictureSize = cam.parameters.pictureSize
                     val megaPixels = (pictureSize.width * pictureSize.height) / 1000000
                     cams.add(CameraDescription(
@@ -93,7 +95,8 @@ class CameraEnumerationRepository(val context: Context) {
                         cameraInfo.facing,
                         cam.parameters.supportedPreviewSizes.map {
                             CameraSize(it.width, it.height)
-                        }
+                        },
+                        supportedFrameRates
                     ))
 
                     cam.release()

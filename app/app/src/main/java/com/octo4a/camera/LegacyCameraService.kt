@@ -37,8 +37,9 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
     private val octoprintHandler: OctoPrintHandlerRepository by inject()
     private val logger: LoggerRepository by inject()
 
-    override val newestFrame: ByteArray
-        get() = synchronized(latestFrame) { return latestFrame }
+    override fun getNewFrame(prevFrame: MJpegFrameProvider.FrameInfo?): MJpegFrameProvider.FrameInfo {
+      return MJpegFrameProvider.FrameInfo(latestFrame, id=-1)
+  }
 
     inner class LocalBinder : Binder() {
         fun getService(): LegacyCameraService = this@LegacyCameraService
@@ -53,11 +54,12 @@ class LegacyCameraService : LifecycleService(), MJpegFrameProvider, SurfaceHolde
     override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
     }
 
-    override fun registerListener() {
+    override fun registerListener(): Boolean {
         synchronized(listenerCount) {
             listenerCount++
         }
         logger.log(this) { "Legacy camera register listener" }
+        return true
     }
 
     override fun unregisterListener() {
