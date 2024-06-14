@@ -46,6 +46,7 @@ import org.koin.android.ext.android.inject
 
 const val UNBIND_DELAY_MS: Long = 5 * 60 * 1000 // Unbind the camera after 5 minutes of no use
 const val UNBIND_STREAM_DELAY_MS: Long = 10 * 1000 // Unbind streams faster to save CPU
+const val SNAPSHOT_FLASH_DELAY_MS: Long = 1000 // How long to turn flash on before taking snapshot
 const val JPEG_QUALITY: Int = 70
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -154,10 +155,15 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
             .setTargetResolution(Size.parseSize(_cameraSettings.selectedResolution ?: "1280x720"))
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .setTargetRotation(getSettingsRotation())
-            .setFlashMode(
-                if (_cameraSettings.flashWhenObserved) ImageCapture.FLASH_MODE_ON
-                else ImageCapture.FLASH_MODE_OFF)
+            .setFlashMode(ImageCapture.FLASH_MODE_OFF)
     val ret = builder.build()
+
+    _cameraBoundUseCases[ret] =
+        CompletableInitState(
+            InitState.NOT_INITIALIZED,
+            callback = ::torchControlCallback,
+            unbindDelayMs = UNBIND_DELAY_MS)
+
     ret
   }
 
@@ -191,19 +197,19 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     return cameraControl
   }
 
-  private fun addTorchUser() {
+  private fun addTorchUser(cameraControl: CameraControl? = null) {
     synchronized(_torchRefCnt) {
       _torchRefCnt += 1
       if (_torchRefCnt == 1) {
         if (_cameraSettings.flashWhenObserved) {
-          getCameraControl()?.enableTorch(true)
+          (cameraControl ?: getCameraControl())?.enableTorch(true)
         }
         _logger.log(this) { "Torch now has users" }
       }
     }
   }
 
-  private fun removeTorchUser() {
+  private fun removeTorchUser(cameraControl: CameraControl? = null) {
     synchronized(_torchRefCnt) {
       if (_torchRefCnt > 0) {
         _torchRefCnt -= 1
@@ -212,7 +218,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       }
       if (_torchRefCnt == 0) {
         if (_cameraSettings.flashWhenObserved) {
-          getCameraControl()?.enableTorch(false)
+          (cameraControl ?: getCameraControl())?.enableTorch(false)
         }
         _logger.log(this) { "Torch has no more users" }
       }
@@ -222,10 +228,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private fun torchControlCallback(initState: CompletableInitState): Unit {
     when (initState.state) {
       InitState.INITIALIZED -> {
-        addTorchUser()
+        addTorchUser(initState.cameraControl)
       }
       InitState.UNINITIALIZING -> {
-        removeTorchUser()
+        removeTorchUser(initState.cameraControl)
       }
       else -> {}
     }
@@ -300,29 +306,36 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       it.resume(ByteArray(0))
       return@suspendCoroutine
     }
-    _imageCapture.takePicture(
-        _captureExecutor,
-        object : ImageCapture.OnImageCapturedCallback() {
-          override fun onCaptureSuccess(image: ImageProxy) {
-            _logger.log(this) { "Snapshot Capture Success" }
-            val bitmap =
-                toBitmap(
-                    image.planes[0].buffer, image.getImageInfo().getRotationDegrees().toFloat())
-            val compressedStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
-            it.resume(compressedStream.toByteArray())
-            super.onCaptureSuccess(image)
-            image.close()
-            deinitUseCase(_imageCapture)
-          }
 
-          override fun onError(exception: ImageCaptureException) {
-            _logger.log(this) { "Failed to capture image: $exception" }
-            deinitUseCase(_imageCapture)
-            it.resume(ByteArray(0))
-            super.onError(exception)
-          }
-        })
+    Handler(Looper.getMainLooper())
+        .postDelayed(
+            {
+              _imageCapture.takePicture(
+                  _captureExecutor,
+                  object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                      _logger.log(this) { "Snapshot Capture Success" }
+                      val bitmap =
+                          toBitmap(
+                              image.planes[0].buffer,
+                              image.getImageInfo().getRotationDegrees().toFloat())
+                      val compressedStream = ByteArrayOutputStream()
+                      bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
+                      it.resume(compressedStream.toByteArray())
+                      super.onCaptureSuccess(image)
+                      image.close()
+                      deinitUseCase(_imageCapture)
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                      _logger.log(this) { "Failed to capture image: $exception" }
+                      deinitUseCase(_imageCapture)
+                      it.resume(ByteArray(0))
+                      super.onError(exception)
+                    }
+                  })
+            },
+            SNAPSHOT_FLASH_DELAY_MS)
   }
 
   private fun sleepToLimitFps() {
