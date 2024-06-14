@@ -201,10 +201,12 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     synchronized(_torchRefCnt) {
       _torchRefCnt += 1
       if (_torchRefCnt == 1) {
+        _logger.log(this) { "Torch now has users" }
+      }
+      if (_torchRefCnt > 0 ) {
         if (_cameraSettings.flashWhenObserved) {
           (cameraControl ?: getCameraControl())?.enableTorch(true)
         }
-        _logger.log(this) { "Torch now has users" }
       }
     }
   }
