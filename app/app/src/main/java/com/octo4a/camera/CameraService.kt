@@ -403,6 +403,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
         ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+        ext.setCaptureRequestOption(
           CaptureRequest.LENS_FOCUS_DISTANCE, _cameraSettings.manualAFValue)
       }
       else {
