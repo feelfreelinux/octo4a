@@ -17,11 +17,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.octo4a.Octo4aApplication
 import com.octo4a.R
 import com.octo4a.camera.CameraService
@@ -34,6 +38,7 @@ import com.octo4a.ui.WebinterfaceActivity
 import com.octo4a.ui.showBugReportingDialog
 import com.octo4a.ui.views.UsbDeviceView
 import com.octo4a.utils.preferences.MainPreferences
+import com.octo4a.utils.ManualLifecycleOwner
 import com.octo4a.viewmodel.IPAddress
 import com.octo4a.viewmodel.IPAddressType
 import com.octo4a.viewmodel.NetworkStatusViewModel
@@ -45,45 +50,31 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
 class ServerFragment : Fragment() {
+    class PreviewViewModel : ViewModel() {
+        var visible: Boolean = false
+        var preview: Preview? = null
+        var lifecycle: ManualLifecycleOwner? = null
+    }
+
     private val statusViewModel: StatusViewModel by sharedViewModel()
     private val networkStatusViewModel: NetworkStatusViewModel by sharedViewModel()
-    private lateinit var cameraService: CameraService
-    private var boundToCameraService = false
+    private var _cameraService: CameraService? = null
+    private lateinit var _previewViewModel: PreviewViewModel // needed to handle screen rotation while preview window up
     private val vspDriver: VirtualSerialDriver by inject()
     private val mainPreferences: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
 
-    private val cameraServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as CameraService.LocalBinder
-            cameraService = binder.getService()
-            boundToCameraService = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            boundToCameraService = false
-        }
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?): View? {
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_server, container, false)
     }
 
     override fun onStart() {
         super.onStart()
-        val activity = requireActivity()
-        Intent(activity, CameraService::class.java).also { intent ->
-            activity.bindService(intent, cameraServiceConnection, Context.BIND_AUTO_CREATE)
-        }
         networkStatusViewModel.scanIPAddresses()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        requireActivity().unbindService(cameraServiceConnection)
-        boundToCameraService = false
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,6 +83,11 @@ class ServerFragment : Fragment() {
         statusViewModel.updateAvailable.observe(viewLifecycleOwner) {
             logger.log(this) { "Update available" }
             showUpdateDialog(it)
+        }
+
+        _previewViewModel = ViewModelProvider(this).get(PreviewViewModel::class.java)
+        if (_previewViewModel.visible) {
+            showPreviewDialog()
         }
 
         vspDriver.connectedDevices.asLiveData().observe(viewLifecycleOwner) { devices ->
@@ -138,7 +134,10 @@ class ServerFragment : Fragment() {
         statusViewModel.serverStatus.observe(viewLifecycleOwner) {
             when (it) {
                 ServerStatus.Running -> {
-                    serverStatus.setDrawableAndColor(R.drawable.ic_stop_24px, android.R.color.holo_red_light)
+                    serverStatus.setDrawableAndColor(
+                        R.drawable.ic_stop_24px,
+                        android.R.color.holo_red_light
+                    )
                     serverStatus.title = resources.getString(R.string.status_running)
                     serverStatus.onActionClicked = {
                         statusViewModel.stopServer()
@@ -155,12 +154,16 @@ class ServerFragment : Fragment() {
 
                 ServerStatus.ShuttingDown -> {
                     serverStatus.title = resources.getString(R.string.status_shutting_down)
-                    serverStatus.subtitle = resources.getString(R.string.status_shutting_down_subtitle)
+                    serverStatus.subtitle =
+                        resources.getString(R.string.status_shutting_down_subtitle)
                     serverStatus.showIpAddresses = false
                 }
 
                 ServerStatus.Stopped -> {
-                    serverStatus.setDrawableAndColor(R.drawable.ic_play_arrow_24px, R.color.iconGreen)
+                    serverStatus.setDrawableAndColor(
+                        R.drawable.ic_play_arrow_24px,
+                        R.color.iconGreen
+                    )
                     serverStatus.title = resources.getString(R.string.status_stopped)
                     serverStatus.subtitle = resources.getString(R.string.status_stopped_start)
                     serverStatus.onActionClicked = {
@@ -170,7 +173,10 @@ class ServerFragment : Fragment() {
                 }
 
                 ServerStatus.Corrupted -> {
-                    serverStatus.setDrawableAndColor(R.drawable.ic_baseline_heart_broken_24, android.R.color.holo_red_light)
+                    serverStatus.setDrawableAndColor(
+                        R.drawable.ic_baseline_heart_broken_24,
+                        android.R.color.holo_red_light
+                    )
                     serverStatus.title = getString(R.string.installation_corrupt)
                     serverStatus.subtitle = getString(R.string.tap_to_reinstall)
                     serverStatus.onActionClicked = {
@@ -178,6 +184,7 @@ class ServerFragment : Fragment() {
                     }
                     serverStatus.showIpAddresses = false
                 }
+
                 else -> {}
             }
             serverStatus.actionProgressbar.isGone = !it.progress
@@ -195,7 +202,7 @@ class ServerFragment : Fragment() {
             Log.d("ServerFragment", "IP addresses: ${it.joinToString(", ") { it.address }} }}")
             serverStatus.ipAddresses = it.map { it.copy(port = "5000") }.toTypedArray()
             val hasNoLocalNetwork = it.isEmpty() || it.all { it.type == IPAddressType.Cellular }
-            if(hasNoLocalNetwork) {
+            if (hasNoLocalNetwork) {
                 serverStatus.warning = getString(R.string.no_local_network)
             } else {
                 serverStatus.warning = ""
@@ -205,7 +212,6 @@ class ServerFragment : Fragment() {
         // Fetch autoupdater
         statusViewModel.checkUpdateAvailable()
     }
-
 
 
     private fun showUpdateDialog(update: GithubRelease) {
@@ -232,23 +238,9 @@ class ServerFragment : Fragment() {
     }
 
     private fun showPreviewDialog() {
+        logger.log(this) { "showPreviewDialog" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val dialog = MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(R.string.camera_preview)
-                .setView(R.layout.dialog_camera_preview)
-                .setPositiveButton(R.string.action_ok) {dialog, _ -> dialog.dismiss() }
-                .setOnDismissListener {
-                    if (boundToCameraService) {
-                        cameraService.stopPreview()
-                    }
-                }
-                .show()
-
-            dialog.findViewById<PreviewView>(R.id.previewView)?.apply {
-                if (boundToCameraService) {
-                    cameraService.getPreview().setSurfaceProvider(surfaceProvider)
-                }
-            }
+            CameraPreviewDialogFragment().show(childFragmentManager, "CameraPreviewDialogFragment")
         } else {
             Toast.makeText(context, getString(R.string.api_too_low), Toast.LENGTH_LONG).show()
         }
@@ -264,7 +256,8 @@ class ServerFragment : Fragment() {
             }
             setPositiveButton(getString(R.string.reinstall_dialog_continue)) { dialog, id ->
                 try {
-                    val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    val activityManager =
+                        requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                     // clearing app data
                     if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
                         activityManager.clearApplicationUserData()

@@ -15,6 +15,7 @@
 
     <string-array name="limit_fps">
         <item>5 FPS</item>
+        <item>10 FPS</item>
         <item>15 FPS</item>
         <item>20 FPS</item>
         <item>30 FPS</item>
@@ -25,6 +26,7 @@
         <item>10</item>
         <item>15</item>
         <item>20</item>
+        <item>30</item>
         <item>-1</item>
     </string-array>
 </resources>

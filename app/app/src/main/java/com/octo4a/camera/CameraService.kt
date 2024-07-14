@@ -10,338 +10,598 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.util.Range
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.OnLifecycleEvent
 import com.octo4a.repository.LoggerRepository
 import com.octo4a.repository.OctoPrintHandlerRepository
+import com.octo4a.utils.CancelableTimer
+import com.octo4a.utils.WaitableEvent
 import com.octo4a.utils.preferences.MainPreferences
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 
+const val UNBIND_DELAY_MS: Long = 5 * 60 * 1000 // Unbind the camera after 5 minutes of no use
+const val UNBIND_STREAM_DELAY_MS: Long = 10 * 1000 // Unbind streams faster to save CPU
+const val SNAPSHOT_FLASH_DELAY_MS: Long = 1000 // How long to turn flash on before taking snapshot
+const val JPEG_QUALITY: Int = 70
+
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraService : LifecycleService(), MJpegFrameProvider {
-    private var latestFrame: ByteArray = ByteArray(0)
-    private var listenerCount = 0
-    private var flashRefCnt: Int = 0
 
-    private val cameraSettings: MainPreferences by inject()
-    private val logger: LoggerRepository by inject()
-    private val octoprintHandler: OctoPrintHandlerRepository by inject()
-    private val cameraEnumerationRepository: CameraEnumerationRepository by inject()
-    private val captureExecutor by lazy { Executors.newCachedThreadPool() }
-    private val nativeUtils by lazy { NativeCameraUtils() }
-    val rotation get() = cameraSettings.imageRotation?.toIntOrNull() ?: 0
-    var currentCamera: Camera? = null
+  enum class InitState {
+    NOT_INITIALIZED,
+    INITIALIZING,
+    INITIALIZED,
+    UNINITIALIZING,
+    FAILED
+  }
 
-    var fpsLimit = -1
-    var lastImageMilliseconds = System.currentTimeMillis()
+  data class CompletableInitState(
+      var state: InitState,
+      val callback: ((CompletableInitState) -> Unit)? = null,
+      val unbindDelayMs: Long = UNBIND_DELAY_MS,
+      var refcnt: Int = 0,
+      var waitEvent: WaitableEvent = WaitableEvent(),
+      val unbindTimer: CancelableTimer = CancelableTimer(),
+      var cameraControl: CameraControl? = null,
+      var minFocalLength: Float? = null
+  )
 
-    var cameraInitialized = false
-    var cameraProcessProvider: ProcessCameraProvider? = null
+  private fun CompletableInitState.setState(newState: InitState) {
+    state = newState
+    callback?.invoke(this)
+  }
 
-    fun getCurrentRotation(): Int {
-        val currentRotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
-        return when (currentRotation) {
-            90 -> Surface.ROTATION_90
-            180 -> Surface.ROTATION_180
-            270 -> Surface.ROTATION_270
-            else -> Surface.ROTATION_0
+  data class LatestFrameInfo(
+      val waitEvent: WaitableEvent = WaitableEvent(),
+      var frameInfo: MJpegFrameProvider.FrameInfo
+  )
+
+  private val _cameraSettings: MainPreferences by inject()
+  private val _logger: LoggerRepository by inject()
+
+  private val _latestFrameInfo: LatestFrameInfo =
+      LatestFrameInfo(frameInfo = MJpegFrameProvider.FrameInfo(id = 1))
+
+  private var _cameraProcessProvider: ProcessCameraProvider? = null
+  private val _cameraBoundUseCases: MutableMap<UseCase, CompletableInitState> = HashMap()
+  private var _fpsLimit: Int = -1
+  private var _torchRefCnt = AtomicInteger(0)
+  private val _octoprintHandler: OctoPrintHandlerRepository by inject()
+  private val _cameraEnumerationRepository: CameraEnumerationRepository by inject()
+  private val _captureExecutor by lazy { Executors.newCachedThreadPool() }
+  private val nativeUtils by lazy { NativeCameraUtils() }
+
+  private val _mjpegServer by lazy { MJpegServer(5001, this) }
+  private val _callbackExecutorPool by lazy { Executors.newCachedThreadPool() }
+  private var _lastImageMilliseconds = System.currentTimeMillis()
+
+  fun getCameraMinFocalLength(): Float? {
+    var minFocalLength: Float? = null
+    _cameraBoundUseCases.entries
+      .firstOrNull { it.value.cameraControl != null }
+      ?.let { entry -> minFocalLength = entry.value.minFocalLength }
+    _logger.log(this) { "Got min focal length : $minFocalLength" }
+    return minFocalLength
+  }
+
+  private val _cameraSelector by lazy {
+    CameraSelector.Builder()
+        .apply {
+          requireLensFacing(
+              _cameraEnumerationRepository
+                  .cameraWithId(_cameraSettings.selectedCamera!!)
+                  ?.lensFacing ?: CameraSelector.LENS_FACING_FRONT)
         }
-    }
+        .build()
+  }
 
-    private val cameraSelector by lazy {
-        CameraSelector.Builder().apply {
-            requireLensFacing(
-                cameraEnumerationRepository.cameraWithId(cameraSettings.selectedCamera!!)?.lensFacing
-                    ?: CameraSelector.LENS_FACING_FRONT
-            )
-        }.build()
-    }
-    private val cameraPreview by lazy {
-        Preview.Builder()
-            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
-            .setTargetRotation(getCurrentRotation())
-            .build()
-    }
+  private val _cameraPreview by lazy {
+    val builder =
+      Preview.Builder()
+        .setTargetResolution(
+          Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
+        .setTargetRotation(getSettingsRotation())
 
-    private val imageCapture by lazy {
+    val ret = builder.build()
+    _cameraBoundUseCases[ret] =
+      CompletableInitState(
+        InitState.NOT_INITIALIZED,
+        callback = ::torchControlCallback,
+        unbindDelayMs = UNBIND_STREAM_DELAY_MS)
+    ret
+  }
+
+  private val _imageCapture by lazy {
+    val builder =
         ImageCapture.Builder()
-            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+            .setTargetResolution(Size.parseSize(_cameraSettings.selectedResolution ?: "1280x720"))
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .setTargetRotation(getCurrentRotation())
-            .build()
-    }
+            .setTargetRotation(getSettingsRotation())
+            .setFlashMode(ImageCapture.FLASH_MODE_OFF)
+    val ret = builder.build()
 
-    private val imageAnalysis by lazy {
+    _cameraBoundUseCases[ret] =
+        CompletableInitState(
+            InitState.NOT_INITIALIZED,
+            callback = ::torchControlCallback,
+            unbindDelayMs = UNBIND_DELAY_MS)
+
+    ret
+  }
+
+  private val _imageAnalysis by lazy {
+    val builder =
         ImageAnalysis.Builder()
-            .setTargetResolution(Size.parseSize(cameraSettings.selectedResolution ?: "1280x720"))
+            .setTargetResolution(
+                Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
+            .setTargetRotation(getSettingsRotation())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
+
+    val ret = builder.build()
+    _cameraBoundUseCases[ret] =
+        CompletableInitState(
+            InitState.NOT_INITIALIZED,
+            callback = ::torchControlCallback,
+            unbindDelayMs = UNBIND_STREAM_DELAY_MS)
+    ret.setAnalyzer(_callbackExecutorPool, ::analyzeFrame)
+
+    ret
+  }
+
+  private fun getCameraControl(): CameraControl? {
+    var cameraControl: CameraControl? = null
+    _cameraBoundUseCases.entries
+        .firstOrNull { it.value.cameraControl != null }
+        ?.let { entry -> cameraControl = entry.value.cameraControl }
+    _logger.log(this) { "Got camera control : $cameraControl" }
+    return cameraControl
+  }
+
+  private fun addTorchUser(cameraControl: CameraControl? = null) {
+      val refCnt = _torchRefCnt.incrementAndGet()
+      if (refCnt == 1) {
+        _logger.log(this) { "Torch now has users" }
+      }
+      if (refCnt > 0 ) {
+        if (_cameraSettings.flashWhenObserved) {
+          (cameraControl ?: getCameraControl())?.enableTorch(true)
+        }
+      }
+  }
+
+  private fun removeTorchUser(cameraControl: CameraControl? = null) {
+      if (_torchRefCnt.get() > 0) {
+        _torchRefCnt.decrementAndGet()
+      } else {
+        _logger.log(this) { "Excessive removeTorchUser calls!" }
+      }
+      if (_torchRefCnt.get() == 0) {
+        if (_cameraSettings.flashWhenObserved) {
+          (cameraControl ?: getCameraControl())?.enableTorch(false)
+        }
+        _logger.log(this) { "Torch has no more users" }
+      }
+  }
+
+  private fun torchControlCallback(initState: CompletableInitState): Unit {
+    when (initState.state) {
+      InitState.INITIALIZED -> {
+        addTorchUser(initState.cameraControl)
+      }
+      InitState.UNINITIALIZING -> {
+        removeTorchUser(initState.cameraControl)
+      }
+      else -> {}
+    }
+  }
+
+  private fun getSettingsRotation(): Int {
+    val currentRotation = _cameraSettings.imageRotation?.toIntOrNull() ?: -1
+    return when (currentRotation) {
+      90 -> Surface.ROTATION_90
+      180 -> Surface.ROTATION_180
+      270 -> Surface.ROTATION_270
+      else -> Surface.ROTATION_0
+    }
+  }
+
+  private fun getBestAvailFps(): Int {
+    val targetFps = _cameraSettings.fpsLimit?.toIntOrNull() ?: -1
+    val availableFps =
+        _cameraEnumerationRepository.cameraWithId(_cameraSettings.selectedCamera!!)?.frameRates
+    val bestFps = availableFps?.firstOrNull { it >= targetFps } ?: -1
+    return bestFps
+  }
+
+  private fun toBitmap(buffer: ByteBuffer, rotation: Float = 0f): Bitmap {
+    val bytes = ByteArray(buffer.remaining()).apply { buffer.get(this) }
+    var matrix: Matrix? = null
+    if (rotation != 0f) {
+      matrix = Matrix().apply { postRotate(rotation) }
+    }
+    val original = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    return Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true)
+  }
+
+  private fun compressNv21(
+      nv21: ByteArray,
+      width: Int,
+      height: Int,
+      quality: Int = JPEG_QUALITY
+  ): ByteArray {
+    val out = ByteArrayOutputStream()
+    val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
+    yuvImage.compressToJpeg(Rect(0, 0, width, height), quality, out)
+    return out.toByteArray()
+  }
+
+  private fun setNextFrame(image: ByteArray) {
+    synchronized(_latestFrameInfo) {
+      _latestFrameInfo.frameInfo =
+          _latestFrameInfo.frameInfo.copy(image = image, id = _latestFrameInfo.frameInfo.id + 1)
+    }
+    _latestFrameInfo.waitEvent.set()
+  }
+
+  override fun getNewFrame(prevFrame: MJpegFrameProvider.FrameInfo?): MJpegFrameProvider.FrameInfo {
+    while (_latestFrameInfo.frameInfo.id <= (prevFrame?.id ?: 0)) {
+      _latestFrameInfo.waitEvent.wait(autoreset = true)
+    }
+    synchronized(_latestFrameInfo) {
+      return _latestFrameInfo.frameInfo.copy()
+    }
+  }
+
+  inner class LocalBinder : Binder() {
+    fun getService(): CameraService = this@CameraService
+  }
+
+  private val binder = LocalBinder()
+
+  override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
+    _logger.log(this) { "Received takeSnapshot request" }
+    if (!initUseCase(_imageCapture, block = true)) {
+      it.resume(ByteArray(0))
+      return@suspendCoroutine
     }
 
-    override val newestFrame: ByteArray
-        get() = synchronized(latestFrame) { return latestFrame }
-
-    inner class LocalBinder : Binder() {
-        fun getService(): CameraService = this@CameraService
-    }
-
-    private val binder = LocalBinder()
-
-    override suspend fun takeSnapshot(): ByteArray = suspendCoroutine {
-        if (!cameraInitialized) {
-            it.resume(ByteArray(0))
-        } else {
-            if (cameraSettings.flashWhenObserved) {
-                addFlashObserver()
-            }
-            imageCapture.takePicture(
-                captureExecutor,
-                object : ImageCapture.OnImageCapturedCallback() {
+    Handler(Looper.getMainLooper())
+        .postDelayed(
+            {
+              _imageCapture.takePicture(
+                  _captureExecutor,
+                  object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        if (cameraSettings.flashWhenObserved) {
-                            removeFlashObserver()
-                        }
-                        val buffer = image.planes[0].buffer
-                        val bytes = ByteArray(buffer.capacity()).also { array -> buffer.get(array) }
-                        val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
-                        val original = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        val rotated = Bitmap.createBitmap(
-                            original,
-                            0,
-                            0,
-                            original.width,
-                            original.height,
-                            matrix,
-                            true
-                        )
-                        val out = ByteArrayOutputStream()
-                        rotated.compress(Bitmap.CompressFormat.JPEG, 70, out)
-                        val rotatedBytes = out.toByteArray()
-
-                        super.onCaptureSuccess(image) //Closes the image
-                        image.close()
-                        it.resume(rotatedBytes)
+                      _logger.log(this) { "Snapshot Capture Success" }
+                      val bitmap =
+                          toBitmap(
+                              image.planes[0].buffer,
+                              image.getImageInfo().getRotationDegrees().toFloat())
+                      val compressedStream = ByteArrayOutputStream()
+                      bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, compressedStream)
+                      it.resume(compressedStream.toByteArray())
+                      super.onCaptureSuccess(image)
+                      image.close()
+                      deinitUseCase(_imageCapture)
                     }
 
                     override fun onError(exception: ImageCaptureException) {
-                        if (cameraSettings.flashWhenObserved) {
-                            removeFlashObserver()
-                        }
-                        super.onError(exception)
-                        logger.log(this) { "Single capture error: $exception" }
-                        it.resume(ByteArray(0))
+                      _logger.log(this) { "Failed to capture image: $exception" }
+                      deinitUseCase(_imageCapture)
+                      it.resume(ByteArray(0))
+                      super.onError(exception)
                     }
-                })
+                  })
+            },
+            SNAPSHOT_FLASH_DELAY_MS)
+  }
+
+  private fun sleepToLimitFps() {
+    // Roughly limit fps to user's chosen value
+    if (_fpsLimit > 0) {
+      val timeDiff = System.currentTimeMillis() - _lastImageMilliseconds
+      _lastImageMilliseconds = System.currentTimeMillis()
+      val targetFrameTime = 1000 / _fpsLimit
+      if (timeDiff < targetFrameTime) {
+        Thread.sleep(targetFrameTime - timeDiff)
+      }
+    }
+  }
+
+  private fun analyzeFrame(image: ImageProxy) {
+    val isI420 = (image.planes[1].pixelStride == 1)
+    var nv21: ByteArray =
+        if (isI420) nativeUtils.yuvToNv21Slow(image) else nativeUtils.toNv21(image)!!
+    var realWidth = image.width
+    var realHeight = image.height
+
+    val rotation: Int = image.imageInfo.rotationDegrees
+    if (rotation > 0) {
+      nv21 = RotateUtils.rotate(nv21, realWidth, realHeight, rotation)!!
+      if (rotation != 180) {
+        realWidth = image.height
+        realHeight = image.width
+      }
+    }
+    setNextFrame(compressNv21(nv21, realWidth, realHeight))
+    image.close()
+    sleepToLimitFps()
+  }
+
+  override fun registerListener(): Boolean {
+    _logger.log(this) { "Camera server register stream listener" }
+    return initUseCase(_imageAnalysis, block = true)
+  }
+
+  override fun unregisterListener() {
+    _logger.log(this) { "Camera server unregister stream listener" }
+    deinitUseCase(_imageAnalysis)
+  }
+
+  override fun onBind(intent: Intent): IBinder {
+    super.onBind(intent)
+    return binder
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    Thread { _mjpegServer.stopServer() }.start()
+    _octoprintHandler.isCameraServerRunning = false
+  }
+
+  fun hookPreviewLifecycleObserver(lifecycleOwner: LifecycleOwner) {
+    // Bind to preview destruction via the passed in lifecycleowner
+    lifecycleOwner
+      .lifecycle
+      .addObserver(
+        object : LifecycleObserver {
+          @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+          fun onStop() {
+            _logger.log(this) { "Preview has stopped" }
+            deinitUseCase(_cameraPreview)
+            lifecycleOwner.lifecycle.removeObserver(this)
+          }
+        })
+  }
+
+  @SuppressLint("UnsafeExperimentalUsageError", "RestrictedApi")
+  fun updateCameraParameters() {
+    getCameraControl()?.apply {
+      val control = Camera2CameraControl.from(this)
+      val ext = CaptureRequestOptions.Builder()
+      if (_cameraSettings.manualAF) {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+        ext.setCaptureRequestOption(
+          CaptureRequest.LENS_FOCUS_DISTANCE, _cameraSettings.manualAFValue)
+      }
+      else {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+      }
+
+      if (_fpsLimit > 0) {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
+      }
+
+      control.setCaptureRequestOptions(ext.build())
+    }
+  }
+  fun getPreview(): Preview? {
+    if (!initUseCase(_cameraPreview, block = true)) {
+      return null
+    }
+
+
+    return _cameraPreview
+  }
+
+  override fun onCreate() {
+    super.onCreate()
+    initCameraProvider()
+  }
+
+  @SuppressLint("UnsafeExperimentalUsageError")
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
+    _fpsLimit = _cameraSettings.fpsLimit?.toIntOrNull() ?: -1
+    Thread { _mjpegServer.startServer() }.start()
+    _octoprintHandler.isCameraServerRunning = true
+    return START_STICKY
+  }
+
+  private fun initCameraProvider() {
+    val isMainThread = Looper.getMainLooper().thread == Thread.currentThread()
+    assert(isMainThread)
+    if (_cameraProcessProvider != null) {
+      return
+    }
+
+    if (!checkForCamera()) {
+      return
+    }
+
+    val providerFuture = ProcessCameraProvider.getInstance(applicationContext)
+    providerFuture.addListener(
+        {
+          try {
+            _cameraProcessProvider = providerFuture.get()
+            _cameraProcessProvider?.unbindAll()
+            _logger.log(this) { "Camera initialized" }
+          } catch (e: Exception) {
+            _logger.log(this) { "Failed to bind to camera: $e" }
+          }
+        },
+        ContextCompat.getMainExecutor(applicationContext))
+  }
+
+  private fun initUseCase(useCase: UseCase, block: Boolean = false): Boolean {
+    if (_cameraProcessProvider == null) {
+      _logger.log(this) { "Can't init use case $useCase, camera not initialized!" }
+      return false
+    }
+    var waitForInitNeeded = false
+    var initState: CompletableInitState
+    synchronized(_cameraBoundUseCases) {
+      if (!_cameraBoundUseCases.contains(useCase)) {
+        _cameraBoundUseCases[useCase] = CompletableInitState(InitState.NOT_INITIALIZED)
+      }
+      initState = _cameraBoundUseCases[useCase]!!
+    }
+    _logger.log(this) { "Entering initUseCase: [$useCase]  [$initState]" }
+    synchronized(initState) {
+      if (initState.state == InitState.UNINITIALIZING) {
+        initState.unbindTimer.cancel()
+        initState.setState(InitState.INITIALIZED)
+      }
+      if (initState.state == InitState.INITIALIZED) {
+        initState.refcnt += 1
+        return true
+      }
+      if (initState.state == InitState.INITIALIZING && block) {
+        waitForInitNeeded = true
+      }
+      if (initState.state == InitState.NOT_INITIALIZED) {
+        initState.setState(InitState.INITIALIZING)
+      }
+    }
+    if (waitForInitNeeded) {
+      initState.waitEvent.wait()
+    }
+    if (initState.state != InitState.INITIALIZING) {
+      return (initState.state == InitState.INITIALIZED)
+    }
+
+    @SuppressLint("UnsafeExperimentalUsageError", "RestrictedApi")
+    fun bindCamera() {
+      _logger.log(this) { "bind camera called"}
+      var camera: Camera?
+      try {
+        camera = _cameraProcessProvider?.bindToLifecycle(this, _cameraSelector, useCase)
+
+        synchronized(initState) {
+          initState.refcnt += 1
+          initState.cameraControl = camera?.cameraControl
+          initState.setState(InitState.INITIALIZED)
+          initState.minFocalLength = null
+          updateCameraParameters()
+
+          try {
+            val cameraInfo = camera?.cameraInfo!!
+            val camChars = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo)
+            val minFocus = camChars.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE)
+            _logger.log(this) { "Min camera length focus $minFocus" }
+            initState.minFocalLength = minFocus!!
+          } catch (e: Exception) {
+            _logger.log(this) { "Failed to get min focus length: $e" }
+          }
         }
+      } catch (e: Exception) {
+        initState.setState(InitState.FAILED)
+        _logger.log(this) { "Failed to bind camera: $e" }
+      } finally {
+        initState.waitEvent.set()
+      }
     }
 
-    override fun registerListener() {
-        synchronized(listenerCount) {
-            listenerCount++
-        }
-        logger.log(this) { "Camera server register listener" }
-        if (cameraSettings.flashWhenObserved) {
-            addFlashObserver()
-        }
+    val handler = Handler(Looper.getMainLooper())
+    if (block) {
+      val isMainThread = Looper.getMainLooper().thread == Thread.currentThread()
+      if (isMainThread) {
+        bindCamera()
+      } else {
+        /* Block while main loop binds */
+        handler.post { bindCamera() }
+        initState.waitEvent.wait()
+      }
+    } else {
+      handler.post { bindCamera() }
     }
+    return (initState.state == InitState.INITIALIZED ||
+        (!block && initState.state == InitState.INITIALIZING))
+  }
 
-    override fun unregisterListener() {
-        synchronized(listenerCount) {
-            listenerCount--
-        }
-        logger.log(this) { "Camera server unregister listener" }
-        if (cameraSettings.flashWhenObserved) {
-            removeFlashObserver()
-        }
+  private fun deinitUseCase(useCase: UseCase) {
+    var initState: CompletableInitState
+    synchronized(_cameraBoundUseCases) {
+      if (!_cameraBoundUseCases.contains(useCase)) {
+        _cameraBoundUseCases[useCase] = CompletableInitState(InitState.NOT_INITIALIZED)
+      }
+
+      initState = _cameraBoundUseCases[useCase]!!
+      if (initState.refcnt == 0) return
     }
-
-    private val mjpegServer by lazy { MJpegServer(5001, this) }
-
-    private val callbackExecutorPool = Executors.newCachedThreadPool()
-
-    private fun addFlashObserver() {
-        synchronized(flashRefCnt) {
-            flashRefCnt++
-            if (cameraInitialized) {
-                currentCamera?.cameraControl?.enableTorch(true)
-            }
-        }
-    }
-
-    private fun removeFlashObserver() {
-        synchronized(flashRefCnt) {
-            if(flashRefCnt > 0) {
-                flashRefCnt--
-            }
-            if(cameraInitialized && flashRefCnt == 0) {
-                currentCamera?.cameraControl?.enableTorch(false)
-            }
-        }
-    }
-
-    override fun onBind(intent: Intent): IBinder {
-        super.onBind(intent)
-        return binder
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Thread {
-            mjpegServer.stopServer()
-        }.start()
-        octoprintHandler.isCameraServerRunning = false
-    }
-
-    fun stopPreview() {
-        // Doesn't actually unbind the camera
-        if(cameraSettings.flashWhenObserved) {
-            removeFlashObserver()
-        }
-    }
-
-    fun getPreview(): Preview {
-        cameraInitialized = false
-
-        cameraProcessProvider?.unbindAll()
-        val camera = cameraProcessProvider?.bindToLifecycle(
-            this,
-            cameraSelector,
-            imageCapture,
-            imageAnalysis,
-            cameraPreview
-        )
-
-        cameraInitialized = true
-        if(cameraSettings.flashWhenObserved) {
-            addFlashObserver()
-        }
-        return cameraPreview
-    }
-
-    @SuppressLint("UnsafeExperimentalUsageError")
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
-
-        fpsLimit = cameraSettings.fpsLimit?.toIntOrNull() ?: 0
-        cameraPreview.targetRotation = getCurrentRotation()
-
-        readyCamera()
-        Thread {
-            mjpegServer.startServer()
-        }.start()
-        return START_STICKY
-    }
-
-
-    @SuppressWarnings("UnsafeExperimentalUsageError")
-    private fun readyCamera() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
+    synchronized(initState) {
+      _logger.log(this) { "Entering deinitUseCase [$useCase] : [$initState]" }
+      assert(initState.refcnt > 0)
+      initState.refcnt -= 1
+      if (initState.refcnt == 0) {
+        initState.setState(InitState.UNINITIALIZING)
+        initState.unbindTimer.start(
+            initState.unbindDelayMs
         ) {
-            return
-        }
-        // ensure that the cameras are enumerated
-        cameraEnumerationRepository.enumerateCameras()
-        // check if the device has any cameras at all
-        // some TV boxes have no cameras at all, and it causes cameraSelector to throw an exception
-        if(cameraEnumerationRepository.enumeratedCameras.value?.isEmpty() != false) {
-            return
-        }
+          synchronized(initState) {
+            if (initState.state == InitState.UNINITIALIZING) {
+              _cameraProcessProvider?.unbind(useCase)
+              initState.cameraControl = null
+              initState.setState(InitState.NOT_INITIALIZED)
+              initState.waitEvent.reset()
 
-
-
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(applicationContext)
-        val out = ByteArrayOutputStream()
-
-        val rotation = cameraSettings.imageRotation?.toIntOrNull() ?: 0
-
-        cameraProviderFuture.addListener({
-            cameraProcessProvider = cameraProviderFuture.get()
-
-
-            imageAnalysis.setAnalyzer(callbackExecutorPool) { image ->
-                // Roughly limit fps to user's chosen value
-                if (fpsLimit > 0) {
-                    val timeDiff = System.currentTimeMillis() - lastImageMilliseconds
-                    val requiredWait = 1000 / fpsLimit
-                    if (timeDiff < requiredWait) {
-                        Thread.sleep(requiredWait - timeDiff)
-                    }
-                }
-
-
-                synchronized(listenerCount) {
-                    if (listenerCount > 0 || latestFrame.isEmpty()) {
-                        val isI420 = (image.planes[1].pixelStride == 1)
-
-                        var nv21: ByteArray = if (isI420) nativeUtils.yuvToNv21Slow(image) else nativeUtils.toNv21(image)!!
-
-                        var realWidth = image.width
-                        var realHeight = image.height
-
-                        if (rotation > 0) {
-                            nv21 = RotateUtils.rotate(nv21, realWidth, realHeight, rotation)!!
-                            if (rotation != 180) {
-                                realWidth = image.height
-                                realHeight = image.width
-                            }
-                        }
-
-                        val yuv = YuvImage(nv21, ImageFormat.NV21, realWidth, realHeight, null)
-                        yuv.compressToJpeg(Rect(0, 0, realWidth, realHeight), 80, out)
-                        synchronized(latestFrame) {
-                            latestFrame = out.toByteArray()
-                            lastImageMilliseconds = System.currentTimeMillis()
-                            out.reset()
-                        }
-                    }
-                    image.close()
-                }
+              _logger.log(this) {
+                "Unbound use case $useCase after unreferenced for ${initState.unbindDelayMs} ms"
+              }
             }
-
-            cameraProcessProvider?.unbindAll()
-            currentCamera = cameraProcessProvider?.bindToLifecycle(
-                this,
-                cameraSelector,
-                imageCapture,
-                imageAnalysis
-            )
-
-            if (cameraSettings.disableAF) {
-                val cameraControl: CameraControl = currentCamera!!.cameraControl
-                val camera2CameraControl: Camera2CameraControl =
-                    Camera2CameraControl.from(cameraControl)
-
-                val captureRequestOptions = CaptureRequestOptions.Builder()
-                    .setCaptureRequestOption(
-                        CaptureRequest.CONTROL_AF_MODE,
-                        CameraMetadata.CONTROL_AF_MODE_OFF
-                    )
-                    .build()
-                camera2CameraControl.captureRequestOptions = captureRequestOptions
-            }
-            cameraInitialized = true
-        }, ContextCompat.getMainExecutor(applicationContext))
-        octoprintHandler.isCameraServerRunning = true
+          }
+        }
+      }
     }
+  }
+
+  private fun checkForCamera(): Boolean {
+    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+        PackageManager.PERMISSION_GRANTED) {
+      return false
+    }
+    // ensure that the cameras are enumerated
+    _cameraEnumerationRepository.enumerateCameras()
+    // check if the device has any cameras at all
+    // some TV boxes have no cameras at all, and it causes cameraSelector to throw an exception
+    if (_cameraEnumerationRepository.enumeratedCameras.value?.isEmpty() != false) {
+      return false
+    }
+    return true
+  }
 }

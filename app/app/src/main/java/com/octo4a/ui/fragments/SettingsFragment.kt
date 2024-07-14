@@ -32,7 +32,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     // Camera permission request
     private val hasCameraPermission: Boolean
-        get() = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        get() = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
 
     // Preferences
     private val enableCameraPref by lazy { findPreference<SwitchPreferenceCompat>("enableCameraServer") }
@@ -40,12 +43,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val sshPortPref by lazy { findPreference<EditTextPreference>("sshPort") }
     private val selectedCameraPref by lazy { findPreference<ListPreference>("selectedCamera") }
     private val selectedCameraResolution by lazy { findPreference<ListPreference>("selectedResolution") }
+    private val selectedCameraVideoResolution by lazy { findPreference<ListPreference>("selectedVideoResolution") }
     private val sshPasswordPref by lazy { findPreference<EditTextPreference>("changeSSHPassword") }
     private val fpsLimit by lazy { findPreference<ListPreference>("fpsLimit") }
     private val flashWhenObserved by lazy { findPreference<SwitchPreferenceCompat>("flashWhenObserved") }
     private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
-    private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
+    private val manualAF by lazy { findPreference<SwitchPreferenceCompat>("manualAF") }
     private val enableBugReporting by lazy { findPreference<SwitchPreferenceCompat>("enableBugReporting") }
 
     private val requestCameraPermission =
@@ -56,6 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 octoprintHandler.isCameraServerRunning = true
             }
         }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
 
@@ -82,7 +87,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         octoprintHandler.extrasStatus.asLiveData().observe(viewLifecycleOwner) {
-            when(it) {
+            when (it) {
                 ExtrasStatus.Installing -> {
                     installPluginExtras?.summary = "Installing..."
                 }
@@ -122,12 +127,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     octoprintHandler.startSSH()
 
                     true
-                } else { false }
+                } else {
+                    false
+                }
             }
             setDefaultValue("8022")
         }
-        enableSSH?.setOnPreferenceChangeListener {
-                _, newValue ->
+        enableSSH?.setOnPreferenceChangeListener { _, newValue ->
             if (newValue as Boolean) {
                 if (octoprintHandler.isSSHConfigured) {
                     octoprintHandler.startSSH()
@@ -145,10 +151,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
             summary = "*".repeat(prefs.changeSSHPassword?.length ?: 0)
             setOnBindEditTextListener {
                 it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                sshPasswordPref?.summaryProvider = Preference.SummaryProvider<EditTextPreference> {
-                        pref ->
-                    "*".repeat(pref?.text?.length ?: 0)
-                }
+                sshPasswordPref?.summaryProvider =
+                    Preference.SummaryProvider<EditTextPreference> { pref ->
+                        "*".repeat(pref?.text?.length ?: 0)
+                    }
             }
             setOnPreferenceChangeListener { _, newValue ->
                 octoprintHandler.stopSSH()
@@ -222,14 +228,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 cameras.firstOrNull { it.isBackFacing } ?: cameras.firstOrNull()
 
             // First resolution that's wider than 1000px
-            val selectedResolution = selectedCamera?.sizes?.sortedBy { it.width }?.firstOrNull { it.width >= 1000 } ?: selectedCamera?.sizes?.first()
+            val selectedResolution =
+                selectedCamera?.sizes?.sortedBy { it.width }?.firstOrNull { it.width >= 1000 }
+                    ?: selectedCamera?.sizes?.first()
             prefs.selectedCamera = selectedCamera?.id
             prefs.selectedResolution = selectedResolution?.readableString()
+            prefs.selectedVideoResolution = selectedResolution?.readableString()
         }
 
-        disableAF?.apply {
+        manualAF?.apply {
             setOnPreferenceChangeListener { _, newValue ->
-                prefs.disableAF = newValue as Boolean
+                prefs.manualAF = newValue as Boolean
                 stopCameraServer()
                 startCameraServer()
                 true
@@ -247,6 +256,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 prefs.selectedResolution = selectedCam?.getRecommendedSize()?.readableString()
                 setCameraResolutions(newValue)
                 selectedCameraResolution?.value = prefs.selectedResolution
+                selectedCameraVideoResolution?.value = prefs.selectedVideoResolution
                 startCameraServer()
                 true
             }
@@ -255,6 +265,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         selectedCameraPref?.value = currentCam!!
         setCameraResolutions(currentCam)
         selectedCameraResolution?.value = prefs.selectedResolution
+        selectedCameraVideoResolution?.value = prefs.selectedVideoResolution
     }
 
     private fun setCameraResolutions(selectedCam: String) {
@@ -264,6 +275,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
             entryValues = entries
             setOnPreferenceChangeListener { _, value ->
                 prefs.selectedResolution = value as String
+                startCameraServer()
+                true
+            }
+        }
+        selectedCameraVideoResolution?.apply {
+            entries = camera?.sizes?.map { it.readableString() }?.toTypedArray()
+            entryValues = entries
+            setOnPreferenceChangeListener { _, value ->
+                prefs.selectedVideoResolution = value as String
                 startCameraServer()
                 true
             }
