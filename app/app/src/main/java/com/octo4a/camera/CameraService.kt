@@ -10,6 +10,7 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
 import android.os.Binder
@@ -21,6 +22,7 @@ import android.util.Range
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -36,13 +38,14 @@ import com.octo4a.repository.OctoPrintHandlerRepository
 import com.octo4a.utils.CancelableTimer
 import com.octo4a.utils.WaitableEvent
 import com.octo4a.utils.preferences.MainPreferences
+import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-import java.util.HashMap
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import org.koin.android.ext.android.inject
+
 
 const val UNBIND_DELAY_MS: Long = 5 * 60 * 1000 // Unbind the camera after 5 minutes of no use
 const val UNBIND_STREAM_DELAY_MS: Long = 10 * 1000 // Unbind streams faster to save CPU
@@ -68,9 +71,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       var waitEvent: WaitableEvent = WaitableEvent(),
       val unbindTimer: CancelableTimer = CancelableTimer(),
       var cameraControl: CameraControl? = null,
+      var minFocalLength: Float? = null
   )
 
-  fun CompletableInitState.setState(newState: InitState) {
+  private fun CompletableInitState.setState(newState: InitState) {
     state = newState
     callback?.invoke(this)
   }
@@ -89,8 +93,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private var _cameraProcessProvider: ProcessCameraProvider? = null
   private val _cameraBoundUseCases: MutableMap<UseCase, CompletableInitState> = HashMap()
   private var _fpsLimit: Int = -1
-  private var _torchRefCnt: Int = 0
-
+  private var _torchRefCnt = AtomicInteger(0)
   private val _octoprintHandler: OctoPrintHandlerRepository by inject()
   private val _cameraEnumerationRepository: CameraEnumerationRepository by inject()
   private val _captureExecutor by lazy { Executors.newCachedThreadPool() }
@@ -100,6 +103,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private val _callbackExecutorPool by lazy { Executors.newCachedThreadPool() }
   private var _lastImageMilliseconds = System.currentTimeMillis()
 
+  fun getCameraMinFocalLength(): Float? {
+    var minFocalLength: Float? = null
+    _cameraBoundUseCases.entries
+      .firstOrNull { it.value.cameraControl != null }
+      ?.let { entry -> minFocalLength = entry.value.minFocalLength }
+    _logger.log(this) { "Got min focal length : $minFocalLength" }
+    return minFocalLength
+  }
+
+  @SuppressLint("UnsafeExperimentalUsageError")
   private fun <T> setFpsAndAutofocus(builder: T) where T : ExtendableBuilder<*>, T : Any {
     val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
     if (_cameraSettings.disableAF) {
@@ -108,9 +121,16 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
       ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f)
-    } else {
+    } else if (_cameraSettings.manualAF) {
+      ext.setCaptureRequestOption(
+        CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+      ext.setCaptureRequestOption(
+        CaptureRequest.LENS_FOCUS_DISTANCE, _cameraSettings.manualAFValue)
+    }
+    else {
       ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+
     }
 
     if (_fpsLimit > 0) {
@@ -130,23 +150,24 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         .build()
   }
 
-  private val _cameraPreview by lazy {
-    val builder =
+  private var _cameraPreview: Preview? = null
+
+  private fun createCameraPreview(): Preview {
+      val builder =
         Preview.Builder()
-            .setTargetResolution(
-                Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
-            .setTargetRotation(getSettingsRotation())
+          .setTargetResolution(
+            Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
+          .setTargetRotation(getSettingsRotation())
 
-    setFpsAndAutofocus(builder)
+      setFpsAndAutofocus(builder)
 
-    val ret = builder.build()
-    _cameraBoundUseCases[ret] =
+      val ret = builder.build()
+      _cameraBoundUseCases[ret] =
         CompletableInitState(
-            InitState.NOT_INITIALIZED,
-            callback = ::torchControlCallback,
-            unbindDelayMs = UNBIND_STREAM_DELAY_MS)
-
-    ret
+          InitState.NOT_INITIALIZED,
+          callback = ::torchControlCallback,
+          unbindDelayMs = UNBIND_STREAM_DELAY_MS)
+    return ret
   }
 
   private val _imageCapture by lazy {
@@ -198,33 +219,29 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   }
 
   private fun addTorchUser(cameraControl: CameraControl? = null) {
-    synchronized(_torchRefCnt) {
-      _torchRefCnt += 1
-      if (_torchRefCnt == 1) {
+      val refCnt = _torchRefCnt.incrementAndGet()
+      if (refCnt == 1) {
         _logger.log(this) { "Torch now has users" }
       }
-      if (_torchRefCnt > 0 ) {
+      if (refCnt > 0 ) {
         if (_cameraSettings.flashWhenObserved) {
           (cameraControl ?: getCameraControl())?.enableTorch(true)
         }
       }
-    }
   }
 
   private fun removeTorchUser(cameraControl: CameraControl? = null) {
-    synchronized(_torchRefCnt) {
-      if (_torchRefCnt > 0) {
-        _torchRefCnt -= 1
+      if (_torchRefCnt.get() > 0) {
+        _torchRefCnt.decrementAndGet()
       } else {
         _logger.log(this) { "Excessive removeTorchUser calls!" }
       }
-      if (_torchRefCnt == 0) {
+      if (_torchRefCnt.get() == 0) {
         if (_cameraSettings.flashWhenObserved) {
           (cameraControl ?: getCameraControl())?.enableTorch(false)
         }
         _logger.log(this) { "Torch has no more users" }
       }
-    }
   }
 
   private fun torchControlCallback(initState: CompletableInitState): Unit {
@@ -288,7 +305,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   }
 
   override fun getNewFrame(prevFrame: MJpegFrameProvider.FrameInfo?): MJpegFrameProvider.FrameInfo {
-    while (_latestFrameInfo.frameInfo.id <= prevFrame?.id ?: 0) {
+    while (_latestFrameInfo.frameInfo.id <= (prevFrame?.id ?: 0)) {
       _latestFrameInfo.waitEvent.wait(autoreset = true)
     }
     synchronized(_latestFrameInfo) {
@@ -393,23 +410,40 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     _octoprintHandler.isCameraServerRunning = false
   }
 
-  fun getPreview(lifecycleOwner: LifecycleOwner): Preview? {
-    if (!initUseCase(_cameraPreview, block = true)) {
+  fun hookPreviewLifecycleObserver(lifecycleOwner: LifecycleOwner) {
+    // Bind to preview destruction via the passed in lifecycleowner
+    lifecycleOwner
+      .lifecycle
+      .addObserver(
+        object : LifecycleObserver {
+          @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+          fun onStop() {
+            _logger.log(this) { "Preview has stopped" }
+            _cameraPreview?.apply {
+              deinitUseCase(this)
+            }
+            lifecycleOwner.lifecycle.removeObserver(this)
+          }
+        })
+  }
+
+  fun getPreview(): Preview? {
+    _cameraPreview?.apply {
+      if (_cameraBoundUseCases[this]!!.refcnt > 0) {
+        // Deinit camera's usecase if one exists
+        deinitUseCase(this)
+      }
+    }
+
+    if (_cameraPreview == null) {
+      _cameraPreview = createCameraPreview()
+    }
+
+    if (!initUseCase(_cameraPreview!!, block = true)) {
       return null
     }
 
-    // Bind to preview destruction via the passed in lifecycleowner
-    lifecycleOwner
-        .getLifecycle()
-        .addObserver(
-            object : LifecycleObserver {
-              @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-              fun onStop() {
-                _logger.log(this) { "Preview has stopped" }
-                deinitUseCase(_cameraPreview)
-                lifecycleOwner.lifecycle.removeObserver(this)
-              }
-            })
+
     return _cameraPreview
   }
 
@@ -460,8 +494,8 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     var waitForInitNeeded = false
     var initState: CompletableInitState
     synchronized(_cameraBoundUseCases) {
-      _cameraBoundUseCases.computeIfAbsent(useCase) {
-        CompletableInitState(InitState.NOT_INITIALIZED)
+      if (!_cameraBoundUseCases.contains(useCase)) {
+        _cameraBoundUseCases[useCase] = CompletableInitState(InitState.NOT_INITIALIZED)
       }
       initState = _cameraBoundUseCases[useCase]!!
     }
@@ -488,7 +522,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     if (initState.state != InitState.INITIALIZING) {
       return (initState.state == InitState.INITIALIZED)
     }
+
+    @SuppressLint("UnsafeExperimentalUsageError", "RestrictedApi")
     fun bindCamera() {
+      _logger.log(this) { "bind camera called"}
       var camera: Camera?
       try {
         camera = _cameraProcessProvider?.bindToLifecycle(this, _cameraSelector, useCase)
@@ -497,6 +534,17 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
           initState.refcnt += 1
           initState.cameraControl = camera?.cameraControl
           initState.setState(InitState.INITIALIZED)
+          initState.minFocalLength = null
+
+          try {
+            val cameraInfo = camera?.cameraInfo!!
+            val camChars = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo)
+            val minFocus = camChars.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE)
+            _logger.log(this) { "Min camera length focus $minFocus" }
+            initState.minFocalLength = minFocus!!
+          } catch (e: Exception) {
+            _logger.log(this) { "Failed to get min focus length: $e" }
+          }
         }
       } catch (e: Exception) {
         initState.setState(InitState.FAILED)
@@ -505,6 +553,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         initState.waitEvent.set()
       }
     }
+
     val handler = Handler(Looper.getMainLooper())
     if (block) {
       val isMainThread = Looper.getMainLooper().thread == Thread.currentThread()
@@ -525,9 +574,10 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
   private fun deinitUseCase(useCase: UseCase) {
     var initState: CompletableInitState
     synchronized(_cameraBoundUseCases) {
-      _cameraBoundUseCases.computeIfAbsent(useCase) {
-        CompletableInitState(InitState.NOT_INITIALIZED)
+      if (!_cameraBoundUseCases.contains(useCase)) {
+        _cameraBoundUseCases[useCase] = CompletableInitState(InitState.NOT_INITIALIZED)
       }
+
       initState = _cameraBoundUseCases[useCase]!!
     }
     synchronized(initState) {
@@ -537,21 +587,21 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       if (initState.refcnt == 0) {
         initState.setState(InitState.UNINITIALIZING)
         initState.unbindTimer.start(
-            initState.unbindDelayMs,
-            {
-              synchronized(initState) {
-                if (initState.state == InitState.UNINITIALIZING) {
-                  _cameraProcessProvider?.unbind(useCase)
-                  initState.cameraControl = null
-                  initState.setState(InitState.NOT_INITIALIZED)
-                  initState.waitEvent.reset()
+            initState.unbindDelayMs
+        ) {
+          synchronized(initState) {
+            if (initState.state == InitState.UNINITIALIZING) {
+              _cameraProcessProvider?.unbind(useCase)
+              initState.cameraControl = null
+              initState.setState(InitState.NOT_INITIALIZED)
+              initState.waitEvent.reset()
 
-                  _logger.log(this) {
-                    "Unbound use case $useCase after unreferenced for ${initState.unbindDelayMs} ms"
-                  }
-                }
+              _logger.log(this) {
+                "Unbound use case $useCase after unreferenced for ${initState.unbindDelayMs} ms"
               }
-            })
+            }
+          }
+        }
       }
     }
   }

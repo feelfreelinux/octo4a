@@ -99,6 +99,13 @@
                 app:summary="Turn on flash when camera is being observed"/>
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
+                app:key="manualAF"
+                app:dependency="enableCameraServer"
+                app:defaultValue="false"
+                app:title="Manual autofocus"
+                app:summary="Adjust in the camera preview dialog."/>
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
                 app:key="disableAF"
                 app:dependency="enableCameraServer"
                 app:defaultValue="false"

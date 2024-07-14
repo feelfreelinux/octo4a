@@ -73,4 +73,5 @@
     <string name="ip_address_copied_to_clipboard">IP address copied to clipboard!</string>
     <string name="unofficial_app_note">This is an unofficial app, not affiliated with OctoPrint project. Use at your own risk.</string>
     <string name="unofficial_app_thanks">Thanks for using this app.</string>
+    <string name="camera_preview_manual_af">Manual camera focus</string>
 </resources>
