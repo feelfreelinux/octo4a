@@ -76,10 +76,6 @@ class CameraPreviewDialogFragment : DialogFragment() {
         super.onStop()
         requireActivity().unbindService(cameraServiceConnection)
         _cameraService = null
-
-        // restart camera server to update AF settings
-        stopCameraServer()
-        startCameraServer()
     }
 
     override fun onCreateView(
@@ -140,27 +136,4 @@ class CameraPreviewDialogFragment : DialogFragment() {
             }
         }
     }
-
-    private fun startCameraServer() {
-        val activityContext = requireActivity()
-        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
-
-        if (activityContext.isServiceRunning(CameraService::class.java)) {
-            activityContext.stopService(cameraServiceIntent)
-        }
-        activityContext.startService(cameraServiceIntent)
-
-    }
-
-    private fun stopCameraServer() {
-        val activityContext = requireActivity()
-
-        val cameraServiceIntent = Intent(activityContext, CameraService::class.java)
-
-        if (activityContext.isServiceRunning(CameraService::class.java)) {
-            activityContext.stopService(cameraServiceIntent)
-        }
-
-    }
-
 }

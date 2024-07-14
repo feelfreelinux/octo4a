@@ -566,6 +566,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
       }
 
       initState = _cameraBoundUseCases[useCase]!!
+      if (initState.refcnt == 0) return
     }
     synchronized(initState) {
       _logger.log(this) { "Entering deinitUseCase [$useCase] : [$initState]" }

@@ -64,17 +64,6 @@ class ServerFragment : Fragment() {
     private val mainPreferences: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
 
-    private val cameraServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as CameraService.LocalBinder
-            _cameraService = binder.getService()
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            _cameraService = null
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
