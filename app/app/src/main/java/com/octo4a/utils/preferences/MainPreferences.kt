@@ -8,7 +8,6 @@ class MainPreferences(context: Context) : Preferences(context, true) {
     var selectedResolution by stringPref()
     var selectedVideoResolution by stringPref()
     var enableSSH by booleanPref(defaultValue = false)
-    var disableAF by booleanPref(defaultValue = false)
     var manualAF by booleanPref(defaultValue = false)
     var manualAFValue by floatPref(defaultValue = 0f)
     var changeSSHPassword by stringPref()

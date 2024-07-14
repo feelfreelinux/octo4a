@@ -399,13 +399,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     getCameraControl()?.apply {
       val control = Camera2CameraControl.from(this)
       val ext = CaptureRequestOptions.Builder()
-      if (_cameraSettings.disableAF) {
-        ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
-        ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-        ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f)
-      } else if (_cameraSettings.manualAF) {
+      if (_cameraSettings.manualAF) {
         ext.setCaptureRequestOption(
           CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
         ext.setCaptureRequestOption(

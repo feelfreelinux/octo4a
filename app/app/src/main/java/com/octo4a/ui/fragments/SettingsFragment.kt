@@ -49,7 +49,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val flashWhenObserved by lazy { findPreference<SwitchPreferenceCompat>("flashWhenObserved") }
     private val installPluginExtras by lazy { findPreference<Preference>("installPluginExtras") }
     private val imageRotation by lazy { findPreference<ListPreference>("imageRotation") }
-    private val disableAF by lazy { findPreference<SwitchPreferenceCompat>("disableAF") }
     private val manualAF by lazy { findPreference<SwitchPreferenceCompat>("manualAF") }
     private val enableBugReporting by lazy { findPreference<SwitchPreferenceCompat>("enableBugReporting") }
 
@@ -237,20 +236,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
             prefs.selectedVideoResolution = selectedResolution?.readableString()
         }
 
-        disableAF?.apply {
+        manualAF?.apply {
             setOnPreferenceChangeListener { _, newValue ->
-                prefs.disableAF = newValue as Boolean
+                prefs.manualAF = newValue as Boolean
                 stopCameraServer()
                 startCameraServer()
                 true
             }
-        }
-
-        disableAF?.isVisible = disableAF!!.isVisible && !prefs.manualAF
-
-        manualAF?.setOnPreferenceChangeListener { _, newValue ->
-            disableAF?.isVisible = !(newValue as Boolean)
-            true
         }
 
         selectedCameraPref?.apply {

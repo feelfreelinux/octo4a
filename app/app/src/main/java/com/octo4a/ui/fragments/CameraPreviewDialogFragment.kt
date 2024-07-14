@@ -22,7 +22,6 @@ import com.google.android.material.slider.Slider.OnSliderTouchListener
 import com.octo4a.R
 import com.octo4a.camera.CameraService
 import com.octo4a.repository.LoggerRepository
-import com.octo4a.utils.isServiceRunning
 import com.octo4a.utils.preferences.MainPreferences
 import kotlinx.android.synthetic.main.dialog_camera_preview.manualFocusCheckbox
 import kotlinx.android.synthetic.main.dialog_camera_preview.manualFocusSlider

@@ -102,15 +102,8 @@
                 app:key="manualAF"
                 app:dependency="enableCameraServer"
                 app:defaultValue="false"
-                app:title="Manual autofocus"
+                app:title="Manual camera focus"
                 app:summary="Adjust in the camera preview dialog."/>
-        <SwitchPreferenceCompat
-                app:iconSpaceReserved="false"
-                app:key="disableAF"
-                app:dependency="enableCameraServer"
-                app:defaultValue="false"
-                app:title="Disable autofocus"
-                app:summary="Disables camera autofocus"/>
     </PreferenceCategory>
 
 
