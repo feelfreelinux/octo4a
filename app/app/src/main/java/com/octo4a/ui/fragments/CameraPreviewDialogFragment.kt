@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.camera.core.Preview
 import androidx.core.view.isGone
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -36,6 +37,7 @@ class CameraPreviewDialogFragment : DialogFragment() {
     private var _cameraService: CameraService? = null
     private val mainPreferences: MainPreferences by inject()
     private val logger: LoggerRepository by inject()
+    private var _cameraPreview: Preview? = null
 
     private val cameraServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -88,21 +90,18 @@ class CameraPreviewDialogFragment : DialogFragment() {
     }
 
     private fun reinitPreview() {
-        view?.apply {
-            val preview = _cameraService!!.getPreview()
-            preview?.setSurfaceProvider(previewView.surfaceProvider)
-        }
+       _cameraService?.updateCameraParameters()
     }
 
     private fun initializeWithService() {
-        val preview = _cameraService!!.getPreview()
+        _cameraPreview = _cameraService!!.getPreview()
         _cameraService?.hookPreviewLifecycleObserver(this)
         logger.log { "init with service" }
         val minFocalLength = _cameraService?.getCameraMinFocalLength()
         val supportsManualFocus = minFocalLength != null && minFocalLength > 0f
 
         view?.apply {
-            preview?.setSurfaceProvider(previewView.surfaceProvider)
+            _cameraPreview?.setSurfaceProvider(previewView.surfaceProvider)
             manualFocusSlider?.isGone = !(mainPreferences.manualAF && supportsManualFocus)
             manualFocusCheckbox?.isGone = !supportsManualFocus
             manualFocusCheckbox?.isChecked = supportsManualFocus && mainPreferences.manualAF

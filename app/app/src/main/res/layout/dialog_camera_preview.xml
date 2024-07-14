@@ -9,6 +9,7 @@
     <androidx.camera.view.PreviewView
             android:layout_marginHorizontal="0dp"
             android:layout_width="match_parent"
+            android:layout_marginTop="16dp"
             app:scaleType="fillCenter"
             app:implementationMode="compatible"
             android:layout_height="280dp"

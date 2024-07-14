@@ -22,8 +22,10 @@ import android.util.Range
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -112,33 +114,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
     return minFocalLength
   }
 
-  @SuppressLint("UnsafeExperimentalUsageError")
-  private fun <T> setFpsAndAutofocus(builder: T) where T : ExtendableBuilder<*>, T : Any {
-    val ext: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
-    if (_cameraSettings.disableAF) {
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-      ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f)
-    } else if (_cameraSettings.manualAF) {
-      ext.setCaptureRequestOption(
-        CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
-      ext.setCaptureRequestOption(
-        CaptureRequest.LENS_FOCUS_DISTANCE, _cameraSettings.manualAFValue)
-    }
-    else {
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
-
-    }
-
-    if (_fpsLimit > 0) {
-      ext.setCaptureRequestOption(
-          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
-    }
-  }
-
   private val _cameraSelector by lazy {
     CameraSelector.Builder()
         .apply {
@@ -150,24 +125,20 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
         .build()
   }
 
-  private var _cameraPreview: Preview? = null
+  private val _cameraPreview by lazy {
+    val builder =
+      Preview.Builder()
+        .setTargetResolution(
+          Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
+        .setTargetRotation(getSettingsRotation())
 
-  private fun createCameraPreview(): Preview {
-      val builder =
-        Preview.Builder()
-          .setTargetResolution(
-            Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
-          .setTargetRotation(getSettingsRotation())
-
-      setFpsAndAutofocus(builder)
-
-      val ret = builder.build()
-      _cameraBoundUseCases[ret] =
-        CompletableInitState(
-          InitState.NOT_INITIALIZED,
-          callback = ::torchControlCallback,
-          unbindDelayMs = UNBIND_STREAM_DELAY_MS)
-    return ret
+    val ret = builder.build()
+    _cameraBoundUseCases[ret] =
+      CompletableInitState(
+        InitState.NOT_INITIALIZED,
+        callback = ::torchControlCallback,
+        unbindDelayMs = UNBIND_STREAM_DELAY_MS)
+    ret
   }
 
   private val _imageCapture by lazy {
@@ -195,8 +166,6 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
                 Size.parseSize(_cameraSettings.selectedVideoResolution ?: "1280x720"))
             .setTargetRotation(getSettingsRotation())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-
-    setFpsAndAutofocus(builder)
 
     val ret = builder.build()
     _cameraBoundUseCases[ret] =
@@ -419,27 +388,44 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
           @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
           fun onStop() {
             _logger.log(this) { "Preview has stopped" }
-            _cameraPreview?.apply {
-              deinitUseCase(this)
-            }
+            deinitUseCase(_cameraPreview)
             lifecycleOwner.lifecycle.removeObserver(this)
           }
         })
   }
 
-  fun getPreview(): Preview? {
-    _cameraPreview?.apply {
-      if (_cameraBoundUseCases[this]!!.refcnt > 0) {
-        // Deinit camera's usecase if one exists
-        deinitUseCase(this)
+  @SuppressLint("UnsafeExperimentalUsageError", "RestrictedApi")
+  fun updateCameraParameters() {
+    getCameraControl()?.apply {
+      val control = Camera2CameraControl.from(this)
+      val ext = CaptureRequestOptions.Builder()
+      if (_cameraSettings.disableAF) {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+        ext.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, 0f)
+      } else if (_cameraSettings.manualAF) {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+        ext.setCaptureRequestOption(
+          CaptureRequest.LENS_FOCUS_DISTANCE, _cameraSettings.manualAFValue)
       }
-    }
+      else {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+      }
 
-    if (_cameraPreview == null) {
-      _cameraPreview = createCameraPreview()
-    }
+      if (_fpsLimit > 0) {
+        ext.setCaptureRequestOption(
+          CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range<Int>(_fpsLimit, _fpsLimit))
+      }
 
-    if (!initUseCase(_cameraPreview!!, block = true)) {
+      control.setCaptureRequestOptions(ext.build())
+    }
+  }
+  fun getPreview(): Preview? {
+    if (!initUseCase(_cameraPreview, block = true)) {
       return null
     }
 
@@ -535,6 +521,7 @@ class CameraService : LifecycleService(), MJpegFrameProvider {
           initState.cameraControl = camera?.cameraControl
           initState.setState(InitState.INITIALIZED)
           initState.minFocalLength = null
+          updateCameraParameters()
 
           try {
             val cameraInfo = camera?.cameraInfo!!
