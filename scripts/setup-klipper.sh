@@ -33,7 +33,7 @@ EOF
 cat << EOF > /mnt/external/extensions/klipper/start.sh
 #!/bin/sh
 KLIPPER_ARGS="/root/klipper/klippy/klippy.py /root/printer.cfg -l /root/printer_data/logs/klippy.log -I /root/printer_data/comms/klippy.serial -a /root/printer_data/comms/klippy.sock"
-/root/klipper-venv/bin/python \$KLIPPER_ARGS &
+LD_PRELOAD=/home/octoprint/ioctl-hook.so /root/klipper-venv/bin/python \$KLIPPER_ARGS &
 EOF
 
 cat << EOF > /mnt/external/extensions/klipper/kill.sh
