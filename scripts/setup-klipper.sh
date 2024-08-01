@@ -1,55 +1,57 @@
 #!/bin/bash
-set -e
 COL='\033[1;32m'
 NC='\033[0m' # No Color
-echo -e "${COL}Setting up klipper"
+echo -e "${COL}Setting up klipper for Octo4a v2.x"
 
-read -p "Do you have \"Plugin extras\" installed? (y/n): " -n 1 -r
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-    echo -e "${COL}\nPlease go to settings and install plugin extras${NC}"
-    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
-fi
+# Prepare venv for klipper
+python3 -m venv ~/klipper-venv
 
-echo -e "${COL}\nInstalling dependencies...\n${NC}"
-# install required dependencies
-apk add py3-cffi py3-greenlet linux-headers can-utils
-pip3 install python-can
+echo -e "${COL}\nDownloading klipper...\n${NC}"
+cd ~/
+git clone https://github.com/KevinOConnor/klipper
 
-echo -e "${COL}Downloading klipper\n${NC}"
-curl -o klipper.zip -L https://github.com/Klipper3d/klipper/archive/refs/heads/master.zip
+~/klipper-venv/bin/pip install -r ./klipper/scripts/klippy-requirements.txt
 
-echo -e "${COL}Extracting klipper\n${NC}"
-unzip klipper.zip
-rm -rf klipper.zip
-mv klipper-master /klipper
-echo "# replace with your config" >> /root/printer.cfg
+# Prepare necessary directories
+mkdir ~/printer_data/
+mkdir ~/printer_data/logs
+mkdir ~/printer_data/gcodes
+mkdir ~/printer_data/systemd
+mkdir ~/printer_data/comms
+touch ~/printer.cfg
 
-mkdir -p /root/extensions/klipper
-cat << EOF > /root/extensions/klipper/manifest.json
+echo -e "${COL}\nInserting configurations...\n${NC}"
+
+mkdir -p /mnt/external/extensions/klipper
+cat << EOF > /mnt/external/extensions/klipper/manifest.json
 {
         "title": "Klipper plugin",
-        "description": "Requires OctoKlipper plugin"
+        "description": "Runs Klipper"
 }
 EOF
 
-cat << EOF > /root/extensions/klipper/start.sh
+cat << EOF > /mnt/external/extensions/klipper/start.sh
 #!/bin/sh
-python3 /klipper/klippy/klippy.py /root/printer.cfg -l /tmp/klippy.log -a /tmp/klippy_uds
+KLIPPER_ARGS="/root/klipper/klippy/klippy.py /root/printer.cfg -l /root/printer_data/logs/klippy.log -I /root/printer_data/comms/klippy.serial -a /root/printer_data/comms/klippy.sock"
+LD_PRELOAD=/home/octoprint/ioctl-hook.so /root/klipper-venv/bin/python \$KLIPPER_ARGS &
 EOF
 
-cat << EOF > /root/extensions/klipper/kill.sh
+cat << EOF > /mnt/external/extensions/klipper/kill.sh
 #!/bin/sh
 pkill -f 'klippy\.py'
 EOF
-chmod +x /root/extensions/klipper/start.sh
-chmod +x /root/extensions/klipper/kill.sh
-chmod 777 /root/extensions/klipper/start.sh
-chmod 777 /root/extensions/klipper/kill.sh
+
+chmod +x /mnt/external/extensions/klipper/start.sh
+chmod +x /mnt/external/extensions/klipper/kill.sh
+chmod 777 /mnt/external/extensions/klipper/start.sh
+chmod 777 /mnt/external/extensions/klipper/kill.sh
 
 cat << EOF
 ${COL}
 Klipper installed!
-Please place your own klipper config file at /root/printer.cfg
 Please kill the app and restart it again to see it in extension settings${NC}
+
+Set your OctoKlipper plugin settings:
+    Serial Port: /root/printer_data/comms/klippy.serial
+    Klipper Log File: /root/printer_data/logs/klippy.log
 EOF
