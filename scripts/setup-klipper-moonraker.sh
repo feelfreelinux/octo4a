@@ -4,8 +4,10 @@ NC='\033[0m' # No Color
 echo -e "${COL}Setting up klipper + moonraker + mainsail"
 
 echo -e "${COL}\nInstalling dependencies...\n${NC}"
-# install required dependencies
-apk add nginx git
+# install required dependencies. 
+# Added zlib-dev and libjpeg-turbo-dev for armv7 devices that don't come with it default.
+# Added g++ since build failed without g++ on klipper requirements
+apk add nginx git zlib-dev libjpeg-turbo-dev g++
 
 nginx -t
 
@@ -222,6 +224,20 @@ server {
 }
 EOF
 
+cat << EOF > ~/printer_data/config/mainsail.cfg
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+EOF
+
+cat << EOF > ~/printer_data/config/printer.cfg
+## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
+[include mainsail.cfg]
+[mcu]
+serial:/dev/ttyOcto4a
+## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
+## -----------------------------------------------------------------------------------
+EOF
+
 mkdir -p /mnt/external/extensions/klipper
 cat << EOF > /mnt/external/extensions/klipper/manifest.json
 {
@@ -236,8 +252,8 @@ KLIPPER_ARGS="/root/klipper/klippy/klippy.py /root/printer_data/config/printer.c
 MOONRAKER_ARGS="/root/moonraker/moonraker/moonraker.py -d /root/printer_data"
 
 nginx
-/root/klipper-venv/bin/python \$KLIPPER_ARGS &
-/root/moonraker-venv/bin/python \$MOONRAKER_ARGS
+LD_PRELOAD=/home/octoprint/ioctl-hook.so /root/klipper-venv/bin/python \$KLIPPER_ARGS &
+LD_PRELOAD=/home/octoprint/ioctl-hook.so /root/moonraker-venv/bin/python \$MOONRAKER_ARGS
 EOF
 
 cat << EOF > /mnt/external/extensions/klipper/kill.sh
