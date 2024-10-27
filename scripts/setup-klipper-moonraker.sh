@@ -238,6 +238,7 @@ serial:/tty/Octo4a
 ## -----------------------------------------------------------------------------------
 EOF
 
+mkdir -p /mnt/external/extensions/klipper
 cat << EOF > /mnt/external/extensions/klipper/manifest.json
 {
         "title": "Klipper plugin",
