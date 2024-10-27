@@ -4,7 +4,9 @@ NC='\033[0m' # No Color
 echo -e "${COL}Setting up klipper + moonraker + mainsail"
 
 echo -e "${COL}\nInstalling dependencies...\n${NC}"
-# install required dependencies. Added zlib-dev and libjpeg-turbo-dev for armv7 devices that don't come with it default
+# install required dependencies. 
+# Added zlib-dev and libjpeg-turbo-dev for armv7 devices that don't come with it default.
+# Added g++ since build failed without g++ on klipper requirements
 apk add nginx git zlib-dev libjpeg-turbo-dev g++
 
 nginx -t
