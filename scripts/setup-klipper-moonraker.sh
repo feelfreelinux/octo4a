@@ -233,7 +233,7 @@ cat << EOF > ~/printer_data/config/printer.cfg
 ## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
 [include mainsail.cfg]
 [mcu]
-serial:/tty/Octo4a
+serial:/dev/ttyOcto4a
 ## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
 ## -----------------------------------------------------------------------------------
 EOF
