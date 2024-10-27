@@ -222,7 +222,20 @@ server {
 }
 EOF
 
-mkdir -p /mnt/external/extensions/klipper
+cat << EOF > ~/printer_data/config/mainsail.cfg
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+EOF
+
+cat << EOF > ~/printer_data/config/printer.cfg
+## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
+[include mainsail.cfg]
+[mcu]
+serial:/tty/Octo4a
+## APPEND YOUR PRINTER.CFG CONFIG BELOW THE LINE. THIS breaks if this is not included
+## -----------------------------------------------------------------------------------
+EOF
+
 cat << EOF > /mnt/external/extensions/klipper/manifest.json
 {
         "title": "Klipper plugin",
