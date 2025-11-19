@@ -11,7 +11,7 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <stddef.h>
-#include <sys/wait.h>ś
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
